@@ -189,7 +189,12 @@ let store: ContentStore | null = null;
 export function getStore(): ContentStore {
   if (store) return store;
   const bucket = process.env.S3_CONTENT_BUCKET;
-  if (bucket) {
+  // During `next build` the (credential-less) build container reads the
+  // committed `content/` seed; at runtime we read/write S3 (design D4). The
+  // seed equals the S3 state at deploy, and time-based ISR reconciles any
+  // post-deploy edits, so this build/runtime split is freshness-safe.
+  const isBuild = process.env.NEXT_PHASE === "phase-production-build";
+  if (bucket && !isBuild) {
     store = new S3Store(bucket, process.env.AWS_REGION ?? "eu-central-1");
   } else {
     store = new LocalFsStore(path.join(process.cwd(), "content"));
