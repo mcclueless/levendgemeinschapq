@@ -9,6 +9,11 @@ frontend:
         - pnpm install --frozen-lockfile
     build:
       commands:
+        # Amplify console env vars are build-time only; they do NOT reach the
+        # Next.js SSR runtime. Write the server-side vars into .env.production
+        # so Next loads them at runtime in the compute Lambda (AWS-documented
+        # approach). NEXT_PUBLIC_* are already inlined at build.
+        - env | grep -E '^(S3_CONTENT_BUCKET|S3_MEDIA_BUCKET|AUTH_SECRET|ADMIN_PASSWORD|AUTH_URL|AWS_REGION)=' >> .env.production || true
         - pnpm build
   artifacts:
     # Next.js SSR (App Router) on Amplify WEB_COMPUTE: deploy the .next output.
