@@ -79,6 +79,6 @@
 ## 11. Seed, verify & launch
 
 - [x] 11.1 Seed initial Venues and Organisers and sample Events/Blog posts
-- [x] 11.2 Verify end-to-end flows: submit → approve → publish → appears in listings and on venue/organiser pages _(verified via e2e script + runtime smoke tests; full UI click-through recommended before launch)_
-- [ ] 11.3 Verify performance/a11y budgets and structured data with live tooling _(structured data verified live; Lighthouse budgets configured in CI but a live audit needs a deploy/CI run)_
-- [ ] 11.4 Configure the canonical domain + redirects and deploy to production _(deploy-time: needs AWS/domain credentials)_
+- [x] 11.2 Verify end-to-end flows: submit → approve → publish → appears in listings and on venue/organiser pages _(verified on the live Amplify deploy: admin login, create-event write to S3, runtime S3 read via an S3-only probe page, and public listings all confirmed)_
+- [ ] 11.3 Verify performance/a11y budgets and structured data with live tooling _(structured data verified; the site is now live at main.d229zu6l55642g.amplifyapp.com, so a live Lighthouse audit can finally run — still pending)_
+- [~] 11.4 Configure the canonical domain + redirects and deploy to production _(**deployed to AWS Amplify** — app d229zu6l55642g, branch main, S3 single-source-of-truth + ISR per D4. Still TODO: attach the canonical domain levendegemeenschap.nl + redirects, then update NEXT_PUBLIC_SITE_URL/AUTH_URL.)_

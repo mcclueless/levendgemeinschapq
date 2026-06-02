@@ -50,6 +50,14 @@ Two orthogonal sub-decisions make this concrete:
 
 The SSR compute role (Amplify-managed) carries an S3 read/write policy for the content and media buckets; credentials come from the role via the default provider chain (no keys in code or env).
 
+**Provisioned resources (eu-central-1):** S3 `levende-gemeenschap-content` (private, seeded from git `content/`) and `levende-gemeenschap-media` (public-read); IAM policy `LevendeGemeenschapS3Access` attached to IAM role `LevendeGemeenschapAmplifyCompute`, set as the Amplify app's `computeRoleArn`; Amplify app `d229zu6l55642g`, branch `main`, default domain `main.d229zu6l55642g.amplifyapp.com`.
+
+**Amplify build/runtime gotchas (resolved during deploy):** four non-obvious issues had to be solved to get Next.js SSR working on Amplify, all captured in the repo config so they don't recur:
+- **Runtime env vars.** Amplify console env vars are **build-time only** and do not reach the SSR compute runtime. Server-side vars (`S3_CONTENT_BUCKET`, `S3_MEDIA_BUCKET`, `AUTH_SECRET`, `ADMIN_PASSWORD`, …) are written into `.env.production` during the build (in `amplify.yml`) so Next loads them at runtime. Without this, `getStore()` silently fell back to an empty local FS at runtime. (`NEXT_PUBLIC_*` are inlined at build and need no special handling.)
+- **pnpm + build cache.** pnpm's default symlinked `node_modules` does not survive Amplify's build-cache tar/untar, breaking transitive resolution (`Cannot find module 'styled-jsx/package.json'`) on the second+ build. Fixed with `node-linker=hoisted` in `.npmrc`.
+- **Externalized-package tracing.** `node-ical`'s transitive dep `temporal-polyfill` was not traced into the SSR bundle (its `exports` map defeats Next's file tracer), causing a runtime `Cannot find module 'temporal-polyfill'` 500 on `/beheer`. Fixed with `outputFileTracingIncludes` force-copying the package for every route.
+- **Build credentials.** The build container has no AWS credentials, so the build cannot read S3 — hence the build/runtime source-of-truth split above (`NEXT_PHASE` guard in `getStore()`).
+
 **Why:** The workload is read-heavy and write-light (design premise), so a bounded freshness budget beats precise push-based invalidation — it is robust on a CDN we don't own and removes the only Amplify dependency that would otherwise be load-bearing. Staying AWS-native keeps IAM, networking, and billing in one place; Amplify is the managed path (vs. assembling OpenNext infra ourselves).
 **Alternatives considered:** OpenNext on CloudFront + Lambda — more control over invalidation, but more infra to own; not chosen now that freshness is time-based. Vercel — simplest Next.js ISR path, but a second vendor; not chosen (AWS preferred).
 **Trade-off:** 600 s is a tunable knob, uniform across surfaces for now. Time-based ISR is **request-triggered**, so a rarely-visited page can stay stale beyond the window until its next visitor — acceptable for a low-traffic neighborhood calendar.
