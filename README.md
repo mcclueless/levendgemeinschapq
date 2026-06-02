@@ -8,9 +8,9 @@ A fast, accessible neighborhood event calendar: **events**, **venues**, and
 
 - **Next.js (App Router) + TypeScript**, statically generated for SEO/GEO and speed
 - **Tailwind CSS v4** with a warm, AA-accessible design system
-- **Content as MD/MDX in S3** (source of truth) with a derived query index
-- **AWS-native hosting** (CloudFront + Lambda via OpenNext) with ISR + CDN invalidation
-- **Auth.js** magic-link email auth (Amazon SES) with an admin approval queue
+- **Content as MD/MDX in S3** (single source of truth) with a derived query index
+- **AWS Amplify Hosting** (Next.js SSR) with **time-based ISR** (600s) as the freshness mechanism; on-demand revalidation is a best-effort speed-up. (See D4.)
+- **Interim single-admin auth** (password + signed-JWT session) with an admin approval queue. Multi-user magic-link email (Auth.js + Amazon SES) is a planned follow-up.
 
 See `openspec/changes/community-event-calendar/design.md` for the full rationale
 and resolved decisions.
@@ -41,6 +41,8 @@ CI (`.github/workflows/ci.yml`) runs typecheck, lint, build, and **Lighthouse CI
 ## Project status
 
 Implementation tracks `openspec/changes/community-event-calendar/tasks.md`.
-Group 1 (scaffolding & foundations) is in place; later groups add the content
-pipeline, domains (events/venues/organisers), blog, auth/approval, editorial
-backend, calendar import, and SEO/accessibility hardening.
+Feature work is complete: content pipeline, domains (events/venues/organisers),
+blog, auth/approval, editorial backend, calendar import, and SEO/accessibility
+are all in place. Remaining tasks are deploy-time only — production deployment to
+AWS Amplify, a live Lighthouse audit, and (deferred) multi-user organisation
+ownership.
