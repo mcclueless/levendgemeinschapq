@@ -1,0 +1,21 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        # Amplify's image ships Node; pin pnpm via corepack to match the lockfile.
+        - corepack enable
+        - corepack prepare pnpm@10.0.0 --activate
+        - pnpm install --frozen-lockfile
+    build:
+      commands:
+        - pnpm build
+  artifacts:
+    # Next.js SSR (App Router) on Amplify WEB_COMPUTE: deploy the .next output.
+    baseDirectory: .next
+    files:
+      - "**/*"
+  cache:
+    paths:
+      - node_modules/**/*
+      - .next/cache/**/*

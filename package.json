@@ -4,6 +4,10 @@
   "private": true,
   "description": "Community event calendar for the Levende Gemeenschap neighborhood",
   "type": "module",
+  "packageManager": "pnpm@10.0.0",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",

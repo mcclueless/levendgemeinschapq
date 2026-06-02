@@ -2,9 +2,13 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    // Media is served from the S3/CloudFront media bucket (see design D8).
-    // Remote patterns are added once the bucket/CDN domain is provisioned.
-    remotePatterns: [],
+    // Media is served from the public S3 media bucket (see design D8).
+    // Covers both virtual-hosted-style (<bucket>.s3.<region>.amazonaws.com)
+    // and path-style (s3.<region>.amazonaws.com/<bucket>) URLs in eu-central-1.
+    remotePatterns: [
+      { protocol: "https", hostname: "*.s3.eu-central-1.amazonaws.com" },
+      { protocol: "https", hostname: "s3.eu-central-1.amazonaws.com" },
+    ],
   },
   // Keep heavy CJS/native packages out of the webpack bundle; require them at
   // runtime instead (avoids bundling-time errors and keeps server chunks small).
