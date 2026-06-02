@@ -34,6 +34,10 @@ The neighborhood lacks a single, attractive place to discover what is happening,
 ### Modified Capabilities
 <!-- None — this is a greenfield project with no existing specs. -->
 
+## Non-goals
+
+- **Multilingual content (Dutch + English).** The site launches **Dutch-only**. Bilingual support is deferred to its own future change (`add-i18n`) rather than retrofitted here, because i18n is cross-cutting (routing, content model, SEO/`hreflang`, editorial backend) and its dominant cost is **ongoing content translation by editors**, not code. Interim bridge: the site's clean semantic HTML makes one-click **browser translation** (Chrome/Safari) work well, which likely satisfies the occasional English reader at zero cost. A real bilingual build is gated on two answers from the client: **who produces and maintains the English content**, and **whether a genuine English-reading audience exists**.
+
 ## Impact
 
 - **New application**: greenfield web app (no existing code in this repo). Establishes project scaffolding, build tooling, and deployment.

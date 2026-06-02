@@ -40,11 +40,19 @@ Stakeholders: neighborhood residents (primary readers), event organisers (own pa
 **Why:** Scanning all S3 objects per request is slow; recurrence expansion and "upcoming" filtering need a queryable view. Keeping S3 authoritative preserves D2.
 **Alternatives:** Query S3 directly each time (too slow, rejected); make the DB authoritative (conflicts with D2).
 
-### D4 — Hosting: AWS-native, with CDN + ISR and publish-time invalidation
-**Choice (decided):** Host on **AWS**, keeping everything in one cloud next to the S3 content/media buckets. Deploy Next.js via **OpenNext on CloudFront + Lambda** (or AWS Amplify Hosting) for native ISR/on-demand revalidation and edge caching. Public pages are served from CloudFront; on publish/update we revalidate affected pages (the changed item plus its listings, venue, and organiser pages) and issue a CloudFront invalidation for those paths. The backend is never cached.
-**Why:** S3 is already the source of truth, so staying AWS-native keeps IAM, networking, and billing in one place and avoids a second vendor.
-**Alternatives considered:** Vercel — simplest Next.js ISR path, but adds a second vendor; not chosen (AWS preferred).
-**Trade-off:** More invalidation/infra wiring than a managed platform; a short, bounded staleness window after publish — acceptable for this content.
+### D4 — Hosting: AWS Amplify, with time-based ISR as the freshness mechanism
+**Choice (decided):** Host on **AWS Amplify Hosting** (Next.js SSR/WEB_COMPUTE) in `eu-central-1`, next to the S3 content/media buckets. This narrows the earlier "OpenNext on CloudFront + Lambda *or* Amplify" option to Amplify.
+
+Two orthogonal sub-decisions make this concrete:
+
+- **Source of truth (Option A):** S3 is the single source of truth. Both the build and the runtime read content from the S3 content bucket; the git `content/` directory is one-time **seed data only**. This avoids permanent git↔S3 divergence and makes redeploys safe. Cost: the build needs S3 read credentials, and S3 must be seeded before the first build for a clean first paint.
+- **Freshness mechanism:** **time-based ISR** with a **600 s (10-minute)** revalidation window on all public pages (`export const revalidate = 600`); the backend (`/beheer/*`) is `force-dynamic` and never cached. An edit reaches users within the window via stale-while-revalidate (pull-based), self-healing from S3. On-demand `revalidatePath` (already wired in `revalidate.ts`) is kept as a **best-effort speed-up** so an editor's publish can show in seconds, but it is **not load-bearing**. Because Amplify manages its own CDN, the explicit CloudFront invalidation does not apply: `CLOUDFRONT_DISTRIBUTION_ID` is left **unset** on Amplify and the invalidation call no-ops by design.
+
+The SSR compute role (Amplify-managed) carries an S3 read/write policy for the content and media buckets; credentials come from the role via the default provider chain (no keys in code or env).
+
+**Why:** The workload is read-heavy and write-light (design premise), so a bounded freshness budget beats precise push-based invalidation — it is robust on a CDN we don't own and removes the only Amplify dependency that would otherwise be load-bearing. Staying AWS-native keeps IAM, networking, and billing in one place; Amplify is the managed path (vs. assembling OpenNext infra ourselves).
+**Alternatives considered:** OpenNext on CloudFront + Lambda — more control over invalidation, but more infra to own; not chosen now that freshness is time-based. Vercel — simplest Next.js ISR path, but a second vendor; not chosen (AWS preferred).
+**Trade-off:** 600 s is a tunable knob, uniform across surfaces for now. Time-based ISR is **request-triggered**, so a rarely-visited page can stay stale beyond the window until its next visitor — acceptable for a low-traffic neighborhood calendar.
 
 ### D5 — Recurrence handled via rules, expanded into occurrences at index time
 **Choice:** Store recurrence as a rule (RRULE-compatible: weekly/monthly, optional end date) on the event. The indexer expands the next future occurrence(s) for listings rather than materializing every event as a separate document.
@@ -102,10 +110,10 @@ Rollback: greenfield with no legacy data; redeploy a previous build and (if need
 All initial open questions are now resolved:
 
 - **Canonical domain:** `levendegemeenschap.nl` is canonical; `levende-gemeenschap.nl` and `levgem.nl` 301-redirect to it. (See migration step 8.)
-- **Hosting target:** **AWS-native** (CloudFront + Lambda via OpenNext, or Amplify Hosting), next to the S3 buckets. (See D4.)
+- **Hosting target:** **AWS Amplify Hosting** (Next.js SSR), next to the S3 buckets; S3 is the single source of truth and freshness is time-based ISR (600 s). (See D4.)
 - **Auth method:** **Magic-link email** via Auth.js, delivered through Amazon SES. Google OAuth may be added later. (See D6.)
 - **`frontend-design` plugin:** Confirmed as a **build-time authoring aid** (Anthropic Claude Code skill), not a runtime dependency. Used to build the design system, steered toward a refined-warm aesthetic with WCAG AA as a hard constraint. (See D10.)
-- **Content language & i18n:** **Dutch-only** at launch. Internationalization (locale routing, translations) is out of scope for this change.
+- **Content language & i18n:** **Dutch-only** at launch. Internationalization (locale routing, translations) is out of scope for this change and deferred to a future `add-i18n` change (see proposal Non-goals). The dominant cost is ongoing content translation by editors, not code; the interim bridge is browser auto-translate over the existing semantic HTML. A real bilingual build is gated on the client confirming who maintains English content and whether an English audience exists.
 - **Portfolio item source:** Portfolio items are a **frontmatter list on the Organiser document** (`{image, description, externalUrl | eventRef}`), not separate MDX files. Can be promoted to separate documents later if portfolios grow rich.
 - **Newsletter:** **Out of scope** for this change (listed under Non-Goals); can be added later as a focused `newsletter` capability.
 
