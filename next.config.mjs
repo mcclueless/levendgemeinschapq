@@ -14,13 +14,19 @@ const nextConfig = {
   // runtime instead (avoids bundling-time errors and keeps server chunks small).
   serverExternalPackages: [
     "node-ical",
-    // node-ical's runtime dep; externalize it too so it is copied into the
-    // SSR Lambda bundle (its exports map otherwise trips Next's file tracer,
-    // causing "Cannot find module 'temporal-polyfill'" at runtime).
+    // node-ical's runtime dep; externalize it too so it is required from
+    // node_modules at runtime rather than bundled.
     "temporal-polyfill",
     "@aws-sdk/client-s3",
     "@aws-sdk/client-cloudfront",
   ],
+  // Next's file tracer can't resolve temporal-polyfill's files (its exports
+  // map has no main/index.js), so it never reaches the SSR Lambda bundle and
+  // node-ical's runtime require fails. Force-copy the whole package into the
+  // trace for every route as an escape hatch.
+  outputFileTracingIncludes: {
+    "**": ["./node_modules/temporal-polyfill/**/*"],
+  },
 };
 
 export default nextConfig;
