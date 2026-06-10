@@ -7,7 +7,9 @@ import {
   SubmitButton,
   Textarea,
 } from "@/components/admin/form";
+import { ImageField } from "@/components/admin/image-field";
 import { requireAdmin } from "@/lib/auth-server";
+import { listMedia } from "@/content/media";
 import { createOrganiser } from "../../actions";
 
 export const metadata: Metadata = {
@@ -18,6 +20,7 @@ export const dynamic = "force-dynamic";
 
 export default async function NewOrganiserPage() {
   await requireAdmin();
+  const pool = await listMedia();
 
   return (
     <AdminShell>
@@ -41,8 +44,8 @@ export default async function NewOrganiserPage() {
           <Input id="website" name="website" type="url" placeholder="https://" />
         </Field>
 
-        <Field label="Omslagafbeelding" htmlFor="image" hint="Optioneel — getoond op de organisatorpagina en in lijsten.">
-          <Input id="image" name="image" type="file" accept="image/*" />
+        <Field label="Omslagafbeelding" htmlFor="image" hint="Optioneel — upload nieuw of kies uit de galerij.">
+          <ImageField pool={pool} />
         </Field>
 
         <Field label="Korte omschrijving" htmlFor="excerpt">

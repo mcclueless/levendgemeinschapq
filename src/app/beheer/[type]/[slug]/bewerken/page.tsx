@@ -8,9 +8,11 @@ import {
   SubmitButton,
   Textarea,
 } from "@/components/admin/form";
+import { ImageField } from "@/components/admin/image-field";
 import { requireAdmin } from "@/lib/auth-server";
 import { getEditable } from "@/content/admin";
 import { getOrganisers, getVenues } from "@/content/repository";
+import { listMedia } from "@/content/media";
 import { ADMIN_SEGMENT_TO_TYPE, type AdminSegment } from "@/lib/routes";
 import {
   updateBlog,
@@ -55,15 +57,6 @@ function toDateInput(v: unknown): string {
   return "";
 }
 
-function CurrentImage({ src }: { src?: string }) {
-  if (!src) return null;
-  return (
-    <p className="text-xs text-muted">
-      Huidige afbeelding: <code>{src}</code>. Upload een nieuwe om te vervangen.
-    </p>
-  );
-}
-
 export default async function EditPage({
   params,
 }: {
@@ -73,6 +66,7 @@ export default async function EditPage({
   const { type: segment, slug } = await params;
   if (!isSegment(segment)) notFound();
   const type = ADMIN_SEGMENT_TO_TYPE[segment];
+  const pool = await listMedia();
 
   const formClass = "mt-8 grid max-w-2xl gap-5";
 
@@ -93,8 +87,7 @@ export default async function EditPage({
             <Input id="title" name="title" required defaultValue={d.title} />
           </Field>
           <Field label="Uitgelichte afbeelding" htmlFor="image">
-            <Input id="image" name="image" type="file" accept="image/*" />
-            <CurrentImage src={d.featuredImage} />
+            <ImageField pool={pool} current={d.featuredImage} />
           </Field>
           <div className="grid gap-5 sm:grid-cols-2">
             <Field label="Start" htmlFor="start" required>
@@ -210,8 +203,7 @@ export default async function EditPage({
             </Field>
           </div>
           <Field label="Omslagafbeelding" htmlFor="image">
-            <Input id="image" name="image" type="file" accept="image/*" />
-            <CurrentImage src={d.featuredImage} />
+            <ImageField pool={pool} current={d.featuredImage} />
           </Field>
           <Field label="Korte omschrijving" htmlFor="excerpt">
             <Input id="excerpt" name="excerpt" defaultValue={d.excerpt} />
@@ -251,8 +243,7 @@ export default async function EditPage({
             <Input id="website" name="website" type="url" defaultValue={d.website} />
           </Field>
           <Field label="Omslagafbeelding" htmlFor="image">
-            <Input id="image" name="image" type="file" accept="image/*" />
-            <CurrentImage src={d.featuredImage} />
+            <ImageField pool={pool} current={d.featuredImage} />
           </Field>
           <Field label="Korte omschrijving" htmlFor="excerpt">
             <Input id="excerpt" name="excerpt" defaultValue={d.excerpt} />
@@ -299,8 +290,7 @@ export default async function EditPage({
           </Field>
         </div>
         <Field label="Uitgelichte afbeelding" htmlFor="image">
-          <Input id="image" name="image" type="file" accept="image/*" />
-          <CurrentImage src={d.featuredImage} />
+          <ImageField pool={pool} current={d.featuredImage} />
         </Field>
         <Field label="Korte omschrijving" htmlFor="excerpt">
           <Input id="excerpt" name="excerpt" defaultValue={d.excerpt} />

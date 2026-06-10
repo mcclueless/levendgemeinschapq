@@ -35,6 +35,16 @@ function str(form: FormData, key: string): string | undefined {
   return typeof v === "string" && v.trim() !== "" ? v.trim() : undefined;
 }
 
+/**
+ * Resolve a cover image from a content form (cover-image-bank): a picked
+ * existing image (`featuredImageUrl`) wins over a newly uploaded file, which
+ * only then is stored. Returns undefined when neither is provided — callers
+ * preserve the existing cover on edit.
+ */
+async function coverImage(form: FormData): Promise<string | undefined> {
+  return str(form, "featuredImageUrl") ?? (await saveUpload(form.get("image")));
+}
+
 // ── Auth ────────────────────────────────────────────────────────────────────
 export async function login(formData: FormData) {
   const password = str(formData, "password") ?? "";
@@ -101,7 +111,7 @@ export async function createEvent(formData: FormData) {
   if (!title || !start || !venue || !organiser) {
     redirect("/beheer/nieuw/evenement?error=1");
   }
-  const eventImage = await saveUpload(formData.get("image"));
+  const eventImage = await coverImage(formData);
   await createDocument(
     "event",
     title!,
@@ -128,7 +138,7 @@ export async function createVenue(formData: FormData) {
   if (!name) redirect("/beheer/nieuw/locatie?error=1");
   const lat = str(formData, "lat");
   const lng = str(formData, "lng");
-  const venueImage = await saveUpload(formData.get("image"));
+  const venueImage = await coverImage(formData);
   await createDocument(
     "venue",
     name!,
@@ -154,7 +164,7 @@ export async function createOrganiser(formData: FormData) {
   await assertAdmin();
   const name = str(formData, "name");
   if (!name) redirect("/beheer/nieuw/organisator?error=1");
-  const organiserImage = await saveUpload(formData.get("image"));
+  const organiserImage = await coverImage(formData);
   await createDocument(
     "organiser",
     name!,
@@ -179,7 +189,7 @@ export async function createBlog(formData: FormData) {
   const author = str(formData, "author");
   const date = str(formData, "date");
   if (!title || !author || !date) redirect("/beheer/nieuw/blog?error=1");
-  const blogImage = await saveUpload(formData.get("image"));
+  const blogImage = await coverImage(formData);
   const relatedVenues = formData.getAll("relatedVenues").filter((v): v is string => typeof v === "string" && v !== "");
   const relatedOrganisers = formData.getAll("relatedOrganisers").filter((v): v is string => typeof v === "string" && v !== "");
   await createDocument(
@@ -218,7 +228,7 @@ export async function updateEvent(formData: FormData) {
   if (!title || !start || !venue || !organiser) {
     redirect(`${adminListPath("event")}/${slug}/bewerken?error=1`);
   }
-  const eventImage = await saveUpload(formData.get("image"));
+  const eventImage = await coverImage(formData);
   await updateDocument(
     "event",
     slug!,
@@ -247,7 +257,7 @@ export async function updateVenue(formData: FormData) {
   if (!name) redirect(`${adminListPath("venue")}/${slug}/bewerken?error=1`);
   const lat = str(formData, "lat");
   const lng = str(formData, "lng");
-  const venueImage = await saveUpload(formData.get("image"));
+  const venueImage = await coverImage(formData);
   await updateDocument(
     "venue",
     slug!,
@@ -275,7 +285,7 @@ export async function updateOrganiser(formData: FormData) {
   if (!slug) redirect(adminListPath("organiser"));
   const name = str(formData, "name");
   if (!name) redirect(`${adminListPath("organiser")}/${slug}/bewerken?error=1`);
-  const organiserImage = await saveUpload(formData.get("image"));
+  const organiserImage = await coverImage(formData);
   await updateDocument(
     "organiser",
     slug!,
@@ -304,7 +314,7 @@ export async function updateBlog(formData: FormData) {
   if (!title || !author || !date) {
     redirect(`${adminListPath("blog")}/${slug}/bewerken?error=1`);
   }
-  const blogImage = await saveUpload(formData.get("image"));
+  const blogImage = await coverImage(formData);
   const relatedVenues = formData
     .getAll("relatedVenues")
     .filter((v): v is string => typeof v === "string" && v !== "");

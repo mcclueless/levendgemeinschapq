@@ -8,8 +8,10 @@ import {
   SubmitButton,
   Textarea,
 } from "@/components/admin/form";
+import { ImageField } from "@/components/admin/image-field";
 import { requireAdmin } from "@/lib/auth-server";
 import { getOrganisers, getVenues } from "@/content/repository";
+import { listMedia } from "@/content/media";
 import { createBlog } from "../../actions";
 
 export const metadata: Metadata = {
@@ -20,7 +22,11 @@ export const dynamic = "force-dynamic";
 
 export default async function NewBlogPage() {
   await requireAdmin();
-  const [venues, organisers] = await Promise.all([getVenues(), getOrganisers()]);
+  const [venues, organisers, pool] = await Promise.all([
+    getVenues(),
+    getOrganisers(),
+    listMedia(),
+  ]);
 
   return (
     <AdminShell>
@@ -40,8 +46,8 @@ export default async function NewBlogPage() {
           </Field>
         </div>
 
-        <Field label="Uitgelichte afbeelding" htmlFor="image" hint="Optioneel.">
-          <Input id="image" name="image" type="file" accept="image/*" />
+        <Field label="Uitgelichte afbeelding" htmlFor="image" hint="Optioneel — upload nieuw of kies uit de galerij.">
+          <ImageField pool={pool} />
         </Field>
 
         <Field label="Korte omschrijving" htmlFor="excerpt">

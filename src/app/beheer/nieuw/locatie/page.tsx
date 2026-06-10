@@ -7,7 +7,9 @@ import {
   SubmitButton,
   Textarea,
 } from "@/components/admin/form";
+import { ImageField } from "@/components/admin/image-field";
 import { requireAdmin } from "@/lib/auth-server";
+import { listMedia } from "@/content/media";
 import { createVenue } from "../../actions";
 
 export const metadata: Metadata = {
@@ -18,6 +20,7 @@ export const dynamic = "force-dynamic";
 
 export default async function NewVenuePage() {
   await requireAdmin();
+  const pool = await listMedia();
 
   return (
     <AdminShell>
@@ -54,8 +57,8 @@ export default async function NewVenuePage() {
           </Field>
         </div>
 
-        <Field label="Omslagafbeelding" htmlFor="image" hint="Optioneel — getoond op de locatiepagina en in lijsten.">
-          <Input id="image" name="image" type="file" accept="image/*" />
+        <Field label="Omslagafbeelding" htmlFor="image" hint="Optioneel — upload nieuw of kies uit de galerij.">
+          <ImageField pool={pool} />
         </Field>
 
         <Field label="Korte omschrijving" htmlFor="excerpt">
