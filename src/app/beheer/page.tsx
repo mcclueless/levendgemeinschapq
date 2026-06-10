@@ -4,6 +4,7 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { Card, Badge } from "@/components/ui/card";
 import { requireAdmin } from "@/lib/auth-server";
 import { getContentCounts } from "@/content/admin";
+import { adminListPath } from "@/lib/routes";
 
 export const metadata: Metadata = { title: "Beheer", robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -40,11 +41,15 @@ export default async function AdminHome({
       ) : null}
 
       <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-        <Stat label="Evenementen" value={counts.events} />
-        <Stat label="Locaties" value={counts.venues} />
-        <Stat label="Organisatoren" value={counts.organisers} />
-        <Stat label="Blogposts" value={counts.posts} />
-        <Stat label="In wachtrij" value={counts.pending} highlight />
+        <Stat label="Evenementen" value={counts.events} href={adminListPath("event")} />
+        <Stat label="Locaties" value={counts.venues} href={adminListPath("venue")} />
+        <Stat
+          label="Organisatoren"
+          value={counts.organisers}
+          href={adminListPath("organiser")}
+        />
+        <Stat label="Blogposts" value={counts.posts} href={adminListPath("blog")} />
+        <Stat label="In wachtrij" value={counts.pending} href="/beheer/queue" highlight />
       </div>
 
       <div className="mt-10 flex flex-wrap items-center gap-3">
@@ -76,18 +81,22 @@ export default async function AdminHome({
 function Stat({
   label,
   value,
+  href,
   highlight,
 }: {
   label: string;
   value: number;
+  href: string;
   highlight?: boolean;
 }) {
   return (
-    <Card className="p-5">
-      <div className="text-3xl font-semibold">{value}</div>
-      <div className="mt-1 text-sm text-muted">
-        {highlight && value > 0 ? <Badge tone="terracotta">{label}</Badge> : label}
-      </div>
-    </Card>
+    <Link href={href} className="block rounded-lg focus-visible:outline-3 focus-visible:outline-offset-2">
+      <Card className="p-5 transition-colors hover:bg-sand">
+        <div className="text-3xl font-semibold">{value}</div>
+        <div className="mt-1 text-sm text-muted">
+          {highlight && value > 0 ? <Badge tone="terracotta">{label}</Badge> : label}
+        </div>
+      </Card>
+    </Link>
   );
 }

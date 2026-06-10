@@ -27,6 +27,24 @@ const nextConfig = {
   outputFileTracingIncludes: {
     "**": ["./node_modules/temporal-polyfill/**/*"],
   },
+  // Dev only: keep the file watcher from recompiling on transient artifact
+  // writes (e.g. Playwright MCP snapshots under .playwright-mcp/). Constant
+  // recompiles race the Server Action client-reference manifest and make form
+  // submissions silently no-op during browser-driven testing.
+  webpack: (config, { dev }) => {
+    if (dev) {
+      config.watchOptions = {
+        ...config.watchOptions,
+        ignored: [
+          "**/node_modules/**",
+          "**/.git/**",
+          "**/.next/**",
+          "**/.playwright-mcp/**",
+        ],
+      };
+    }
+    return config;
+  },
 };
 
 export default nextConfig;

@@ -53,27 +53,17 @@ export const VenueFrontmatter = z.object({
   address: z.string().optional(),
   lat: z.number().optional(),
   lng: z.number().optional(),
+  featuredImage: z.string().optional(),
   images: z.array(z.string()).default([]),
   excerpt: z.string().optional(),
   status: PublishStatus.default("published"),
 });
 export type VenueFrontmatter = z.infer<typeof VenueFrontmatter>;
 
-export const PortfolioItem = z.object({
-  image: z.string(),
-  title: z.string(),
-  description: z.string().optional(),
-  externalUrl: z.string().url().optional(),
-  /** Slug of an event this portfolio item links to, as an alternative to externalUrl. */
-  eventRef: z.string().optional(),
-});
-export type PortfolioItem = z.infer<typeof PortfolioItem>;
-
 export const OrganiserFrontmatter = z.object({
   name: z.string().min(1),
   ...contact,
-  /** Portfolio items live as a frontmatter list on the organiser (design: Resolved Decisions). */
-  portfolio: z.array(PortfolioItem).default([]),
+  featuredImage: z.string().optional(),
   excerpt: z.string().optional(),
   status: PublishStatus.default("published"),
 });

@@ -1,8 +1,4 @@
-import type {
-  PortfolioItem,
-  PublishStatus,
-  Recurrence,
-} from "./schema";
+import type { PublishStatus, Recurrence } from "./schema";
 
 /** Resolved domain models used by the UI (references resolved to objects). */
 
@@ -15,6 +11,7 @@ export interface Venue {
   address?: string;
   lat?: number;
   lng?: number;
+  featuredImage?: string;
   images: string[];
   excerpt?: string;
   status: PublishStatus;
@@ -29,7 +26,7 @@ export interface Organiser {
   phone?: string;
   email?: string;
   website?: string;
-  portfolio: PortfolioItem[];
+  featuredImage?: string;
   excerpt?: string;
   status: PublishStatus;
   body: string;

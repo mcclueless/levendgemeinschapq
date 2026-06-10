@@ -10,6 +10,7 @@ import { formatDateLong, formatTime, isoDate, startOfToday } from "@/lib/date";
 import { pageMetadata } from "@/lib/metadata";
 import { eventJsonLd } from "@/lib/structured-data";
 import { JsonLd } from "@/components/seo/json-ld";
+import { eventCover } from "@/lib/images";
 
 export const revalidate = 600;
 
@@ -51,6 +52,14 @@ export default async function EventPage({
       <JsonLd data={eventJsonLd(event, when)} />
 
       <div className="max-w-3xl">
+        {/* Cover image — uploaded featured image, or the branded default. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={eventCover(event.featuredImage)}
+          alt={event.title}
+          className="mb-8 aspect-[2/1] w-full rounded-xl object-cover"
+        />
+
         <div className="flex flex-wrap items-center gap-2">
           <Badge tone="saffron">
             <time dateTime={isoDate(when)}>

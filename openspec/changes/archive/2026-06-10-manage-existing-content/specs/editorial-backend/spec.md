@@ -1,17 +1,4 @@
-# editorial-backend Specification
-
-## Purpose
-
-Defines the authenticated editorial backend: route protection, create/edit forms for all content types, relationship selectors on the event form, media upload, and the draft / submit-for-review flow.
-
-## Requirements
-
-### Requirement: Authenticated editorial backend
-The system SHALL provide an authenticated backend that signed-in editors and administrators use to manage content. Unauthenticated users SHALL NOT access the backend.
-
-#### Scenario: Backend requires authentication
-- **WHEN** an unauthenticated visitor attempts to open a backend route
-- **THEN** the system SHALL deny access and prompt for sign-in
+## MODIFIED Requirements
 
 ### Requirement: Create and edit all content types
 The backend SHALL allow authorized users to create and edit Events, Venues, Organisations, and Blog posts through forms appropriate to each type. When editing an existing item, the system SHALL keep the item's slug stable and SHALL preserve frontmatter fields not present on the edit form (for example calendar UID, venue gallery images, blog relationships, and submission metadata).
@@ -24,26 +11,7 @@ The backend SHALL allow authorized users to create and edit Events, Venues, Orga
 - **WHEN** an Administrator opens the edit form for an existing Event, Venue, Organisation, or Blog post
 - **THEN** the system SHALL prefill the form from the stored document, and on save SHALL update the same document in place, keeping its slug and any fields the form does not expose
 
-### Requirement: Relationship selectors on the event form
-The event creation form SHALL present Venue and Organiser as drop-down selectors populated from existing records.
-
-#### Scenario: Drop-downs reflect existing records
-- **WHEN** an editor opens the event form after Venues and Organisers have been created
-- **THEN** the system SHALL populate the Venue and Organiser drop-downs with those records
-
-### Requirement: Media upload
-The backend SHALL allow editors to upload cover/featured images (events, venues, organisers, blog posts) and venue galleries, storing them in the media store.
-
-#### Scenario: Uploading a featured image
-- **WHEN** an editor uploads an image on a content form
-- **THEN** the system SHALL store the image and associate it with the content item
-
-### Requirement: Draft and submit for review
-The backend SHALL allow content to be saved as a draft and SHALL allow it to be submitted, where submission by a limited user routes the item into the approval queue rather than publishing directly.
-
-#### Scenario: Submitting routes to approval
-- **WHEN** a limited user submits an event or blog post
-- **THEN** the system SHALL place the item in the approval queue in an unpublished state
+## ADDED Requirements
 
 ### Requirement: List existing content for management
 The backend SHALL provide Administrators a per-type listing of existing Events, Venues, Organisations, and Blog posts, showing each item's title and publication status and offering actions to edit and to hide or show it.

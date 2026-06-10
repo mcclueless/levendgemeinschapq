@@ -4,7 +4,7 @@ import { Container } from "@/components/ui/container";
 import { Badge } from "@/components/ui/card";
 import { Mdx } from "@/components/mdx/mdx";
 import { ContactInfo } from "@/components/content/contact-info";
-import { Portfolio } from "@/components/content/portfolio";
+import { CoverImage } from "@/components/content/cover-image";
 import { UpcomingEvents } from "@/components/events/upcoming-events";
 import { JsonLd } from "@/components/seo/json-ld";
 import { getOrganiser, getOrganisers } from "@/content/repository";
@@ -29,6 +29,7 @@ export async function generateMetadata({
     title: organiser.name,
     description: organiser.excerpt,
     path: organiser.href,
+    images: organiser.featuredImage ? [organiser.featuredImage] : undefined,
   });
 }
 
@@ -47,6 +48,12 @@ export default async function OrganiserPage({
       <Badge tone="terracotta">Organisator</Badge>
       <h1 className="mt-4 text-4xl sm:text-5xl">{organiser.name}</h1>
 
+      <CoverImage
+        src={organiser.featuredImage}
+        alt={organiser.name}
+        className="mt-8 aspect-[2/1] rounded-xl"
+      />
+
       <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_20rem]">
         <div>
           <Mdx source={organiser.body} />
@@ -64,13 +71,6 @@ export default async function OrganiserPage({
           </div>
         </aside>
       </div>
-
-      {organiser.portfolio.length > 0 ? (
-        <div className="mt-16">
-          <h2 className="mb-6 text-2xl sm:text-3xl">Wat wij doen</h2>
-          <Portfolio items={organiser.portfolio} />
-        </div>
-      ) : null}
 
       <div className="mt-16">
         <UpcomingEvents

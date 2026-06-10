@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Container } from "@/components/ui/container";
 import { Card, Badge } from "@/components/ui/card";
+import { CoverImage } from "@/components/content/cover-image";
 import { getBlogPosts } from "@/content/repository";
 import { formatDateLong, isoDate } from "@/lib/date";
 
@@ -28,29 +29,32 @@ export default async function BlogPage() {
       ) : (
         <div className="mt-10 grid gap-6">
           {posts.map((post) => (
-            <Card key={post.slug} as="article" className="p-6">
-              <p className="text-sm text-muted">
-                <time dateTime={isoDate(post.date)}>
-                  {formatDateLong(post.date)}
-                </time>{" "}
-                · {post.author}
-              </p>
-              <h2 className="mt-2 text-2xl">
-                <Link href={post.href} className="hover:text-terracotta-strong">
-                  {post.title}
-                </Link>
-              </h2>
-              {post.excerpt ? (
-                <p className="mt-2 text-muted">{post.excerpt}</p>
-              ) : null}
-              <p className="mt-3">
-                <Link
-                  href={post.href}
-                  className="text-sm font-medium text-terracotta-strong hover:underline"
-                >
-                  Lees verder →
-                </Link>
-              </p>
+            <Card key={post.slug} as="article" className="overflow-hidden">
+              <CoverImage src={post.featuredImage} alt={post.title} className="h-56" />
+              <div className="p-6">
+                <p className="text-sm text-muted">
+                  <time dateTime={isoDate(post.date)}>
+                    {formatDateLong(post.date)}
+                  </time>{" "}
+                  · {post.author}
+                </p>
+                <h2 className="mt-2 text-2xl">
+                  <Link href={post.href} className="hover:text-terracotta-strong">
+                    {post.title}
+                  </Link>
+                </h2>
+                {post.excerpt ? (
+                  <p className="mt-2 text-muted">{post.excerpt}</p>
+                ) : null}
+                <p className="mt-3">
+                  <Link
+                    href={post.href}
+                    className="text-sm font-medium text-terracotta-strong hover:underline"
+                  >
+                    Lees verder →
+                  </Link>
+                </p>
+              </div>
             </Card>
           ))}
         </div>

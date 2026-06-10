@@ -4,6 +4,7 @@ import { Container } from "@/components/ui/container";
 import { Badge } from "@/components/ui/card";
 import { Mdx } from "@/components/mdx/mdx";
 import { ContactInfo } from "@/components/content/contact-info";
+import { CoverImage } from "@/components/content/cover-image";
 import { Gallery } from "@/components/content/gallery";
 import { MapEmbed } from "@/components/content/map-embed";
 import { UpcomingEvents } from "@/components/events/upcoming-events";
@@ -30,6 +31,7 @@ export async function generateMetadata({
     title: venue.name,
     description: venue.excerpt,
     path: venue.href,
+    images: venue.featuredImage ? [venue.featuredImage] : undefined,
   });
 }
 
@@ -52,6 +54,12 @@ export default async function VenuePage({
       <JsonLd data={venueJsonLd(venue)} />
       <Badge tone="terracotta">Locatie</Badge>
       <h1 className="mt-4 text-4xl sm:text-5xl">{venue.name}</h1>
+
+      <CoverImage
+        src={venue.featuredImage}
+        alt={venue.name}
+        className="mt-8 aspect-[2/1] rounded-xl"
+      />
 
       <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_20rem]">
         <div>

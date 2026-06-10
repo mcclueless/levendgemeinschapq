@@ -2,40 +2,19 @@ import Link from "next/link";
 import { Card, Badge } from "@/components/ui/card";
 import { formatWhen, isoDate } from "@/lib/date";
 import { cn } from "@/lib/cn";
+import { eventCover } from "@/lib/images";
 import type { EventOccurrence } from "@/content/types";
 
-/** Warm gradient fallback when an event has no featured image. */
-function fallbackGradient(slug: string): string {
-  const pairs = [
-    ["#e7c98f", "#d99224"],
-    ["#d98c6a", "#b8502e"],
-    ["#8fae90", "#436145"],
-    ["#e0b9a3", "#a8553a"],
-  ];
-  let hash = 0;
-  for (let i = 0; i < slug.length; i++) hash = (hash * 31 + slug.charCodeAt(i)) | 0;
-  const [a, b] = pairs[Math.abs(hash) % pairs.length];
-  return `linear-gradient(135deg, ${a}, ${b})`;
-}
-
-function Thumb({ src, alt, slug }: { src?: string; alt: string; slug: string }) {
-  if (src) {
-    return (
-      // Optimization via next/image is wired in Group 10 once the media CDN exists.
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={src}
-        alt={alt}
-        loading="lazy"
-        className="h-44 w-full object-cover"
-      />
-    );
-  }
+function Thumb({ src, alt }: { src?: string; alt: string }) {
   return (
-    <div
-      aria-hidden
-      className="h-44 w-full"
-      style={{ background: fallbackGradient(slug) }}
+    // Falls back to the branded default cover when no image was uploaded.
+    // Optimization via next/image is wired in Group 10 once the media CDN exists.
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={eventCover(src)}
+      alt={alt}
+      loading="lazy"
+      className="h-44 w-full object-cover"
     />
   );
 }
@@ -46,7 +25,7 @@ export function EventCard({ occurrence }: { occurrence: EventOccurrence }) {
   return (
     <Card as="article" className="group overflow-hidden">
       <Link href={event.href} className="block">
-        <Thumb src={event.featuredImage} alt={event.title} slug={event.slug} />
+        <Thumb src={event.featuredImage} alt={event.title} />
         <div className="p-5">
           <Badge tone="saffron">
             <time dateTime={isoDate(start)}>{formatWhen(start)}</time>

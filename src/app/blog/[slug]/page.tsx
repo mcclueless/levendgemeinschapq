@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Container } from "@/components/ui/container";
 import { Mdx } from "@/components/mdx/mdx";
+import { CoverImage } from "@/components/content/cover-image";
 import { RelatedInfo } from "@/components/content/related-info";
 import { getBlogPost, getBlogPosts } from "@/content/repository";
 import { formatDateLong, isoDate } from "@/lib/date";
@@ -50,6 +51,11 @@ export default async function BlogPostPage({
           · {post.author}
         </p>
         <h1 className="mt-2 text-4xl sm:text-5xl">{post.title}</h1>
+        <CoverImage
+          src={post.featuredImage}
+          alt={post.title}
+          className="mt-8 aspect-[2/1] rounded-xl"
+        />
         <div className="mt-8">
           <Mdx source={post.body} />
         </div>

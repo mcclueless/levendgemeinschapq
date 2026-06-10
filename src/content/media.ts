@@ -19,10 +19,9 @@ export async function saveUpload(file: unknown): Promise<string | undefined> {
   const bucket = process.env.S3_MEDIA_BUCKET;
   if (bucket) {
     const key = `uploads/${name}`;
+    const region = process.env.AWS_REGION ?? "eu-central-1";
     const { S3Client, PutObjectCommand } = await import("@aws-sdk/client-s3");
-    const client = new S3Client({
-      region: process.env.AWS_REGION ?? "eu-central-1",
-    });
+    const client = new S3Client({ region });
     await client.send(
       new PutObjectCommand({
         Bucket: bucket,
@@ -31,8 +30,14 @@ export async function saveUpload(file: unknown): Promise<string | undefined> {
         ContentType: file.type || "application/octet-stream",
       }),
     );
-    const baseUrl = process.env.NEXT_PUBLIC_MEDIA_BASE_URL ?? "";
-    return `${baseUrl}/${key}`;
+    // Prefer an explicit media base URL (CDN/custom domain). Without one, fall
+    // back to the bucket's virtual-hosted S3 URL — an absolute URL that
+    // actually resolves — rather than a site-relative "/uploads/…" path that
+    // 404s because the object lives in S3, not in the app's public dir.
+    const baseUrl = process.env.NEXT_PUBLIC_MEDIA_BASE_URL?.replace(/\/+$/, "");
+    return baseUrl
+      ? `${baseUrl}/${key}`
+      : `https://${bucket}.s3.${region}.amazonaws.com/${key}`;
   }
 
   // Local fallback: write into public/uploads and serve from /uploads.

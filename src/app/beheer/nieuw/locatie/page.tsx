@@ -54,6 +54,10 @@ export default async function NewVenuePage() {
           </Field>
         </div>
 
+        <Field label="Omslagafbeelding" htmlFor="image" hint="Optioneel — getoond op de locatiepagina en in lijsten.">
+          <Input id="image" name="image" type="file" accept="image/*" />
+        </Field>
+
         <Field label="Korte omschrijving" htmlFor="excerpt">
           <Input id="excerpt" name="excerpt" />
         </Field>

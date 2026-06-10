@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Container } from "@/components/ui/container";
 import { Card, Badge } from "@/components/ui/card";
+import { CoverImage } from "@/components/content/cover-image";
 import { getVenues } from "@/content/repository";
 
 export const revalidate = 600;
@@ -24,18 +25,21 @@ export default async function VenuesPage() {
 
       <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {venues.map((venue) => (
-          <Card key={venue.slug} as="article" className="p-6">
-            <h2 className="text-xl">
-              <Link
-                href={venue.href}
-                className="hover:text-terracotta-strong"
-              >
-                {venue.name}
-              </Link>
-            </h2>
-            {venue.excerpt ? (
-              <p className="mt-2 text-sm text-muted">{venue.excerpt}</p>
-            ) : null}
+          <Card key={venue.slug} as="article" className="overflow-hidden">
+            <CoverImage src={venue.featuredImage} alt={venue.name} className="h-44" />
+            <div className="p-6">
+              <h2 className="text-xl">
+                <Link
+                  href={venue.href}
+                  className="hover:text-terracotta-strong"
+                >
+                  {venue.name}
+                </Link>
+              </h2>
+              {venue.excerpt ? (
+                <p className="mt-2 text-sm text-muted">{venue.excerpt}</p>
+              ) : null}
+            </div>
           </Card>
         ))}
       </div>

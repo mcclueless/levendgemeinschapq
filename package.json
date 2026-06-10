@@ -14,7 +14,8 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "reindex": "tsx scripts/reindex.mts"
+    "reindex": "tsx scripts/reindex.mts",
+    "test": "node --import tsx --test src/content/write.test.ts"
   },
   "dependencies": {
     "@aws-sdk/client-cloudfront": "^3.1058.0",
