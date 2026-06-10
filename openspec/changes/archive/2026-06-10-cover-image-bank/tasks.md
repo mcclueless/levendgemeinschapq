@@ -24,4 +24,4 @@
 - [x] 5.2 Upload a new image → stored, set as cover, and appears in the pool on the next form open
 - [x] 5.3 Edit and save without touching the cover → existing cover preserved
 - [x] 5.4 All four content types, create and edit; `pnpm typecheck` / `lint` / `build` pass
-- [ ] 5.5 On deploy: confirm the pool lists the media bucket (`listMedia` returns the live uploads)
+- [x] 5.5 On deploy: confirm the pool lists the media bucket (`listMedia` returns the live uploads)
