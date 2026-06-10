@@ -5,7 +5,9 @@ import { Card, Badge } from "@/components/ui/card";
 import { CoverImage } from "@/components/content/cover-image";
 import { getOrganisers } from "@/content/repository";
 
-export const revalidate = 600;
+// Rendered per request (dynamic-content-listings): reads S3 live so a
+// publish/edit/hide/delete shows on the next request, with no CDN-cache lag.
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Organisatoren",
