@@ -9,6 +9,7 @@ import {
   Textarea,
 } from "@/components/admin/form";
 import { ImageField } from "@/components/admin/image-field";
+import { AddressAutocomplete } from "@/components/admin/address-autocomplete";
 import { requireAdmin } from "@/lib/auth-server";
 import { getEditable } from "@/content/admin";
 import { getOrganisers, getVenues } from "@/content/repository";
@@ -181,12 +182,8 @@ export default async function EditPage({
           <Field label="Website" htmlFor="website">
             <Input id="website" name="website" type="url" defaultValue={d.website} />
           </Field>
-          <Field
-            label="Adres"
-            htmlFor="address"
-            hint="De locatie op de kaart wordt automatisch bepaald uit het adres."
-          >
-            <Input id="address" name="address" defaultValue={d.address} />
+          <Field label="Adres" htmlFor="address">
+            <AddressAutocomplete defaultValue={d.address ?? ""} />
           </Field>
           <Field label="Omslagafbeelding" htmlFor="image">
             <ImageField pool={pool} current={d.featuredImage} />

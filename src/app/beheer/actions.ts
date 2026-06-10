@@ -55,6 +55,16 @@ function geoFlag(
   return geo ? "ok" : "notfound";
 }
 
+/** Coordinates from an autocomplete selection (venue-address-autocomplete). */
+function pickedCoords(form: FormData): { lat: number; lng: number } | null {
+  const latS = str(form, "addrLat");
+  const lngS = str(form, "addrLng");
+  if (!latS || !lngS) return null;
+  const lat = Number(latS);
+  const lng = Number(lngS);
+  return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
+}
+
 // ── Auth ────────────────────────────────────────────────────────────────────
 export async function login(formData: FormData) {
   const password = str(formData, "password") ?? "";
@@ -148,7 +158,10 @@ export async function createVenue(formData: FormData) {
   if (!name) redirect("/beheer/nieuw/locatie?error=1");
   const address = str(formData, "address");
   const venueImage = await coverImage(formData);
-  const geo = address ? await geocode(address) : null;
+  // Prefer coordinates from an autocomplete selection; else geocode the address.
+  const picked = pickedCoords(formData);
+  const geo = !picked && address ? await geocode(address) : null;
+  const coords = picked ?? (geo ? { lat: geo.lat, lng: geo.lng } : null);
   await createDocument(
     "venue",
     name!,
@@ -158,8 +171,8 @@ export async function createVenue(formData: FormData) {
       email: str(formData, "email"),
       website: str(formData, "website"),
       address,
-      lat: geo?.lat,
-      lng: geo?.lng,
+      lat: coords?.lat,
+      lng: coords?.lng,
       featuredImage: venueImage,
       excerpt: str(formData, "excerpt"),
       status: formData.get("publish") ? "published" : "draft",
@@ -167,7 +180,7 @@ export async function createVenue(formData: FormData) {
     str(formData, "body") ?? "",
   );
   await revalidatePublic();
-  const flag = geoFlag(address, geo);
+  const flag = picked ? undefined : geoFlag(address, geo);
   redirect(`/beheer?created=venue${flag ? `&geo=${flag}` : ""}`);
 }
 
@@ -268,9 +281,11 @@ export async function updateVenue(formData: FormData) {
   if (!name) redirect(`${adminListPath("venue")}/${slug}/bewerken?error=1`);
   const address = str(formData, "address");
   const venueImage = await coverImage(formData);
-  // Re-geocode from the address. On no result, omit lat/lng so the merge keeps
-  // any existing coordinates rather than clearing them.
-  const geo = address ? await geocode(address) : null;
+  // Prefer an autocomplete selection; else re-geocode the address. On no
+  // result, omit lat/lng so the merge keeps existing coordinates.
+  const picked = pickedCoords(formData);
+  const geo = !picked && address ? await geocode(address) : null;
+  const coords = picked ?? (geo ? { lat: geo.lat, lng: geo.lng } : null);
   await updateDocument(
     "venue",
     slug!,
@@ -281,14 +296,14 @@ export async function updateVenue(formData: FormData) {
       website: str(formData, "website"),
       address,
       excerpt: str(formData, "excerpt"),
-      ...(geo ? { lat: geo.lat, lng: geo.lng } : {}),
+      ...(coords ? { lat: coords.lat, lng: coords.lng } : {}),
       ...(venueImage ? { featuredImage: venueImage } : {}),
     },
     str(formData, "body") ?? "",
   );
   await revalidatePublic();
   revalidatePath(adminListPath("venue"));
-  const flag = geoFlag(address, geo);
+  const flag = picked ? undefined : geoFlag(address, geo);
   redirect(`${adminListPath("venue")}${flag ? `?geo=${flag}` : ""}`);
 }
 

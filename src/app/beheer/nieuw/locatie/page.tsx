@@ -8,6 +8,7 @@ import {
   Textarea,
 } from "@/components/admin/form";
 import { ImageField } from "@/components/admin/image-field";
+import { AddressAutocomplete } from "@/components/admin/address-autocomplete";
 import { requireAdmin } from "@/lib/auth-server";
 import { listMedia } from "@/content/media";
 import { createVenue } from "../../actions";
@@ -44,12 +45,8 @@ export default async function NewVenuePage() {
           <Input id="website" name="website" type="url" placeholder="https://" />
         </Field>
 
-        <Field
-          label="Adres"
-          htmlFor="address"
-          hint="De locatie op de kaart wordt automatisch bepaald uit het adres."
-        >
-          <Input id="address" name="address" />
+        <Field label="Adres" htmlFor="address">
+          <AddressAutocomplete />
         </Field>
 
         <Field label="Omslagafbeelding" htmlFor="image" hint="Optioneel — upload nieuw of kies uit de galerij.">
