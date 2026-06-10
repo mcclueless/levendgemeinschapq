@@ -181,27 +181,13 @@ export default async function EditPage({
           <Field label="Website" htmlFor="website">
             <Input id="website" name="website" type="url" defaultValue={d.website} />
           </Field>
-          <Field label="Adres" htmlFor="address">
+          <Field
+            label="Adres"
+            htmlFor="address"
+            hint="De locatie op de kaart wordt automatisch bepaald uit het adres."
+          >
             <Input id="address" name="address" defaultValue={d.address} />
           </Field>
-          <div className="grid gap-5 sm:grid-cols-2">
-            <Field label="Breedtegraad" htmlFor="lat">
-              <Input
-                id="lat"
-                name="lat"
-                inputMode="decimal"
-                defaultValue={d.lat ?? ""}
-              />
-            </Field>
-            <Field label="Lengtegraad" htmlFor="lng">
-              <Input
-                id="lng"
-                name="lng"
-                inputMode="decimal"
-                defaultValue={d.lng ?? ""}
-              />
-            </Field>
-          </div>
           <Field label="Omslagafbeelding" htmlFor="image">
             <ImageField pool={pool} current={d.featuredImage} />
           </Field>

@@ -17,6 +17,7 @@ import {
 } from "@/content/write";
 import { findReferences } from "@/content/admin";
 import { saveUpload } from "@/content/media";
+import { geocode, type GeocodeResult } from "@/content/geocode";
 import { importFromUrl } from "@/content/ical-import";
 import { revalidatePublic } from "@/content/revalidate";
 import { adminListPath } from "@/lib/routes";
@@ -43,6 +44,15 @@ function str(form: FormData, key: string): string | undefined {
  */
 async function coverImage(form: FormData): Promise<string | undefined> {
   return str(form, "featuredImageUrl") ?? (await saveUpload(form.get("image")));
+}
+
+/** Geocode-outcome flag for editor feedback (venue-address-geocoding). */
+function geoFlag(
+  address: string | undefined,
+  geo: GeocodeResult | null,
+): string | undefined {
+  if (!address) return undefined;
+  return geo ? "ok" : "notfound";
 }
 
 // ── Auth ────────────────────────────────────────────────────────────────────
@@ -136,9 +146,9 @@ export async function createVenue(formData: FormData) {
   await assertAdmin();
   const name = str(formData, "name");
   if (!name) redirect("/beheer/nieuw/locatie?error=1");
-  const lat = str(formData, "lat");
-  const lng = str(formData, "lng");
+  const address = str(formData, "address");
   const venueImage = await coverImage(formData);
+  const geo = address ? await geocode(address) : null;
   await createDocument(
     "venue",
     name!,
@@ -147,9 +157,9 @@ export async function createVenue(formData: FormData) {
       phone: str(formData, "phone"),
       email: str(formData, "email"),
       website: str(formData, "website"),
-      address: str(formData, "address"),
-      lat: lat ? Number(lat) : undefined,
-      lng: lng ? Number(lng) : undefined,
+      address,
+      lat: geo?.lat,
+      lng: geo?.lng,
       featuredImage: venueImage,
       excerpt: str(formData, "excerpt"),
       status: formData.get("publish") ? "published" : "draft",
@@ -157,7 +167,8 @@ export async function createVenue(formData: FormData) {
     str(formData, "body") ?? "",
   );
   await revalidatePublic();
-  redirect("/beheer?created=venue");
+  const flag = geoFlag(address, geo);
+  redirect(`/beheer?created=venue${flag ? `&geo=${flag}` : ""}`);
 }
 
 export async function createOrganiser(formData: FormData) {
@@ -255,9 +266,11 @@ export async function updateVenue(formData: FormData) {
   if (!slug) redirect(adminListPath("venue"));
   const name = str(formData, "name");
   if (!name) redirect(`${adminListPath("venue")}/${slug}/bewerken?error=1`);
-  const lat = str(formData, "lat");
-  const lng = str(formData, "lng");
+  const address = str(formData, "address");
   const venueImage = await coverImage(formData);
+  // Re-geocode from the address. On no result, omit lat/lng so the merge keeps
+  // any existing coordinates rather than clearing them.
+  const geo = address ? await geocode(address) : null;
   await updateDocument(
     "venue",
     slug!,
@@ -266,17 +279,17 @@ export async function updateVenue(formData: FormData) {
       phone: str(formData, "phone"),
       email: str(formData, "email"),
       website: str(formData, "website"),
-      address: str(formData, "address"),
-      lat: lat ? Number(lat) : undefined,
-      lng: lng ? Number(lng) : undefined,
+      address,
       excerpt: str(formData, "excerpt"),
+      ...(geo ? { lat: geo.lat, lng: geo.lng } : {}),
       ...(venueImage ? { featuredImage: venueImage } : {}),
     },
     str(formData, "body") ?? "",
   );
   await revalidatePublic();
   revalidatePath(adminListPath("venue"));
-  redirect(adminListPath("venue"));
+  const flag = geoFlag(address, geo);
+  redirect(`${adminListPath("venue")}${flag ? `?geo=${flag}` : ""}`);
 }
 
 export async function updateOrganiser(formData: FormData) {

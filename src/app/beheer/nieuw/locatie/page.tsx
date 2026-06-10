@@ -44,18 +44,13 @@ export default async function NewVenuePage() {
           <Input id="website" name="website" type="url" placeholder="https://" />
         </Field>
 
-        <Field label="Adres" htmlFor="address">
+        <Field
+          label="Adres"
+          htmlFor="address"
+          hint="De locatie op de kaart wordt automatisch bepaald uit het adres."
+        >
           <Input id="address" name="address" />
         </Field>
-
-        <div className="grid gap-5 sm:grid-cols-2">
-          <Field label="Breedtegraad" htmlFor="lat" hint="Optioneel, voor de kaart.">
-            <Input id="lat" name="lat" inputMode="decimal" />
-          </Field>
-          <Field label="Lengtegraad" htmlFor="lng" hint="Optioneel, voor de kaart.">
-            <Input id="lng" name="lng" inputMode="decimal" />
-          </Field>
-        </div>
 
         <Field label="Omslagafbeelding" htmlFor="image" hint="Optioneel — upload nieuw of kies uit de galerij.">
           <ImageField pool={pool} />

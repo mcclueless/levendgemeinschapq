@@ -19,10 +19,10 @@ const createLinks = [
 export default async function AdminHome({
   searchParams,
 }: {
-  searchParams: Promise<{ created?: string }>;
+  searchParams: Promise<{ created?: string; geo?: string }>;
 }) {
   await requireAdmin();
-  const [{ created }, counts] = await Promise.all([
+  const [{ created, geo }, counts] = await Promise.all([
     searchParams,
     getContentCounts(),
   ]);
@@ -37,6 +37,16 @@ export default async function AdminHome({
           className="mt-4 rounded-md border border-forest/30 bg-forest/10 px-3 py-2 text-sm text-forest"
         >
           Opgeslagen ({created}).
+        </p>
+      ) : null}
+
+      {geo === "notfound" ? (
+        <p
+          role="status"
+          className="mt-3 rounded-md border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta-strong"
+        >
+          Locatie niet gevonden voor dit adres — de kaart gebruikt het adres zelf.
+          Controleer het adres als de kaart de verkeerde plek toont.
         </p>
       ) : null}
 

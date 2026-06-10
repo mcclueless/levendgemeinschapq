@@ -47,14 +47,14 @@ export default async function ManageListPage({
   searchParams,
 }: {
   params: Promise<{ type: string }>;
-  searchParams: Promise<{ blocked?: string }>;
+  searchParams: Promise<{ blocked?: string; geo?: string }>;
 }) {
   await requireAdmin();
   const { type: segment } = await params;
   if (!isSegment(segment)) notFound();
   const type = ADMIN_SEGMENT_TO_TYPE[segment];
 
-  const [{ blocked }, items] = await Promise.all([
+  const [{ blocked, geo }, items] = await Promise.all([
     searchParams,
     listContent(type),
   ]);
@@ -72,6 +72,16 @@ export default async function ManageListPage({
           + Nieuw
         </Link>
       </div>
+
+      {geo === "notfound" ? (
+        <p
+          role="status"
+          className="mt-6 rounded-md border border-terracotta/40 bg-terracotta/10 px-4 py-3 text-sm text-terracotta-strong"
+        >
+          Locatie niet gevonden voor dit adres — de kaart gebruikt het adres zelf.
+          Controleer het adres als de kaart de verkeerde plek toont.
+        </p>
+      ) : null}
 
       {blocked && blockedRefs.length > 0 ? (
         <div
