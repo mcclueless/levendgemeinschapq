@@ -11,6 +11,7 @@ import { pageMetadata } from "@/lib/metadata";
 import { eventJsonLd } from "@/lib/structured-data";
 import { JsonLd } from "@/components/seo/json-ld";
 import { eventCover } from "@/lib/images";
+import { SocialLinks } from "@/components/content/social-links";
 import { AdminBarMount } from "@/components/admin/admin-bar-mount";
 import { adminEditPath } from "@/lib/routes";
 
@@ -108,6 +109,8 @@ export default async function EventPage({
               </>
             ) : null}
           </p>
+
+          <SocialLinks socials={event.socials} className="mt-4" />
 
           <div className="mt-8">
             <Mdx source={event.body} />

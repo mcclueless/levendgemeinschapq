@@ -7,14 +7,19 @@ export function ContactInfo({
   email,
   website,
   address,
+  location,
 }: {
   phone?: string;
   email?: string;
   website?: string;
   address?: string;
+  /** Linked Location (Organiser): a venue name + internal page href. */
+  location?: { name: string; href: string };
 }) {
   const items: Array<{ label: string; value: string; href?: string }> = [];
   if (address) items.push({ label: "Adres", value: address });
+  if (location)
+    items.push({ label: "Locatie", value: location.name, href: location.href });
   if (phone) items.push({ label: "Telefoon", value: phone, href: `tel:${phone}` });
   if (email) items.push({ label: "E-mail", value: email, href: `mailto:${email}` });
   if (website)

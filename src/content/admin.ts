@@ -226,6 +226,57 @@ export async function findReferences(
   return refs;
 }
 
+export interface ImageReference {
+  kind: ContentType;
+  slug: string;
+  title: string;
+  href: string;
+}
+
+/**
+ * Content that uses the given image URL — as a cover image (any type) or in a
+ * Venue gallery — so deleting an in-use library image can be blocked and the
+ * users reported (editorial-enrichments). Checks every status, so an image used
+ * only by a draft is still protected. Compares on the stored URL form, which is
+ * the same representation `media.ts` produces for both S3 and local backends.
+ */
+export async function findImageReferences(
+  url: string,
+): Promise<ImageReference[]> {
+  const store = getStore();
+  const [events, venues, organisers, posts] = await Promise.all([
+    store.readPrefix(CONTENT_PREFIX.event).then((d) => parseAll("event", d)),
+    store.readPrefix(CONTENT_PREFIX.venue).then((d) => parseAll("venue", d)),
+    store
+      .readPrefix(CONTENT_PREFIX.organiser)
+      .then((d) => parseAll("organiser", d)),
+    store.readPrefix(CONTENT_PREFIX.blog).then((d) => parseAll("blog", d)),
+  ]);
+
+  const refs: ImageReference[] = [];
+  for (const e of events) {
+    if (e.data.featuredImage === url) {
+      refs.push({ kind: "event", slug: e.slug, title: e.data.title, href: routes.event(e.slug) });
+    }
+  }
+  for (const v of venues) {
+    if (v.data.featuredImage === url || v.data.images.includes(url)) {
+      refs.push({ kind: "venue", slug: v.slug, title: v.data.name, href: routes.venue(v.slug) });
+    }
+  }
+  for (const o of organisers) {
+    if (o.data.featuredImage === url) {
+      refs.push({ kind: "organiser", slug: o.slug, title: o.data.name, href: routes.organiser(o.slug) });
+    }
+  }
+  for (const p of posts) {
+    if (p.data.featuredImage === url) {
+      refs.push({ kind: "blog", slug: p.slug, title: p.data.title, href: routes.post(p.slug) });
+    }
+  }
+  return refs;
+}
+
 type FrontmatterOf<K extends ContentType> = z.infer<
   (typeof frontmatterByType)[K]
 >;

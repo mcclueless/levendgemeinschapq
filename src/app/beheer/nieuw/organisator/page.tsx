@@ -4,11 +4,14 @@ import {
   CheckboxField,
   Field,
   Input,
+  Select,
   SubmitButton,
   Textarea,
 } from "@/components/admin/form";
 import { ImageField } from "@/components/admin/image-field";
+import { SocialFields } from "@/components/admin/social-fields";
 import { requireAdmin } from "@/lib/auth-server";
+import { getVenues } from "@/content/repository";
 import { listMedia } from "@/content/media";
 import { createOrganiser } from "../../actions";
 
@@ -20,7 +23,7 @@ export const dynamic = "force-dynamic";
 
 export default async function NewOrganiserPage() {
   await requireAdmin();
-  const pool = await listMedia();
+  const [pool, venues] = await Promise.all([listMedia(), getVenues()]);
 
   return (
     <AdminShell>
@@ -44,9 +47,22 @@ export default async function NewOrganiserPage() {
           <Input id="website" name="website" type="url" placeholder="https://" />
         </Field>
 
+        <Field label="Locatie" htmlFor="location" hint="Optioneel — koppel een bestaande locatie.">
+          <Select id="location" name="location" defaultValue="">
+            <option value="">Geen locatie</option>
+            {venues.map((v) => (
+              <option key={v.slug} value={v.slug}>
+                {v.name}
+              </option>
+            ))}
+          </Select>
+        </Field>
+
         <Field label="Omslagafbeelding" htmlFor="image" hint="Optioneel — upload nieuw of kies uit de galerij.">
           <ImageField pool={pool} />
         </Field>
+
+        <SocialFields />
 
         <Field label="Korte omschrijving" htmlFor="excerpt">
           <Input id="excerpt" name="excerpt" />

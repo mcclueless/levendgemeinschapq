@@ -20,6 +20,7 @@ export function ImageField({
 }) {
   const [picked, setPicked] = useState<string | undefined>(undefined);
   const [filePreview, setFilePreview] = useState<string | undefined>(undefined);
+  const [fileName, setFileName] = useState<string | undefined>(undefined);
   const [open, setOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -30,12 +31,14 @@ export function ImageField({
   function onFile(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
     setPicked(undefined); // a new upload supersedes a bank pick
+    setFileName(f?.name);
     setFilePreview(f ? URL.createObjectURL(f) : undefined);
   }
 
   function choose(url: string) {
     setPicked(url);
     setFilePreview(undefined);
+    setFileName(undefined);
     if (fileRef.current) fileRef.current.value = ""; // pick wins over any file
     setOpen(false);
   }
@@ -59,6 +62,9 @@ export function ImageField({
         )}
 
         <div className="grid gap-2">
+          {/* Native file input is visually hidden and driven by the styled
+              button below, so the control matches "Kies uit galerij" instead of
+              the unstyleable browser "Choose file" chrome (design D1). */}
           <input
             ref={fileRef}
             id="image"
@@ -66,15 +72,27 @@ export function ImageField({
             name="image"
             accept="image/*"
             onChange={onFile}
-            className="text-sm"
+            className="sr-only"
           />
-          <button
-            type="button"
-            onClick={() => setOpen(true)}
-            className="inline-flex h-9 w-fit items-center rounded-md border border-border bg-surface px-3 text-sm font-medium hover:bg-sand"
-          >
-            Kies uit galerij{pool.length ? ` (${pool.length})` : ""}
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              className="inline-flex h-9 w-fit items-center rounded-md border border-border bg-surface px-3 text-sm font-medium hover:bg-sand"
+            >
+              Bestand kiezen
+            </button>
+            <button
+              type="button"
+              onClick={() => setOpen(true)}
+              className="inline-flex h-9 w-fit items-center rounded-md border border-border bg-surface px-3 text-sm font-medium hover:bg-sand"
+            >
+              Kies uit galerij{pool.length ? ` (${pool.length})` : ""}
+            </button>
+          </div>
+          <p className="text-xs text-muted">
+            {fileName ?? "Geen bestand gekozen"}
+          </p>
         </div>
       </div>
 

@@ -9,6 +9,7 @@ import {
   Textarea,
 } from "@/components/admin/form";
 import { ImageField } from "@/components/admin/image-field";
+import { SocialFields } from "@/components/admin/social-fields";
 import { AddressAutocomplete } from "@/components/admin/address-autocomplete";
 import { requireAdmin } from "@/lib/auth-server";
 import { getEditable } from "@/content/admin";
@@ -145,6 +146,7 @@ export default async function EditPage({
               <option value="monthly">Maandelijks</option>
             </Select>
           </Field>
+          <SocialFields defaults={d.socials} />
           <Field label="Korte omschrijving" htmlFor="excerpt">
             <Input id="excerpt" name="excerpt" defaultValue={d.excerpt} />
           </Field>
@@ -203,7 +205,10 @@ export default async function EditPage({
   }
 
   if (type === "organiser") {
-    const doc = await getEditable("organiser", slug);
+    const [doc, venues] = await Promise.all([
+      getEditable("organiser", slug),
+      getVenues(),
+    ]);
     if (!doc) notFound();
     const d = doc.data;
     return (
@@ -225,9 +230,20 @@ export default async function EditPage({
           <Field label="Website" htmlFor="website">
             <Input id="website" name="website" type="url" defaultValue={d.website} />
           </Field>
+          <Field label="Locatie" htmlFor="location" hint="Optioneel — koppel een bestaande locatie.">
+            <Select id="location" name="location" defaultValue={d.location ?? ""}>
+              <option value="">Geen locatie</option>
+              {venues.map((v) => (
+                <option key={v.slug} value={v.slug}>
+                  {v.name}
+                </option>
+              ))}
+            </Select>
+          </Field>
           <Field label="Omslagafbeelding" htmlFor="image">
             <ImageField pool={pool} current={d.featuredImage} />
           </Field>
+          <SocialFields defaults={d.socials} />
           <Field label="Korte omschrijving" htmlFor="excerpt">
             <Input id="excerpt" name="excerpt" defaultValue={d.excerpt} />
           </Field>

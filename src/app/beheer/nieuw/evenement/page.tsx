@@ -9,6 +9,7 @@ import {
   Textarea,
 } from "@/components/admin/form";
 import { ImageField } from "@/components/admin/image-field";
+import { SocialFields } from "@/components/admin/social-fields";
 import { requireAdmin } from "@/lib/auth-server";
 import { getOrganisers, getVenues } from "@/content/repository";
 import { listMedia } from "@/content/media";
@@ -84,6 +85,8 @@ export default async function NewEventPage() {
             <option value="monthly">Maandelijks</option>
           </Select>
         </Field>
+
+        <SocialFields />
 
         <Field label="Korte omschrijving" htmlFor="excerpt" hint="Voor lijsten en previews.">
           <Input id="excerpt" name="excerpt" />

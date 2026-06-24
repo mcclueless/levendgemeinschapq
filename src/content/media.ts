@@ -71,6 +71,28 @@ export async function saveUpload(file: unknown): Promise<string | undefined> {
 }
 
 /**
+ * Delete an image from the media store by its storage key ("uploads/<name>").
+ * Symmetric with saveUpload: S3 DeleteObject in deployment, unlink under
+ * public/uploads locally. Idempotent — removing a missing local file is a no-op.
+ */
+export async function deleteMedia(key: string): Promise<void> {
+  const bucket = process.env.S3_MEDIA_BUCKET;
+  if (bucket) {
+    const region = process.env.AWS_REGION ?? "eu-central-1";
+    const { S3Client, DeleteObjectCommand } = await import(
+      "@aws-sdk/client-s3"
+    );
+    const client = new S3Client({ region });
+    await client.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
+    return;
+  }
+
+  const name = key.replace(/^uploads\//, "");
+  const file = path.join(process.cwd(), "public", "uploads", name);
+  await fs.rm(file, { force: true });
+}
+
+/**
  * The pool of previously uploaded images (the "image bank"), newest first.
  * Lists the S3 media bucket's `uploads/` prefix, or `public/uploads` locally.
  */

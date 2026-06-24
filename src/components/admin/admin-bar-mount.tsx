@@ -71,6 +71,12 @@ export function AdminBarMount({
           ) : null}
 
           <Link
+            href="/beheer/galerij"
+            className="text-sm text-admin-fg/75 underline-offset-4 hover:text-admin-fg hover:underline"
+          >
+            Galerij
+          </Link>
+          <Link
             href="/beheer"
             className="text-sm text-admin-fg/75 underline-offset-4 hover:text-admin-fg hover:underline"
           >

@@ -27,6 +27,29 @@ export const RecurrenceSchema = z.object({
 });
 export type Recurrence = z.infer<typeof RecurrenceSchema>;
 
+/**
+ * Curated social-media profile links (editorial-enrichments). A fixed set of
+ * optional URLs — each platform omitted unless a URL is provided. Plain links,
+ * not embedded feeds.
+ */
+export const SOCIAL_PLATFORMS = [
+  "instagram",
+  "facebook",
+  "x",
+  "linkedin",
+  "youtube",
+] as const;
+export const SocialsSchema = z
+  .object({
+    instagram: z.string().url().optional(),
+    facebook: z.string().url().optional(),
+    x: z.string().url().optional(),
+    linkedin: z.string().url().optional(),
+    youtube: z.string().url().optional(),
+  })
+  .optional();
+export type Socials = z.infer<typeof SocialsSchema>;
+
 export const EventFrontmatter = z.object({
   title: z.string().min(1),
   start: z.coerce.date(),
@@ -36,6 +59,7 @@ export const EventFrontmatter = z.object({
   organiser: z.string().min(1),
   featuredImage: z.string().optional(),
   excerpt: z.string().optional(),
+  socials: SocialsSchema,
   recurrence: RecurrenceSchema.optional(),
   /** Calendar UID for import de-duplication (calendar-import spec). */
   uid: z.string().optional(),
@@ -63,8 +87,11 @@ export type VenueFrontmatter = z.infer<typeof VenueFrontmatter>;
 export const OrganiserFrontmatter = z.object({
   name: z.string().min(1),
   ...contact,
+  /** Optional linked Location — a Venue slug (editorial-enrichments). */
+  location: z.string().optional(),
   featuredImage: z.string().optional(),
   excerpt: z.string().optional(),
+  socials: SocialsSchema,
   status: PublishStatus.default("published"),
 });
 export type OrganiserFrontmatter = z.infer<typeof OrganiserFrontmatter>;

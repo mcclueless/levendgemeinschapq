@@ -17,8 +17,9 @@ import {
   setStatus,
   updateDocument,
 } from "@/content/write";
-import { findReferences } from "@/content/admin";
-import { saveUpload } from "@/content/media";
+import { findImageReferences, findReferences } from "@/content/admin";
+import { deleteMedia, saveUpload } from "@/content/media";
+import { SOCIAL_PLATFORMS } from "@/content/schema";
 import { geocode, type GeocodeResult } from "@/content/geocode";
 import { importFromUrl } from "@/content/ical-import";
 import { revalidatePublic, revalidateAfterItemChange } from "@/content/revalidate";
@@ -130,6 +131,17 @@ export async function rejectSubmission(formData: FormData) {
   revalidatePath("/beheer");
 }
 
+/** Curated social links from a content form (editorial-enrichments). Returns
+ *  only the platforms that were filled in, or undefined when none were. */
+function socialsFrom(form: FormData) {
+  const entries = SOCIAL_PLATFORMS.map(
+    (p) => [p, str(form, p)] as const,
+  ).filter((e): e is readonly [(typeof SOCIAL_PLATFORMS)[number], string] =>
+    Boolean(e[1]),
+  );
+  return entries.length ? Object.fromEntries(entries) : undefined;
+}
+
 // ── Content creation (admin) ─────────────────────────────────────────────────
 function recurrenceFrom(form: FormData) {
   const freq = str(form, "recurrence");
@@ -158,6 +170,7 @@ export async function createEvent(formData: FormData) {
       organiser,
       excerpt: str(formData, "excerpt"),
       featuredImage: eventImage,
+      socials: socialsFrom(formData),
       recurrence: recurrenceFrom(formData),
       status: formData.get("publish") ? "published" : "draft",
     },
@@ -212,8 +225,10 @@ export async function createOrganiser(formData: FormData) {
       phone: str(formData, "phone"),
       email: str(formData, "email"),
       website: str(formData, "website"),
+      location: str(formData, "location"),
       featuredImage: organiserImage,
       excerpt: str(formData, "excerpt"),
+      socials: socialsFrom(formData),
       status: formData.get("publish") ? "published" : "draft",
     },
     str(formData, "body") ?? "",
@@ -278,6 +293,7 @@ export async function updateEvent(formData: FormData) {
       venue,
       organiser,
       excerpt: str(formData, "excerpt"),
+      socials: socialsFrom(formData),
       recurrence: recurrenceFrom(formData),
       ...(eventImage ? { featuredImage: eventImage } : {}),
     },
@@ -337,7 +353,9 @@ export async function updateOrganiser(formData: FormData) {
       phone: str(formData, "phone"),
       email: str(formData, "email"),
       website: str(formData, "website"),
+      location: str(formData, "location"),
       excerpt: str(formData, "excerpt"),
+      socials: socialsFrom(formData),
       ...(organiserImage ? { featuredImage: organiserImage } : {}),
     },
     str(formData, "body") ?? "",
@@ -470,6 +488,30 @@ export async function deleteFromPublic(formData: FormData) {
   if (type !== "event" || !slug) return;
   await performDeleteEvent(slug);
   redirect(`${routes.agenda}?beheer=verwijderd`);
+}
+
+// ── Media library (editorial-enrichments) ────────────────────────────────────
+
+export async function uploadMedia(formData: FormData) {
+  await assertAdmin();
+  await saveUpload(formData.get("image"));
+  revalidatePath("/beheer/galerij");
+  redirect("/beheer/galerij?media=geupload");
+}
+
+export async function deleteMediaAction(formData: FormData) {
+  await assertAdmin();
+  const key = str(formData, "key");
+  const url = str(formData, "url");
+  if (!key || !url) return;
+  // Reference-safe: never delete an image still used as a cover or in a venue
+  // gallery. The page re-runs the scan for ?inuse to name the using items.
+  if ((await findImageReferences(url)).length) {
+    redirect(`/beheer/galerij?inuse=${encodeURIComponent(key)}`);
+  }
+  await deleteMedia(key);
+  revalidatePath("/beheer/galerij");
+  redirect("/beheer/galerij?media=verwijderd");
 }
 
 // ── Calendar import ──────────────────────────────────────────────────────────

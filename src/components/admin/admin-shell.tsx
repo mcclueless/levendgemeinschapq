@@ -5,6 +5,7 @@ import { logout } from "@/app/beheer/actions";
 const adminNav = [
   { href: "/beheer", label: "Overzicht" },
   { href: "/beheer/queue", label: "Wachtrij" },
+  { href: "/beheer/galerij", label: "Galerij" },
   { href: "/beheer/import", label: "Importeren" },
 ];
 

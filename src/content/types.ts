@@ -1,4 +1,4 @@
-import type { PublishStatus, Recurrence } from "./schema";
+import type { PublishStatus, Recurrence, Socials } from "./schema";
 
 /** Resolved domain models used by the UI (references resolved to objects). */
 
@@ -26,8 +26,11 @@ export interface Organiser {
   phone?: string;
   email?: string;
   website?: string;
+  /** Linked Location — a Venue slug (resolved at render time). */
+  location?: string;
   featuredImage?: string;
   excerpt?: string;
+  socials?: Socials;
   status: PublishStatus;
   body: string;
   href: string;
@@ -42,6 +45,7 @@ export interface CalendarEvent {
   organiser: Organiser | null;
   featuredImage?: string;
   excerpt?: string;
+  socials?: Socials;
   recurrence?: Recurrence;
   uid?: string;
   status: PublishStatus;
