@@ -10,6 +10,8 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { getOrganiser, getOrganisers } from "@/content/repository";
 import { pageMetadata } from "@/lib/metadata";
 import { organiserJsonLd } from "@/lib/structured-data";
+import { AdminBarMount } from "@/components/admin/admin-bar-mount";
+import { adminEditPath } from "@/lib/routes";
 
 export const revalidate = 600;
 
@@ -43,44 +45,52 @@ export default async function OrganiserPage({
   if (!organiser) notFound();
 
   return (
-    <Container className="py-14">
-      <JsonLd data={organiserJsonLd(organiser)} />
-      <Badge tone="terracotta">Organisator</Badge>
-      <h1 className="mt-4 text-4xl sm:text-5xl">{organiser.name}</h1>
-
-      <CoverImage
-        src={organiser.featuredImage}
-        alt={organiser.name}
-        className="mt-8 aspect-[2/1] rounded-xl"
+    <>
+      <AdminBarMount
+        type="organiser"
+        slug={organiser.slug}
+        title={organiser.name}
+        editHref={adminEditPath("organiser", organiser.slug)}
       />
+      <Container className="py-14">
+        <JsonLd data={organiserJsonLd(organiser)} />
+        <Badge tone="terracotta">Organisator</Badge>
+        <h1 className="mt-4 text-4xl sm:text-5xl">{organiser.name}</h1>
 
-      <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_20rem]">
-        <div>
-          <Mdx source={organiser.body} />
-        </div>
-        <aside>
-          <div className="rounded-lg border border-border bg-surface p-6">
-            <h2 className="text-lg">Contact</h2>
-            <div className="mt-4">
-              <ContactInfo
-                phone={organiser.phone}
-                email={organiser.email}
-                website={organiser.website}
-              />
-            </div>
-          </div>
-        </aside>
-      </div>
-
-      <div className="mt-16">
-        <UpcomingEvents
-          title={`Binnenkort van ${organiser.name}`}
-          organiserSlug={organiser.slug}
-          variant="image"
-          limit={6}
-          emptyLabel="Nog geen geplande evenementen van deze organisator."
+        <CoverImage
+          src={organiser.featuredImage}
+          alt={organiser.name}
+          className="mt-8 aspect-[2/1] rounded-xl"
         />
-      </div>
-    </Container>
+
+        <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_20rem]">
+          <div>
+            <Mdx source={organiser.body} />
+          </div>
+          <aside>
+            <div className="rounded-lg border border-border bg-surface p-6">
+              <h2 className="text-lg">Contact</h2>
+              <div className="mt-4">
+                <ContactInfo
+                  phone={organiser.phone}
+                  email={organiser.email}
+                  website={organiser.website}
+                />
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        <div className="mt-16">
+          <UpcomingEvents
+            title={`Binnenkort van ${organiser.name}`}
+            organiserSlug={organiser.slug}
+            variant="image"
+            limit={6}
+            emptyLabel="Nog geen geplande evenementen van deze organisator."
+          />
+        </div>
+      </Container>
+    </>
   );
 }

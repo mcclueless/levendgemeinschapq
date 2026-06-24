@@ -11,6 +11,8 @@ import { pageMetadata } from "@/lib/metadata";
 import { eventJsonLd } from "@/lib/structured-data";
 import { JsonLd } from "@/components/seo/json-ld";
 import { eventCover } from "@/lib/images";
+import { AdminBarMount } from "@/components/admin/admin-bar-mount";
+import { adminEditPath } from "@/lib/routes";
 
 export const revalidate = 600;
 
@@ -48,62 +50,70 @@ export default async function EventPage({
   const when = nextOccurrence(event.start, event.recurrence, startOfToday()) ?? event.start;
 
   return (
-    <Container className="py-14">
-      <JsonLd data={eventJsonLd(event, when)} />
+    <>
+      <AdminBarMount
+        type="event"
+        slug={event.slug}
+        title={event.title}
+        editHref={adminEditPath("event", event.slug)}
+      />
+      <Container className="py-14">
+        <JsonLd data={eventJsonLd(event, when)} />
 
-      <div className="max-w-3xl">
-        {/* Cover image — uploaded featured image, or the branded default. */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={eventCover(event.featuredImage)}
-          alt={event.title}
-          className="mb-8 aspect-[2/1] w-full rounded-xl object-cover"
-        />
+        <div className="max-w-3xl">
+          {/* Cover image — uploaded featured image, or the branded default. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={eventCover(event.featuredImage)}
+            alt={event.title}
+            className="mb-8 aspect-[2/1] w-full rounded-xl object-cover"
+          />
 
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge tone="saffron">
-            <time dateTime={isoDate(when)}>
-              {formatDateLong(when)} · {formatTime(when)}
-            </time>
-          </Badge>
-          {event.recurrence ? (
-            <Badge tone="forest">
-              {event.recurrence.freq === "weekly" ? "Elke week" : "Elke maand"}
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge tone="saffron">
+              <time dateTime={isoDate(when)}>
+                {formatDateLong(when)} · {formatTime(when)}
+              </time>
             </Badge>
-          ) : null}
+            {event.recurrence ? (
+              <Badge tone="forest">
+                {event.recurrence.freq === "weekly" ? "Elke week" : "Elke maand"}
+              </Badge>
+            ) : null}
+          </div>
+
+          <h1 className="mt-4 text-4xl sm:text-5xl">{event.title}</h1>
+
+          <p className="mt-4 text-muted">
+            {event.venue ? (
+              <>
+                📍{" "}
+                <Link
+                  href={event.venue.href}
+                  className="font-medium text-terracotta-strong hover:underline"
+                >
+                  {event.venue.name}
+                </Link>
+              </>
+            ) : null}
+            {event.organiser ? (
+              <>
+                {"  ·  "}georganiseerd door{" "}
+                <Link
+                  href={event.organiser.href}
+                  className="font-medium text-terracotta-strong hover:underline"
+                >
+                  {event.organiser.name}
+                </Link>
+              </>
+            ) : null}
+          </p>
+
+          <div className="mt-8">
+            <Mdx source={event.body} />
+          </div>
         </div>
-
-        <h1 className="mt-4 text-4xl sm:text-5xl">{event.title}</h1>
-
-        <p className="mt-4 text-muted">
-          {event.venue ? (
-            <>
-              📍{" "}
-              <Link
-                href={event.venue.href}
-                className="font-medium text-terracotta-strong hover:underline"
-              >
-                {event.venue.name}
-              </Link>
-            </>
-          ) : null}
-          {event.organiser ? (
-            <>
-              {"  ·  "}georganiseerd door{" "}
-              <Link
-                href={event.organiser.href}
-                className="font-medium text-terracotta-strong hover:underline"
-              >
-                {event.organiser.name}
-              </Link>
-            </>
-          ) : null}
-        </p>
-
-        <div className="mt-8">
-          <Mdx source={event.body} />
-        </div>
-      </div>
-    </Container>
+      </Container>
+    </>
   );
 }

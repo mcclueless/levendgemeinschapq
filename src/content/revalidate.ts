@@ -45,6 +45,42 @@ export async function revalidatePublic(): Promise<void> {
   ]);
 }
 
+/** Public detail-page path for one content item. */
+function itemPath(type: ManagedType, slug: string): string {
+  switch (type) {
+    case "event":
+      return routes.event(slug);
+    case "venue":
+      return routes.venue(slug);
+    case "organiser":
+      return routes.organiser(slug);
+    case "blog":
+      return routes.post(slug);
+  }
+}
+
+type ManagedType = "event" | "venue" | "organiser" | "blog";
+
+/**
+ * Revalidate after a single item changes status or is removed. Unlike
+ * revalidatePublic(), this also revalidates the item's OWN detail page — those
+ * pages are ISR (revalidate=600), so without this a hidden/deleted item keeps
+ * serving stale cached HTML from its own URL until the window elapses.
+ */
+export async function revalidateAfterItemChange(
+  type: ManagedType,
+  slug: string,
+): Promise<void> {
+  await revalidateContent([
+    itemPath(type, slug),
+    "/",
+    routes.agenda,
+    routes.venues,
+    routes.organisers,
+    routes.blog,
+  ]);
+}
+
 async function invalidateCdn(paths: string[]): Promise<void> {
   const distributionId = process.env.CLOUDFRONT_DISTRIBUTION_ID;
   if (!distributionId || paths.length === 0) return; // no-op without a CDN configured

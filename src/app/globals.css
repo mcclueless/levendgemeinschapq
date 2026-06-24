@@ -19,6 +19,16 @@
   --color-saffron: #d99224; /* warm accent */
   --color-forest: #436145; /* secondary accent — events/nature */
 
+  /* Admin chrome (admin-presence / design-system spec) ------------------- */
+  /* One dark "ink" treatment shared by the public admin banner and the
+     backend top bar: dark chrome = management mode. Pairings below meet
+     WCAG 2.1 AA against the --color-admin surface. */
+  --color-admin: #241c16; /* dark chrome surface */
+  --color-admin-fg: #f7efe4; /* text/icons on chrome — ~14:1 */
+  --color-admin-border: #4a3d31; /* hairline / chip border on chrome */
+  --color-admin-accent: #e8b04b; /* bright saffron accent — ~7.5:1 */
+  --color-admin-danger: #f0a085; /* destructive accent on dark — ~6.5:1 */
+
   /* Typography ----------------------------------------------------------- */
   --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
   --font-sans: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
@@ -67,6 +77,41 @@ a {
   outline: 3px solid var(--color-terracotta);
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+/* Shared admin chrome (admin-presence / design-system spec) ----------------- */
+/* Dark "ink" surface used by both the public admin banner and the backend top
+   bar. Focus rings and hover states are tuned to read against the dark
+   background (accessibility-compliance spec). */
+.admin-chrome {
+  background-color: var(--color-admin);
+  color: var(--color-admin-fg);
+}
+.admin-chrome :focus-visible {
+  outline-color: var(--color-admin-accent);
+}
+/* Bordered action chips on the dark chrome. */
+.admin-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 2rem;
+  padding: 0 0.7rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-admin-border);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-admin-fg);
+  transition: background-color 0.12s ease;
+}
+.admin-chip:hover {
+  background-color: rgba(247, 239, 228, 0.12);
+}
+.admin-chip-danger {
+  color: var(--color-admin-danger);
+  border-color: rgba(240, 160, 133, 0.4);
+}
+.admin-chip-danger:hover {
+  background-color: rgba(240, 160, 133, 0.14);
 }
 
 /* Respect reduced-motion preferences --------------------------------------- */

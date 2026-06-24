@@ -12,15 +12,20 @@ const adminNav = [
 export function AdminShell({ children }: { children: React.ReactNode }) {
   return (
     <div>
-      <div className="border-b border-border bg-sand">
+      {/* Shared dark "ink" admin chrome — same treatment as the public admin
+          banner, so dark chrome always reads as management mode (design-system
+          spec). */}
+      <div className="admin-chrome border-b border-admin-border">
         <Container className="flex h-14 items-center justify-between gap-4">
           <nav aria-label="Beheernavigatie" className="flex items-center gap-1">
-            <span className="mr-2 font-display font-semibold">Beheer</span>
+            <span className="mr-2 font-display font-semibold text-admin-fg">
+              Beheer
+            </span>
             {adminNav.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="rounded-sm px-3 py-1.5 text-sm font-medium text-muted hover:bg-cream hover:text-ink"
+                className="rounded-sm px-3 py-1.5 text-sm font-medium text-admin-fg/75 hover:bg-white/10 hover:text-admin-fg"
               >
                 {item.label}
               </Link>
@@ -29,7 +34,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <form action={logout}>
             <button
               type="submit"
-              className="rounded-sm px-3 py-1.5 text-sm font-medium text-terracotta-strong hover:underline"
+              className="rounded-sm px-3 py-1.5 text-sm font-medium text-admin-danger hover:bg-white/10"
             >
               Uitloggen
             </button>

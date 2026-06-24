@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Container } from "@/components/ui/container";
 import { footerNav, site } from "@/lib/site";
+import { FooterAdminLinks } from "./footer-admin-links";
 
 /**
  * Site-wide footer: table of contents / navigation, privacy statement link,
@@ -50,11 +51,13 @@ export function Footer() {
           <p>
             © {year} {site.name}. Met zorg gemaakt voor de buurt.
           </p>
-          <p>
+          <div className="flex items-center gap-3">
             <Link href="/privacy" className="underline-offset-4 hover:underline">
               Privacyverklaring
             </Link>
-          </p>
+            <span aria-hidden>·</span>
+            <FooterAdminLinks />
+          </div>
         </div>
       </Container>
     </footer>

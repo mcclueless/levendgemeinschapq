@@ -34,3 +34,25 @@ export const ADMIN_TYPE_TO_SEGMENT = {
 /** Backend list path for a content type, e.g. "/beheer/evenementen". */
 export const adminListPath = (type: keyof typeof ADMIN_TYPE_TO_SEGMENT) =>
   `/beheer/${ADMIN_TYPE_TO_SEGMENT[type]}`;
+
+/** Backend edit-form path for one item, e.g. "/beheer/evenementen/feest/bewerken". */
+export const adminEditPath = (
+  type: keyof typeof ADMIN_TYPE_TO_SEGMENT,
+  slug: string,
+) => `${adminListPath(type)}/${slug}/bewerken`;
+
+/**
+ * Public listing path for a content type — where to land after hide/delete.
+ * Typed as a total Record over the content types, so adding a new type to
+ * ADMIN_TYPE_TO_SEGMENT without a path here is a compile error, not a runtime
+ * `undefined` redirect.
+ */
+const PUBLIC_LIST_PATH: Record<keyof typeof ADMIN_TYPE_TO_SEGMENT, string> = {
+  event: routes.agenda,
+  venue: routes.venues,
+  organiser: routes.organisers,
+  blog: routes.blog,
+};
+
+export const publicListPath = (type: keyof typeof ADMIN_TYPE_TO_SEGMENT) =>
+  PUBLIC_LIST_PATH[type];

@@ -3,6 +3,7 @@ import { Container } from "@/components/ui/container";
 import { Badge } from "@/components/ui/card";
 import { EventList } from "@/components/events/event-list";
 import { getUpcomingEvents } from "@/content/events";
+import { AdminListingNotice } from "@/components/admin/admin-listing-notice";
 
 // Rendered per request (dynamic-content-listings): reads S3 live so a
 // publish/edit/hide/delete shows on the next request, with no CDN-cache lag.
@@ -25,6 +26,7 @@ export default async function AgendaPage() {
 
   return (
     <Container className="py-14">
+      <AdminListingNotice />
       <Badge tone="terracotta">Agenda</Badge>
       <h1 className="mt-4 text-4xl sm:text-5xl">Aankomende evenementen</h1>
       <p className="mt-3 max-w-xl text-lg text-muted">

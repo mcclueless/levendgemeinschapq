@@ -6,8 +6,16 @@ import { SignJWT, jwtVerify } from "jose";
  * (Auth.js magic-link) replaces this before limited-user features ship.
  *
  * This module is edge-safe (jose + Web Crypto) so it can run in middleware.
+ * Cookie-name / lifetime constants live in `auth-constants` (jose-free) so
+ * client code can import them without pulling crypto into the client bundle;
+ * re-exported here for server-side callers' convenience.
  */
-export const SESSION_COOKIE = "lg_session";
+export {
+  SESSION_COOKIE,
+  ADMIN_HINT_COOKIE,
+  SESSION_MAX_AGE,
+} from "./auth-constants";
+
 const SESSION_TTL = "7d";
 
 function secret(): Uint8Array {

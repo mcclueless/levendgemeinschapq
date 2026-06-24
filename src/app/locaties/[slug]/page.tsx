@@ -12,6 +12,8 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { getVenue, getVenues } from "@/content/repository";
 import { pageMetadata } from "@/lib/metadata";
 import { venueJsonLd } from "@/lib/structured-data";
+import { AdminBarMount } from "@/components/admin/admin-bar-mount";
+import { adminEditPath } from "@/lib/routes";
 
 export const revalidate = 600;
 
@@ -50,50 +52,58 @@ export default async function VenuePage({
       : venue.address;
 
   return (
-    <Container className="py-14">
-      <JsonLd data={venueJsonLd(venue)} />
-      <Badge tone="terracotta">Locatie</Badge>
-      <h1 className="mt-4 text-4xl sm:text-5xl">{venue.name}</h1>
-
-      <CoverImage
-        src={venue.featuredImage}
-        alt={venue.name}
-        className="mt-8 aspect-[2/1] rounded-xl"
+    <>
+      <AdminBarMount
+        type="venue"
+        slug={venue.slug}
+        title={venue.name}
+        editHref={adminEditPath("venue", venue.slug)}
       />
+      <Container className="py-14">
+        <JsonLd data={venueJsonLd(venue)} />
+        <Badge tone="terracotta">Locatie</Badge>
+        <h1 className="mt-4 text-4xl sm:text-5xl">{venue.name}</h1>
 
-      <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_20rem]">
-        <div>
-          <Mdx source={venue.body} />
-          <div className="mt-8">
-            <Gallery images={venue.images} alt={venue.name} />
-          </div>
-        </div>
+        <CoverImage
+          src={venue.featuredImage}
+          alt={venue.name}
+          className="mt-8 aspect-[2/1] rounded-xl"
+        />
 
-        <aside className="space-y-6">
-          <div className="rounded-lg border border-border bg-surface p-6">
-            <h2 className="text-lg">Contact</h2>
-            <div className="mt-4">
-              <ContactInfo
-                phone={venue.phone}
-                email={venue.email}
-                website={venue.website}
-                address={venue.address}
-              />
+        <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_20rem]">
+          <div>
+            <Mdx source={venue.body} />
+            <div className="mt-8">
+              <Gallery images={venue.images} alt={venue.name} />
             </div>
           </div>
-          {mapQuery ? <MapEmbed query={mapQuery} label={venue.name} /> : null}
-        </aside>
-      </div>
 
-      <div className="mt-16">
-        <UpcomingEvents
-          title={`Binnenkort bij ${venue.name}`}
-          venueSlug={venue.slug}
-          variant="image"
-          limit={6}
-          emptyLabel="Nog geen geplande evenementen op deze locatie."
-        />
-      </div>
-    </Container>
+          <aside className="space-y-6">
+            <div className="rounded-lg border border-border bg-surface p-6">
+              <h2 className="text-lg">Contact</h2>
+              <div className="mt-4">
+                <ContactInfo
+                  phone={venue.phone}
+                  email={venue.email}
+                  website={venue.website}
+                  address={venue.address}
+                />
+              </div>
+            </div>
+            {mapQuery ? <MapEmbed query={mapQuery} label={venue.name} /> : null}
+          </aside>
+        </div>
+
+        <div className="mt-16">
+          <UpcomingEvents
+            title={`Binnenkort bij ${venue.name}`}
+            venueSlug={venue.slug}
+            variant="image"
+            limit={6}
+            emptyLabel="Nog geen geplande evenementen op deze locatie."
+          />
+        </div>
+      </Container>
+    </>
   );
 }

@@ -4,7 +4,9 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import {
+  ADMIN_HINT_COOKIE,
   SESSION_COOKIE,
+  SESSION_MAX_AGE,
   checkAdminPassword,
   createSessionToken,
 } from "@/lib/auth";
@@ -19,8 +21,8 @@ import { findReferences } from "@/content/admin";
 import { saveUpload } from "@/content/media";
 import { geocode, type GeocodeResult } from "@/content/geocode";
 import { importFromUrl } from "@/content/ical-import";
-import { revalidatePublic } from "@/content/revalidate";
-import { adminListPath } from "@/lib/routes";
+import { revalidatePublic, revalidateAfterItemChange } from "@/content/revalidate";
+import { adminListPath, publicListPath, routes } from "@/lib/routes";
 
 type ManagedType = "event" | "venue" | "organiser" | "blog";
 
@@ -73,18 +75,31 @@ export async function login(formData: FormData) {
     redirect(`/beheer/login?error=1&next=${encodeURIComponent(next)}`);
   }
   const token = await createSessionToken();
-  (await cookies()).set(SESSION_COOKIE, token, {
+  const jar = await cookies();
+  jar.set(SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 60 * 60 * 24 * 7,
+    maxAge: SESSION_MAX_AGE,
+  });
+  // Client-readable hint (admin-presence): lets the public footer + banner
+  // reveal admin UI without server-rendering session state. Not httpOnly by
+  // design; it is only a hint — real auth stays in SESSION_COOKIE.
+  jar.set(ADMIN_HINT_COOKIE, "1", {
+    httpOnly: false,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: SESSION_MAX_AGE,
   });
   redirect(next);
 }
 
 export async function logout() {
-  (await cookies()).delete(SESSION_COOKIE);
+  const jar = await cookies();
+  jar.delete(SESSION_COOKIE);
+  jar.delete(ADMIN_HINT_COOKIE);
   redirect("/beheer/login");
 }
 
@@ -373,18 +388,38 @@ export async function updateBlog(formData: FormData) {
 // site while keeping the document. Hiding a Venue/Organiser that a published
 // Event/Blog still references is blocked (design D3).
 
+// Core hide/delete logic, shared by the backend and the public-banner actions
+// so the reference guard (design D3) and revalidation live in ONE place; only
+// the post-action redirect differs between the two entry points. `redirect()`
+// throws, so it stays in the thin action wrappers — these helpers just do the
+// work and report the outcome.
+
+/** Hide an item; returns whether it was blocked by a published reference. */
+async function performHide(
+  type: ManagedType,
+  slug: string,
+): Promise<{ blocked: boolean }> {
+  if ((await findReferences(type, slug)).length) return { blocked: true };
+  await setStatus(type, slug, "draft");
+  await revalidateAfterItemChange(type, slug);
+  revalidatePath(adminListPath(type));
+  return { blocked: false };
+}
+
+async function performDeleteEvent(slug: string): Promise<void> {
+  await deleteDocument("event", slug);
+  await revalidateAfterItemChange("event", slug);
+  revalidatePath(adminListPath("event"));
+}
+
 export async function hideContent(formData: FormData) {
   await assertAdmin();
   const type = managedType(formData);
   const slug = str(formData, "slug");
   if (!type || !slug) return;
-  const refs = await findReferences(type, slug);
-  if (refs.length) {
+  if ((await performHide(type, slug)).blocked) {
     redirect(`${adminListPath(type)}?blocked=${encodeURIComponent(slug)}`);
   }
-  await setStatus(type, slug, "draft");
-  await revalidatePublic();
-  revalidatePath(adminListPath(type));
   redirect(adminListPath(type));
 }
 
@@ -394,7 +429,7 @@ export async function showContent(formData: FormData) {
   const slug = str(formData, "slug");
   if (!type || !slug) return;
   await setStatus(type, slug, "published");
-  await revalidatePublic();
+  await revalidateAfterItemChange(type, slug);
   revalidatePath(adminListPath(type));
   redirect(adminListPath(type));
 }
@@ -405,10 +440,36 @@ export async function deleteEvent(formData: FormData) {
   await assertAdmin();
   const slug = str(formData, "slug");
   if (!slug) return;
-  await deleteDocument("event", slug);
-  await revalidatePublic();
-  revalidatePath(adminListPath("event"));
+  await performDeleteEvent(slug);
   redirect(adminListPath("event"));
+}
+
+// ── Public-side admin banner actions (admin-presence) ────────────────────────
+// The contextual banner on a public item page triggers these. Acting on an
+// item makes its own public page vanish, so on success they reuse the shared
+// helpers above (same rules as the backend) and land on that type's PUBLIC
+// listing with a confirmation flag. A still-referenced venue/organiser is sent
+// to the backend list, whose existing UI names the referencing published items.
+
+export async function hideFromPublic(formData: FormData) {
+  await assertAdmin();
+  const type = managedType(formData);
+  const slug = str(formData, "slug");
+  if (!type || !slug) return;
+  if ((await performHide(type, slug)).blocked) {
+    redirect(`${adminListPath(type)}?blocked=${encodeURIComponent(slug)}`);
+  }
+  redirect(`${publicListPath(type)}?beheer=verborgen`);
+}
+
+export async function deleteFromPublic(formData: FormData) {
+  await assertAdmin();
+  // Validate the type like every other content action; delete is events-only.
+  const type = managedType(formData);
+  const slug = str(formData, "slug");
+  if (type !== "event" || !slug) return;
+  await performDeleteEvent(slug);
+  redirect(`${routes.agenda}?beheer=verwijderd`);
 }
 
 // ── Calendar import ──────────────────────────────────────────────────────────
