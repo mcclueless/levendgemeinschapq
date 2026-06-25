@@ -5,7 +5,10 @@ import { UpcomingEvents } from "@/components/events/upcoming-events";
 import { JsonLd } from "@/components/seo/json-ld";
 import { siteJsonLd } from "@/lib/structured-data";
 
-export const revalidate = 600;
+// Rendered per request (dynamic-content-listings): the upcoming-events preview
+// reads S3 live so a publish/edit/hide/delete shows on the next request, with
+// no CDN-cache lag — matching the listing pages.
+export const dynamic = "force-dynamic";
 
 export default function HomePage() {
   return (
