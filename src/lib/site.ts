@@ -16,6 +16,7 @@ export const site = {
 export const mainNav = [
   { href: "/", label: "Home" },
   { href: "/agenda", label: "Agenda" },
+  { href: "/projecten", label: "Projecten" },
   { href: "/locaties", label: "Locaties" },
   { href: "/organisatoren", label: "Organisatoren" },
   { href: "/blog", label: "Blog" },
@@ -27,6 +28,7 @@ export const footerNav = [
     title: "Ontdekken",
     links: [
       { href: "/agenda", label: "Agenda" },
+      { href: "/projecten", label: "Projecten" },
       { href: "/locaties", label: "Locaties" },
       { href: "/organisatoren", label: "Organisatoren" },
       { href: "/blog", label: "Blog" },

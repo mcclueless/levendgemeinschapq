@@ -3,6 +3,7 @@ import {
   getAllEvents,
   getBlogPosts,
   getOrganisers,
+  getProjects,
   getVenues,
 } from "@/content/repository";
 import { routes } from "@/lib/routes";
@@ -10,16 +11,18 @@ import { absolute } from "@/lib/structured-data";
 
 /** XML sitemap of all public content (seo-discoverability spec). */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [events, venues, organisers, posts] = await Promise.all([
+  const [events, venues, organisers, posts, projects] = await Promise.all([
     getAllEvents(),
     getVenues(),
     getOrganisers(),
     getBlogPosts(),
+    getProjects(),
   ]);
 
   const staticPaths = [
     "/",
     routes.agenda,
+    routes.projects,
     routes.venues,
     routes.organisers,
     routes.blog,
@@ -34,6 +37,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...venues.map((v) => v.href),
     ...organisers.map((o) => o.href),
     ...posts.map((p) => p.href),
+    ...projects.map((p) => p.href),
   ].map((href) => ({ url: absolute(href), changeFrequency: "weekly" as const }));
 
   return [...staticPaths, ...content];

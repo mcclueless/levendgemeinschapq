@@ -25,11 +25,15 @@ import { importFromUrl } from "@/content/ical-import";
 import { revalidatePublic, revalidateAfterItemChange } from "@/content/revalidate";
 import { adminListPath, publicListPath } from "@/lib/routes";
 
-type ManagedType = "event" | "venue" | "organiser" | "blog";
+type ManagedType = "event" | "venue" | "organiser" | "blog" | "project";
 
 function managedType(form: FormData): ManagedType | undefined {
   const t = str(form, "type");
-  return t === "event" || t === "venue" || t === "organiser" || t === "blog"
+  return t === "event" ||
+    t === "venue" ||
+    t === "organiser" ||
+    t === "blog" ||
+    t === "project"
     ? t
     : undefined;
 }
@@ -265,6 +269,43 @@ export async function createBlog(formData: FormData) {
   redirect("/beheer?created=blog");
 }
 
+/** Selected organiser slugs from a project form (projects spec: ≥1 required). */
+function organisersFrom(form: FormData): string[] {
+  return form
+    .getAll("organisers")
+    .filter((v): v is string => typeof v === "string" && v !== "");
+}
+
+export async function createProject(formData: FormData) {
+  await assertAdmin();
+  const title = str(formData, "title");
+  const venue = str(formData, "venue");
+  const organisers = organisersFrom(formData);
+  // One location and at least one organiser are required (projects spec).
+  if (!title || !venue || organisers.length === 0) {
+    redirect("/beheer/nieuw/project?error=1");
+  }
+  const projectImage = await coverImage(formData);
+  await createDocument(
+    "project",
+    title!,
+    {
+      title,
+      // `date` is stamped automatically and used only for ordering (design D2);
+      // it is not an editor-entered field.
+      date: new Date().toISOString(),
+      venue,
+      organisers,
+      excerpt: str(formData, "excerpt"),
+      featuredImage: projectImage,
+      status: formData.get("publish") ? "published" : "draft",
+    },
+    str(formData, "body") ?? "",
+  );
+  await revalidatePublic();
+  redirect("/beheer?created=project");
+}
+
 // ── Editing existing content (manage-existing-content) ───────────────────────
 // Edits merge over stored frontmatter and keep the slug stable, so fields not
 // on the form (uid, gallery images, submission metadata) survive and
@@ -399,6 +440,35 @@ export async function updateBlog(formData: FormData) {
   await revalidatePublic();
   revalidatePath(adminListPath("blog"));
   redirect(adminListPath("blog"));
+}
+
+export async function updateProject(formData: FormData) {
+  await assertAdmin();
+  const slug = str(formData, "slug");
+  if (!slug) redirect(adminListPath("project"));
+  const title = str(formData, "title");
+  const venue = str(formData, "venue");
+  const organisers = organisersFrom(formData);
+  if (!title || !venue || organisers.length === 0) {
+    redirect(`${adminListPath("project")}/${slug}/bewerken?error=1`);
+  }
+  const projectImage = await coverImage(formData);
+  // `date` is omitted from the patch so the original ordering date is preserved.
+  await updateDocument(
+    "project",
+    slug!,
+    {
+      title,
+      venue,
+      organisers,
+      excerpt: str(formData, "excerpt"),
+      ...(projectImage ? { featuredImage: projectImage } : {}),
+    },
+    str(formData, "body") ?? "",
+  );
+  await revalidatePublic();
+  revalidatePath(adminListPath("project"));
+  redirect(adminListPath("project"));
 }
 
 // ── Hide / show existing content ─────────────────────────────────────────────

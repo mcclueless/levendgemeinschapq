@@ -18,6 +18,7 @@ const TITLES = {
   venue: "Locaties",
   organiser: "Organisatoren",
   blog: "Blogposts",
+  project: "Projecten",
 } as const;
 
 const NEW_LINK = {
@@ -25,6 +26,7 @@ const NEW_LINK = {
   venue: "/beheer/nieuw/locatie",
   organiser: "/beheer/nieuw/organisator",
   blog: "/beheer/nieuw/blog",
+  project: "/beheer/nieuw/project",
 } as const;
 
 const REF_KIND_LABEL = {

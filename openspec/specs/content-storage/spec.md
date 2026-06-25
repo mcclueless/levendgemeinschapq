@@ -7,7 +7,7 @@ Defines how content is persisted and served: Markdown/MDX documents with typed f
 ## Requirements
 
 ### Requirement: Markdown/MDX content in S3
-The system SHALL persist Event, Venue, Organiser, and Blog content as Markdown or MDX documents in S3. Each document SHALL carry structured frontmatter for its typed fields (e.g., event start/end, venue/organiser references, contact info) and a body for rich content.
+The system SHALL persist Event, Venue, Organiser, Blog, and Project content as Markdown or MDX documents in S3. Each document SHALL carry structured frontmatter for its typed fields (e.g., event start/end, venue/organiser references, contact info, a project's single location and multiple organisers) and a body for rich content.
 
 #### Scenario: Saving content as MD/MDX
 - **WHEN** content is created or edited through the backend
@@ -18,11 +18,15 @@ The system SHALL persist Event, Venue, Organiser, and Blog content as Markdown o
 - **THEN** the system SHALL validate the frontmatter against the schema for that content type and SHALL surface an error for malformed documents rather than rendering them broken
 
 ### Requirement: Render pipeline
-The system SHALL render MD/MDX content into accessible HTML for the public site, resolving references (such as an event's Venue and Organiser) at render or build time.
+The system SHALL render MD/MDX content into accessible HTML for the public site, resolving references (such as an event's Venue and Organiser, or a project's Venue and its Organisers) at render or build time.
 
 #### Scenario: Rendering referenced entities
 - **WHEN** an event document referencing a Venue and Organiser is rendered
 - **THEN** the system SHALL resolve those references and produce links to the corresponding Venue and Organiser pages
+
+#### Scenario: Rendering a project's references
+- **WHEN** a project document referencing one Venue and one or more Organisers is rendered
+- **THEN** the system SHALL resolve those references and produce links to the corresponding Venue and Organiser pages, omitting any reference that cannot be resolved
 
 ### Requirement: Caching and invalidation policy
 The system SHALL apply a caching policy appropriate to read-heavy, infrequently-changing content. **Pages that surface live content listings** — the index/listing pages (the agenda, venues, organisers, and blog overviews) and the **homepage** (which shows an upcoming-events preview) — SHALL be rendered per request from the source of truth so that newly published, edited, hidden, or removed items appear immediately, with no CDN-cache lag. **Content detail pages and genuinely static pages** SHALL be served from cache/CDN and SHALL be revalidated within a defined freshness window when content is published or updated.

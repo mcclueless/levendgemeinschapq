@@ -207,4 +207,5 @@ export const CONTENT_PREFIX = {
   venue: "venues",
   organiser: "organisers",
   blog: "blog",
+  project: "projects",
 } as const;

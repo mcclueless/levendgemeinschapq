@@ -117,6 +117,7 @@ const PUBLIC_PATH = {
   venue: routes.venue,
   organiser: routes.organiser,
   blog: routes.post,
+  project: routes.project,
 } as const;
 
 export interface ContentListItem {
@@ -142,7 +143,7 @@ export async function listContent(type: ContentType): Promise<ContentListItem[]>
     const sortKey =
       type === "event"
         ? (data.start as Date)?.toISOString?.() ?? ""
-        : type === "blog"
+        : type === "blog" || type === "project"
           ? (data.date as Date)?.toISOString?.() ?? ""
           : title.toLowerCase();
     return {
@@ -154,7 +155,7 @@ export async function listContent(type: ContentType): Promise<ContentListItem[]>
       sortKey,
     };
   });
-  const dated = type === "event" || type === "blog";
+  const dated = type === "event" || type === "blog" || type === "project";
   items.sort((a, b) =>
     dated ? b.sortKey.localeCompare(a.sortKey) : a.sortKey.localeCompare(b.sortKey),
   );
@@ -314,11 +315,12 @@ export async function getEditable<K extends ContentType>(
 /** Counts for the dashboard. */
 export async function getContentCounts() {
   const store = getStore();
-  const [events, venues, organisers, posts] = await Promise.all([
+  const [events, venues, organisers, posts, projects] = await Promise.all([
     store.readPrefix(CONTENT_PREFIX.event).then((d) => parseAll("event", d)),
     store.readPrefix(CONTENT_PREFIX.venue).then((d) => parseAll("venue", d)),
     store.readPrefix(CONTENT_PREFIX.organiser).then((d) => parseAll("organiser", d)),
     store.readPrefix(CONTENT_PREFIX.blog).then((d) => parseAll("blog", d)),
+    store.readPrefix(CONTENT_PREFIX.project).then((d) => parseAll("project", d)),
   ]);
   const pending =
     events.filter((e) => e.data.status === "pending").length +
@@ -328,6 +330,7 @@ export async function getContentCounts() {
     venues: venues.length,
     organisers: organisers.length,
     posts: posts.length,
+    projects: projects.length,
     pending,
   };
 }

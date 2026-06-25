@@ -39,6 +39,7 @@ export async function revalidatePublic(): Promise<void> {
   await revalidateContent([
     "/",
     routes.agenda,
+    routes.projects,
     routes.venues,
     routes.organisers,
     routes.blog,
@@ -56,10 +57,12 @@ function itemPath(type: ManagedType, slug: string): string {
       return routes.organiser(slug);
     case "blog":
       return routes.post(slug);
+    case "project":
+      return routes.project(slug);
   }
 }
 
-type ManagedType = "event" | "venue" | "organiser" | "blog";
+type ManagedType = "event" | "venue" | "organiser" | "blog" | "project";
 
 /**
  * Revalidate after a single item changes status or is removed. Unlike
@@ -75,6 +78,7 @@ export async function revalidateAfterItemChange(
     itemPath(type, slug),
     "/",
     routes.agenda,
+    routes.projects,
     routes.venues,
     routes.organisers,
     routes.blog,

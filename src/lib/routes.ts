@@ -8,6 +8,8 @@ export const routes = {
   organiser: (slug: string) => `/organisatoren/${slug}`,
   blog: "/blog",
   post: (slug: string) => `/blog/${slug}`,
+  projects: "/projecten",
+  project: (slug: string) => `/projecten/${slug}`,
 } as const;
 
 /**
@@ -20,6 +22,7 @@ export const ADMIN_SEGMENT_TO_TYPE = {
   locaties: "venue",
   organisatoren: "organiser",
   blogposts: "blog",
+  projecten: "project",
 } as const;
 
 export type AdminSegment = keyof typeof ADMIN_SEGMENT_TO_TYPE;
@@ -29,6 +32,7 @@ export const ADMIN_TYPE_TO_SEGMENT = {
   venue: "locaties",
   organiser: "organisatoren",
   blog: "blogposts",
+  project: "projecten",
 } as const;
 
 /** Backend list path for a content type, e.g. "/beheer/evenementen". */
@@ -52,6 +56,7 @@ const PUBLIC_LIST_PATH: Record<keyof typeof ADMIN_TYPE_TO_SEGMENT, string> = {
   venue: routes.venues,
   organiser: routes.organisers,
   blog: routes.blog,
+  project: routes.projects,
 };
 
 export const publicListPath = (type: keyof typeof ADMIN_TYPE_TO_SEGMENT) =>

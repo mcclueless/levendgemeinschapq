@@ -3,7 +3,13 @@ import "server-only";
 import { CONTENT_PREFIX, getStore } from "./storage";
 import { parseAll } from "./parse";
 import { routes } from "@/lib/routes";
-import type { BlogPost, CalendarEvent, Organiser, Venue } from "./types";
+import type {
+  BlogPost,
+  CalendarEvent,
+  Organiser,
+  Project,
+  Venue,
+} from "./types";
 
 /**
  * Content repository (design D3). Loads MD/MDX from the store, validates it,
@@ -115,6 +121,31 @@ const loadPosts = cache(async (): Promise<BlogPost[]> => {
   }));
 });
 
+const loadProjects = cache(async (): Promise<Project[]> => {
+  const [docs, venues, organisers] = await Promise.all([
+    getStore()
+      .readPrefix(CONTENT_PREFIX.project)
+      .then((d) => parseAll("project", d)),
+    loadVenues(),
+    loadOrganisers(),
+  ]);
+  const resolve = <T>(slugs: string[], map: Map<string, T>) =>
+    slugs.map((s) => map.get(s)).filter((x): x is T => x != null);
+
+  return docs.map((d) => ({
+    slug: d.slug,
+    title: d.data.title,
+    date: d.data.date,
+    venue: venues.get(d.data.venue) ?? null,
+    organisers: resolve(d.data.organisers, organisers),
+    featuredImage: d.data.featuredImage,
+    excerpt: d.data.excerpt,
+    status: d.data.status,
+    body: d.body,
+    href: routes.project(d.slug),
+  }));
+});
+
 // ── Public getters (published-only for the public site) ─────────────────────
 
 export async function getVenues(): Promise<Venue[]> {
@@ -157,5 +188,17 @@ export async function getBlogPosts(): Promise<BlogPost[]> {
 
 export async function getBlogPost(slug: string): Promise<BlogPost | null> {
   const p = (await loadPosts()).find((post) => post.slug === slug);
+  return p && isPublished(p) ? p : null;
+}
+
+/** Published projects, newest first by their auto-stamped date (projects spec). */
+export async function getProjects(): Promise<Project[]> {
+  return (await loadProjects())
+    .filter(isPublished)
+    .sort((a, b) => b.date.getTime() - a.date.getTime());
+}
+
+export async function getProject(slug: string): Promise<Project | null> {
+  const p = (await loadProjects()).find((proj) => proj.slug === slug);
   return p && isPublished(p) ? p : null;
 }

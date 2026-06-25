@@ -14,6 +14,7 @@ const createLinks = [
   { href: "/beheer/nieuw/locatie", label: "Nieuwe locatie" },
   { href: "/beheer/nieuw/organisator", label: "Nieuwe organisator" },
   { href: "/beheer/nieuw/blog", label: "Nieuwe blogpost" },
+  { href: "/beheer/nieuw/project", label: "Nieuw project" },
 ];
 
 export default async function AdminHome({
@@ -59,6 +60,7 @@ export default async function AdminHome({
           href={adminListPath("organiser")}
         />
         <Stat label="Blogposts" value={counts.posts} href={adminListPath("blog")} />
+        <Stat label="Projecten" value={counts.projects} href={adminListPath("project")} />
         <Stat label="In wachtrij" value={counts.pending} href="/beheer/queue" highlight />
       </div>
 

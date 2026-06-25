@@ -6,7 +6,13 @@ import { z } from "zod";
  * rather than rendered broken (content-storage spec).
  */
 
-export const ContentType = z.enum(["event", "venue", "organiser", "blog"]);
+export const ContentType = z.enum([
+  "event",
+  "venue",
+  "organiser",
+  "blog",
+  "project",
+]);
 export type ContentType = z.infer<typeof ContentType>;
 
 /** Publication state drives the approval queue (user-roles-approval spec). */
@@ -112,9 +118,29 @@ export const BlogFrontmatter = z.object({
 });
 export type BlogFrontmatter = z.infer<typeof BlogFrontmatter>;
 
+/**
+ * Project — a neighbourhood initiative (projects spec). Inherits Location and
+ * Organiser *references* (resolved to records at read time): exactly one venue,
+ * one or more organisers. `date` is stamped automatically on save and used only
+ * for newest-first ordering — it is not an editor-entered field (design D2).
+ * Admin-only: no submission/review metadata (design D4).
+ */
+export const ProjectFrontmatter = z.object({
+  title: z.string().min(1),
+  date: z.coerce.date(),
+  /** Slug references resolved against venue/organiser records. */
+  venue: z.string().min(1),
+  organisers: z.array(z.string().min(1)).min(1),
+  featuredImage: z.string().optional(),
+  excerpt: z.string().optional(),
+  status: PublishStatus.default("published"),
+});
+export type ProjectFrontmatter = z.infer<typeof ProjectFrontmatter>;
+
 export const frontmatterByType = {
   event: EventFrontmatter,
   venue: VenueFrontmatter,
   organiser: OrganiserFrontmatter,
   blog: BlogFrontmatter,
+  project: ProjectFrontmatter,
 } as const;

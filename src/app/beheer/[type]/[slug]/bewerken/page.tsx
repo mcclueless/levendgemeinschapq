@@ -20,6 +20,7 @@ import {
   updateBlog,
   updateEvent,
   updateOrganiser,
+  updateProject,
   updateVenue,
 } from "../../../actions";
 
@@ -249,6 +250,69 @@ export default async function EditPage({
           </Field>
           <Field label="Beschrijving" htmlFor="body" hint="Markdown/MDX ondersteund.">
             <Textarea id="body" name="body" defaultValue={doc.body.trim()} />
+          </Field>
+          <div>
+            <SubmitButton>Opslaan</SubmitButton>
+          </div>
+        </form>
+      </AdminShell>
+    );
+  }
+
+  if (type === "project") {
+    const [doc, venues, organisers] = await Promise.all([
+      getEditable("project", slug),
+      getVenues(),
+      getOrganisers(),
+    ]);
+    if (!doc) notFound();
+    const d = doc.data;
+    return (
+      <AdminShell>
+        <h1 className="text-3xl">Project bewerken</h1>
+        <form action={updateProject} className={formClass}>
+          <input type="hidden" name="slug" value={slug} />
+          <Field label="Titel" htmlFor="title" required>
+            <Input id="title" name="title" required defaultValue={d.title} />
+          </Field>
+          <Field label="Uitgelichte afbeelding" htmlFor="image">
+            <ImageField pool={pool} current={d.featuredImage} />
+          </Field>
+          <Field label="Locatie" htmlFor="venue" required>
+            <Select id="venue" name="venue" required defaultValue={d.venue}>
+              {venues.map((v) => (
+                <option key={v.slug} value={v.slug}>
+                  {v.name}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Field
+            label="Organisatoren"
+            htmlFor="organisers"
+            required
+            hint="Eén of meer. Houd Ctrl/⌘ ingedrukt voor meerdere."
+          >
+            <Select
+              id="organisers"
+              name="organisers"
+              multiple
+              required
+              className="min-h-32"
+              defaultValue={d.organisers}
+            >
+              {organisers.map((o) => (
+                <option key={o.slug} value={o.slug}>
+                  {o.name}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="Korte omschrijving" htmlFor="excerpt">
+            <Input id="excerpt" name="excerpt" defaultValue={d.excerpt} />
+          </Field>
+          <Field label="Beschrijving" htmlFor="body" hint="Markdown/MDX ondersteund.">
+            <Textarea id="body" name="body" className="min-h-64" defaultValue={doc.body.trim()} />
           </Field>
           <div>
             <SubmitButton>Opslaan</SubmitButton>

@@ -73,3 +73,20 @@ export interface BlogPost {
   body: string;
   href: string;
 }
+
+/**
+ * A neighbourhood project (projects spec): one resolved Location and one or
+ * more resolved Organisers. `date` is the auto-stamped ordering key.
+ */
+export interface Project {
+  slug: string;
+  title: string;
+  date: Date;
+  venue: Venue | null;
+  organisers: Organiser[];
+  featuredImage?: string;
+  excerpt?: string;
+  status: PublishStatus;
+  body: string;
+  href: string;
+}

@@ -2,6 +2,7 @@ import { Container } from "@/components/ui/container";
 import { ButtonLink } from "@/components/ui/button";
 import { Badge } from "@/components/ui/card";
 import { UpcomingEvents } from "@/components/events/upcoming-events";
+import { FeaturedProjects } from "@/components/projects/featured-projects";
 import { JsonLd } from "@/components/seo/json-ld";
 import { siteJsonLd } from "@/lib/structured-data";
 
@@ -52,6 +53,16 @@ export default function HomePage() {
           subtitle="Vandaag en in de komende weken."
           limit={6}
           variant="image"
+        />
+      </Container>
+
+      {/* Projects — newest initiatives, self-resolving listing ------------ */}
+      <Container className="py-8">
+        <FeaturedProjects
+          title="Projecten in de buurt"
+          subtitle="Lopende en afgeronde buurtinitiatieven."
+          limit={6}
+          emptyLabel="Er zijn nog geen projecten."
         />
       </Container>
     </>
