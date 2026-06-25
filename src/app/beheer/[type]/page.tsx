@@ -7,7 +7,7 @@ import { ConfirmButton } from "@/components/admin/confirm-button";
 import { requireAdmin } from "@/lib/auth-server";
 import { listContent, findReferences } from "@/content/admin";
 import { ADMIN_SEGMENT_TO_TYPE, type AdminSegment } from "@/lib/routes";
-import { hideContent, showContent, deleteEvent } from "../actions";
+import { hideContent, showContent, deleteContent } from "../actions";
 import type { PublishStatus } from "@/content/schema";
 
 export const metadata: Metadata = { title: "Beheren", robots: { index: false } };
@@ -47,19 +47,27 @@ export default async function ManageListPage({
   searchParams,
 }: {
   params: Promise<{ type: string }>;
-  searchParams: Promise<{ blocked?: string; geo?: string }>;
+  searchParams: Promise<{ blocked?: string; undeletable?: string; geo?: string }>;
 }) {
   await requireAdmin();
   const { type: segment } = await params;
   if (!isSegment(segment)) notFound();
   const type = ADMIN_SEGMENT_TO_TYPE[segment];
 
-  const [{ blocked, geo }, items] = await Promise.all([
+  const [{ blocked, undeletable, geo }, items] = await Promise.all([
     searchParams,
     listContent(type),
   ]);
+  // Hide-block names the published referrers; delete-block names ALL referrers
+  // (any status), so the two use distinct signals and reference scopes.
   const blockedRefs = blocked ? await findReferences(type, blocked) : [];
   const blockedItem = blocked ? items.find((i) => i.slug === blocked) : undefined;
+  const undeletableRefs = undeletable
+    ? await findReferences(type, undeletable, { includeHidden: true })
+    : [];
+  const undeletableItem = undeletable
+    ? items.find((i) => i.slug === undeletable)
+    : undefined;
 
   return (
     <AdminShell>
@@ -95,6 +103,29 @@ export default async function ManageListPage({
           <p className="mt-1">Verberg of ontkoppel eerst:</p>
           <ul className="mt-1 list-disc pl-5">
             {blockedRefs.map((r) => (
+              <li key={`${r.kind}-${r.slug}`}>
+                <Link href={r.href} className="underline">
+                  {r.title}
+                </Link>{" "}
+                ({REF_KIND_LABEL[r.kind]})
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      {undeletable && undeletableRefs.length > 0 ? (
+        <div
+          role="alert"
+          className="mt-6 rounded-md border border-terracotta/40 bg-terracotta/10 px-4 py-3 text-sm text-terracotta-strong"
+        >
+          <p className="font-medium">
+            “{undeletableItem?.title ?? undeletable}” kan niet verwijderd worden:
+            nog gekoppeld aan andere content (ook verborgen items tellen mee).
+          </p>
+          <p className="mt-1">Koppel deze eerst los of verwijder ze:</p>
+          <ul className="mt-1 list-disc pl-5">
+            {undeletableRefs.map((r) => (
               <li key={`${r.kind}-${r.slug}`}>
                 <Link href={r.href} className="underline">
                   {r.title}
@@ -147,17 +178,16 @@ export default async function ManageListPage({
                       </button>
                     </form>
                   )}
-                  {type === "event" ? (
-                    <form action={deleteEvent}>
-                      <input type="hidden" name="slug" value={item.slug} />
-                      <ConfirmButton
-                        message={`“${item.title}” definitief verwijderen? Dit kan niet ongedaan worden gemaakt.`}
-                        className="inline-flex h-9 items-center rounded-md border border-terracotta/50 bg-surface px-3 text-sm font-medium text-terracotta-strong hover:bg-terracotta/10"
-                      >
-                        Verwijderen
-                      </ConfirmButton>
-                    </form>
-                  ) : null}
+                  <form action={deleteContent}>
+                    <input type="hidden" name="type" value={type} />
+                    <input type="hidden" name="slug" value={item.slug} />
+                    <ConfirmButton
+                      message={`“${item.title}” definitief verwijderen? Dit kan niet ongedaan worden gemaakt.`}
+                      className="inline-flex h-9 items-center rounded-md border border-terracotta/50 bg-surface px-3 text-sm font-medium text-terracotta-strong hover:bg-terracotta/10"
+                    >
+                      Verwijderen
+                    </ConfirmButton>
+                  </form>
                 </div>
               </div>
             </Card>

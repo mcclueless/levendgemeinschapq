@@ -175,15 +175,20 @@ export interface ContentReference {
 }
 
 /**
- * Published content that links to the given item, so an action that would
- * orphan a public link can be blocked and the referrers reported (design D3):
- * a Venue/Organiser may be referenced by published Events (venue/organiser) and
- * Blog posts (relations). Returns empty for event/blog targets — nothing links
- * to them.
+ * Content that links to the given item, so an action that would orphan it can
+ * be blocked and the referrers reported (design D3): a Venue/Organiser may be
+ * referenced by Events (venue/organiser) and Blog posts (relations). Returns
+ * empty for event/blog targets — nothing links to them.
+ *
+ * By default only **published** referrers count — the right scope for hiding,
+ * which protects live public links. Pass `includeHidden: true` for the stricter
+ * scope used by permanent deletion: an irreversible delete must also be blocked
+ * by hidden/draft referrers, which would otherwise dangle if re-published.
  */
 export async function findReferences(
   type: ContentType,
   slug: string,
+  { includeHidden = false }: { includeHidden?: boolean } = {},
 ): Promise<ContentReference[]> {
   if (type !== "venue" && type !== "organiser") return [];
 
@@ -196,7 +201,7 @@ export async function findReferences(
   ]);
 
   for (const e of events) {
-    if (e.data.status !== "published") continue;
+    if (!includeHidden && e.data.status !== "published") continue;
     const hit =
       type === "venue" ? e.data.venue === slug : e.data.organiser === slug;
     if (hit) {
@@ -210,7 +215,7 @@ export async function findReferences(
   }
 
   for (const p of posts) {
-    if (p.data.status !== "published") continue;
+    if (!includeHidden && p.data.status !== "published") continue;
     const list =
       type === "venue" ? p.data.relatedVenues : p.data.relatedOrganisers;
     if (list.includes(slug)) {

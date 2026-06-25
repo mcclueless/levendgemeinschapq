@@ -23,7 +23,7 @@ import { SOCIAL_PLATFORMS } from "@/content/schema";
 import { geocode, type GeocodeResult } from "@/content/geocode";
 import { importFromUrl } from "@/content/ical-import";
 import { revalidatePublic, revalidateAfterItemChange } from "@/content/revalidate";
-import { adminListPath, publicListPath, routes } from "@/lib/routes";
+import { adminListPath, publicListPath } from "@/lib/routes";
 
 type ManagedType = "event" | "venue" | "organiser" | "blog";
 
@@ -424,10 +424,25 @@ async function performHide(
   return { blocked: false };
 }
 
-async function performDeleteEvent(slug: string): Promise<void> {
-  await deleteDocument("event", slug);
-  await revalidateAfterItemChange("event", slug);
-  revalidatePath(adminListPath("event"));
+/**
+ * Permanently delete an item. For a venue/organiser this is guarded by the
+ * ALL-STATUS reference scan (stricter than hide): a referrer of any status —
+ * published, past, or hidden/draft — blocks it, since a permanent delete is
+ * irreversible and a re-published draft would dangle. Events and blog posts
+ * have no inbound references, so they delete unguarded. Returns whether it was
+ * blocked.
+ */
+async function performDelete(
+  type: ManagedType,
+  slug: string,
+): Promise<{ blocked: boolean }> {
+  if ((await findReferences(type, slug, { includeHidden: true })).length) {
+    return { blocked: true };
+  }
+  await deleteDocument(type, slug);
+  await revalidateAfterItemChange(type, slug);
+  revalidatePath(adminListPath(type));
+  return { blocked: false };
 }
 
 export async function hideContent(formData: FormData) {
@@ -452,14 +467,19 @@ export async function showContent(formData: FormData) {
   redirect(adminListPath(type));
 }
 
-// Permanent, irreversible removal — Events only (design D6). Nothing references
-// events, so there is no reference guard here (unlike hiding a venue/organiser).
-export async function deleteEvent(formData: FormData) {
+// Permanent, irreversible removal for any content type. A venue/organiser still
+// referenced by any event/blog (any status) is blocked; the admin list re-runs
+// the all-status scan for ?undeletable to name the referrers (distinct from the
+// hide ?blocked signal, which reports the published-only set).
+export async function deleteContent(formData: FormData) {
   await assertAdmin();
+  const type = managedType(formData);
   const slug = str(formData, "slug");
-  if (!slug) return;
-  await performDeleteEvent(slug);
-  redirect(adminListPath("event"));
+  if (!type || !slug) return;
+  if ((await performDelete(type, slug)).blocked) {
+    redirect(`${adminListPath(type)}?undeletable=${encodeURIComponent(slug)}`);
+  }
+  redirect(adminListPath(type));
 }
 
 // ── Public-side admin banner actions (admin-presence) ────────────────────────
@@ -482,12 +502,15 @@ export async function hideFromPublic(formData: FormData) {
 
 export async function deleteFromPublic(formData: FormData) {
   await assertAdmin();
-  // Validate the type like every other content action; delete is events-only.
   const type = managedType(formData);
   const slug = str(formData, "slug");
-  if (type !== "event" || !slug) return;
-  await performDeleteEvent(slug);
-  redirect(`${routes.agenda}?beheer=verwijderd`);
+  if (!type || !slug) return;
+  // A still-referenced venue/organiser is sent to the backend list, whose UI
+  // names the (all-status) referrers; otherwise land on the public listing.
+  if ((await performDelete(type, slug)).blocked) {
+    redirect(`${adminListPath(type)}?undeletable=${encodeURIComponent(slug)}`);
+  }
+  redirect(`${publicListPath(type)}?beheer=verwijderd`);
 }
 
 // ── Media library (editorial-enrichments) ────────────────────────────────────

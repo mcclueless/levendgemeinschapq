@@ -58,17 +58,16 @@ export function AdminBarMount({
             </ConfirmButton>
           </form>
 
-          {type === "event" ? (
-            <form action={deleteFromPublic}>
-              <input type="hidden" name="slug" value={slug} />
-              <ConfirmButton
-                message={`“${title}” definitief verwijderen? Dit kan niet ongedaan worden gemaakt.`}
-                className="admin-chip admin-chip-danger"
-              >
-                Verwijderen
-              </ConfirmButton>
-            </form>
-          ) : null}
+          <form action={deleteFromPublic}>
+            <input type="hidden" name="type" value={type} />
+            <input type="hidden" name="slug" value={slug} />
+            <ConfirmButton
+              message={`“${title}” definitief verwijderen? Dit kan niet ongedaan worden gemaakt.`}
+              className="admin-chip admin-chip-danger"
+            >
+              Verwijderen
+            </ConfirmButton>
+          </form>
 
           <Link
             href="/beheer/galerij"
