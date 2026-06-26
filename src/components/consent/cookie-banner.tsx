@@ -26,7 +26,7 @@ export function CookieBanner() {
           We gebruiken alleen noodzakelijke cookies om de site te laten werken.
           Voor extra’s zoals kaarten plaatsen we niet-essentiële cookies, maar
           alleen met jouw toestemming. Lees meer in ons{" "}
-          <Link href="/cookies" className="text-terracotta-strong underline underline-offset-2">
+          <Link href="/cookies" className="text-brand-strong underline underline-offset-2">
             cookiebeleid
           </Link>
           .
@@ -35,14 +35,14 @@ export function CookieBanner() {
           <button
             type="button"
             onClick={rejectAll}
-            className="inline-flex h-10 items-center rounded-md border border-border bg-surface px-4 text-sm font-medium text-ink hover:bg-sand"
+            className="inline-flex h-10 items-center rounded-md border border-border bg-surface px-4 text-sm font-medium text-ink hover:bg-surface-2"
           >
             Alleen noodzakelijk
           </button>
           <button
             type="button"
             onClick={acceptAll}
-            className="inline-flex h-10 items-center rounded-md bg-terracotta-strong px-4 text-sm font-medium text-cream hover:bg-terracotta"
+            className="inline-flex h-10 items-center rounded-md bg-brand-strong px-4 text-sm font-medium text-white hover:bg-brand"
           >
             Alles accepteren
           </button>

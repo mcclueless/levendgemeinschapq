@@ -50,7 +50,7 @@ function SubmissionCard({ submission: s }: { submission: Submission }) {
       <div className="flex flex-col gap-4 p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-center gap-2">
-            <Badge tone={s.kind === "event" ? "saffron" : "forest"}>
+            <Badge tone={s.kind === "event" ? "accent" : "success"}>
               {s.kind === "event" ? "Evenement" : "Blog"}
             </Badge>
             <h2 className="text-xl">{s.title}</h2>
@@ -64,7 +64,7 @@ function SubmissionCard({ submission: s }: { submission: Submission }) {
         </div>
 
         {s.reviewNote ? (
-          <p className="rounded-md border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta-strong">
+          <p className="rounded-md border border-brand/40 bg-brand/10 px-3 py-2 text-sm text-brand-strong">
             Eerdere opmerking: {s.reviewNote}
           </p>
         ) : null}
@@ -112,7 +112,7 @@ function SubmissionCard({ submission: s }: { submission: Submission }) {
         {s.body.trim() ? (
           <div>
             <p className="mb-2 text-sm font-medium text-muted">Inhoud</p>
-            <div className="rounded-md border border-border bg-cream/60 p-4">
+            <div className="rounded-md border border-border bg-canvas/60 p-4">
               <Mdx source={s.body} />
             </div>
           </div>
@@ -124,7 +124,7 @@ function SubmissionCard({ submission: s }: { submission: Submission }) {
             <input type="hidden" name="slug" value={s.slug} />
             <button
               type="submit"
-              className="inline-flex h-10 items-center rounded-md bg-forest px-4 text-sm font-medium text-cream hover:opacity-90"
+              className="inline-flex h-10 items-center rounded-md bg-brand px-4 text-sm font-medium text-white hover:opacity-90"
             >
               Goedkeuren &amp; publiceren
             </button>
@@ -141,7 +141,7 @@ function SubmissionCard({ submission: s }: { submission: Submission }) {
             />
             <button
               type="submit"
-              className="inline-flex h-10 items-center rounded-md border border-border bg-surface px-4 text-sm font-medium text-ink hover:bg-sand"
+              className="inline-flex h-10 items-center rounded-md border border-border bg-surface px-4 text-sm font-medium text-ink hover:bg-surface-2"
             >
               Afwijzen
             </button>

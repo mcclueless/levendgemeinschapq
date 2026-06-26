@@ -129,7 +129,7 @@ export function AddressAutocomplete({
                 }}
                 className={cn(
                   "block w-full px-3 py-2 text-left text-sm",
-                  i === active ? "bg-sand" : "hover:bg-sand",
+                  i === active ? "bg-surface-2" : "hover:bg-surface-2",
                 )}
               >
                 {s.label}

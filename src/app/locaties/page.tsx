@@ -21,7 +21,7 @@ export default async function VenuesPage() {
   return (
     <Container className="py-14">
       <AdminListingNotice />
-      <Badge tone="terracotta">Locaties</Badge>
+      <Badge tone="brand">Locaties</Badge>
       <h1 className="mt-4 text-4xl sm:text-5xl">Locaties in de buurt</h1>
       <p className="mt-3 max-w-xl text-lg text-muted">
         De plekken waar de buurt samenkomt.
@@ -35,7 +35,7 @@ export default async function VenuesPage() {
               <h2 className="text-xl">
                 <Link
                   href={venue.href}
-                  className="hover:text-terracotta-strong"
+                  className="hover:text-brand-strong"
                 >
                   {venue.name}
                 </Link>

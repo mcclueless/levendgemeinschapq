@@ -19,7 +19,7 @@ export function Field({
     <div className="grid gap-1.5">
       <label htmlFor={htmlFor} className="text-sm font-medium text-ink">
         {label}
-        {required ? <span className="text-terracotta-strong"> *</span> : null}
+        {required ? <span className="text-brand-strong"> *</span> : null}
       </label>
       {children}
       {hint ? <p className="text-xs text-muted">{hint}</p> : null}
@@ -77,7 +77,7 @@ export function SubmitButton({ children }: { children: React.ReactNode }) {
   return (
     <button
       type="submit"
-      className="inline-flex h-11 items-center rounded-md bg-terracotta-strong px-5 font-medium text-cream hover:bg-terracotta"
+      className="inline-flex h-11 items-center rounded-md bg-brand-strong px-5 font-medium text-white hover:bg-brand"
     >
       {children}
     </button>

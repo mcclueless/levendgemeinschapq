@@ -71,7 +71,7 @@ export default async function ProjectPage({
                   <dd className="mt-1">
                     <Link
                       href={project.venue.href}
-                      className="font-medium text-terracotta-strong hover:underline"
+                      className="font-medium text-brand-strong hover:underline"
                     >
                       📍 {project.venue.name}
                     </Link>
@@ -86,7 +86,7 @@ export default async function ProjectPage({
                       <span key={o.slug}>
                         <Link
                           href={o.href}
-                          className="font-medium text-terracotta-strong hover:underline"
+                          className="font-medium text-brand-strong hover:underline"
                         >
                           {o.name}
                         </Link>

@@ -23,7 +23,7 @@ export function SectionHeading({
       {moreHref ? (
         <Link
           href={moreHref}
-          className="shrink-0 font-medium text-terracotta-strong underline-offset-4 hover:underline"
+          className="shrink-0 font-medium text-brand-strong underline-offset-4 hover:underline"
         >
           {moreLabel} →
         </Link>

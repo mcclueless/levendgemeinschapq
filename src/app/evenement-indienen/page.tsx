@@ -28,7 +28,7 @@ export default async function SubmitPage({
     return (
       <Container className="py-14">
         <div className="prose-warm mx-auto">
-          <Badge tone="forest">Ingediend</Badge>
+          <Badge tone="success">Ingediend</Badge>
           <h1 className="mt-4 text-4xl sm:text-5xl">Dankjewel!</h1>
           <p>
             Je evenement is ingediend en wacht op goedkeuring door de redactie.
@@ -45,7 +45,7 @@ export default async function SubmitPage({
   return (
     <Container className="py-14">
       <div className="mx-auto max-w-2xl">
-        <Badge tone="terracotta">Evenement indienen</Badge>
+        <Badge tone="brand">Evenement indienen</Badge>
         <h1 className="mt-4 text-4xl sm:text-5xl">Evenement indienen</h1>
         <p className="mt-3 text-lg text-muted">
           Organiseer je iets in de buurt? Vul het formulier in — na goedkeuring
@@ -55,7 +55,7 @@ export default async function SubmitPage({
         {params.error ? (
           <p
             role="alert"
-            className="mt-4 rounded-md border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta-strong"
+            className="mt-4 rounded-md border border-brand/40 bg-brand/10 px-3 py-2 text-sm text-brand-strong"
           >
             Vul alle verplichte velden in.
           </p>

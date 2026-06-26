@@ -22,8 +22,8 @@ export function NavLinks() {
               href={item.href}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "rounded-sm px-3 py-2 text-[0.975rem] font-medium transition-colors hover:bg-sand hover:text-ink",
-                active ? "bg-sand text-ink" : "text-muted",
+                "rounded-sm px-3 py-2 text-[0.975rem] font-medium transition-colors hover:bg-surface-2 hover:text-ink",
+                active ? "bg-surface-2 text-ink" : "text-muted",
               )}
             >
               {item.label}

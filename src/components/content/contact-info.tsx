@@ -40,7 +40,7 @@ export function ContactInfo({
             {item.href ? (
               <a
                 href={item.href}
-                className="text-terracotta-strong underline-offset-2 hover:underline"
+                className="text-brand-strong underline-offset-2 hover:underline"
                 {...(item.href.startsWith("http")
                   ? { target: "_blank", rel: "noopener noreferrer" }
                   : {})}

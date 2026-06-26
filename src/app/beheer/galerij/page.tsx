@@ -108,7 +108,7 @@ function MediaCard({ item }: { item: MediaItem }) {
           <input type="hidden" name="url" value={item.url} />
           <ConfirmButton
             message={`“${fileName(item.key)}” verwijderen?`}
-            className="shrink-0 rounded-sm px-2 py-1 text-xs font-medium text-terracotta-strong hover:bg-sand"
+            className="shrink-0 rounded-sm px-2 py-1 text-xs font-medium text-brand-strong hover:bg-surface-2"
           >
             Verwijderen
           </ConfirmButton>

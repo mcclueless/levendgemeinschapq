@@ -14,7 +14,7 @@ export function ProjectCard({ project }: { project: Project }) {
       />
       <div className="p-6">
         <h3 className="text-2xl">
-          <Link href={project.href} className="hover:text-terracotta-strong">
+          <Link href={project.href} className="hover:text-brand-strong">
             {project.title}
           </Link>
         </h3>
@@ -32,7 +32,7 @@ export function ProjectCard({ project }: { project: Project }) {
         <p className="mt-3">
           <Link
             href={project.href}
-            className="text-sm font-medium text-terracotta-strong hover:underline"
+            className="text-sm font-medium text-brand-strong hover:underline"
           >
             Bekijk project →
           </Link>

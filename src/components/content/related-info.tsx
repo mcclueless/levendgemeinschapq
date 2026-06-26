@@ -22,9 +22,9 @@ export function RelatedInfo({
       <div className="mt-5 grid gap-5 sm:grid-cols-2">
         {venues.map((v) => (
           <Card key={`v-${v.slug}`} as="section" className="p-5">
-            <Badge tone="terracotta">Locatie</Badge>
+            <Badge tone="brand">Locatie</Badge>
             <h3 className="mt-2 text-lg">
-              <Link href={v.href} className="hover:text-terracotta-strong">
+              <Link href={v.href} className="hover:text-brand-strong">
                 {v.name}
               </Link>
             </h3>
@@ -44,9 +44,9 @@ export function RelatedInfo({
 
         {organisers.map((o) => (
           <Card key={`o-${o.slug}`} as="section" className="p-5">
-            <Badge tone="forest">Organisator</Badge>
+            <Badge tone="success">Organisator</Badge>
             <h3 className="mt-2 text-lg">
-              <Link href={o.href} className="hover:text-terracotta-strong">
+              <Link href={o.href} className="hover:text-brand-strong">
                 {o.name}
               </Link>
             </h3>

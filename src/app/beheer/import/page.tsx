@@ -39,7 +39,7 @@ export default async function ImportPage({
       {params.created !== undefined && !params.error ? (
         <p
           role="status"
-          className="mt-4 rounded-md border border-forest/30 bg-forest/10 px-3 py-2 text-sm text-forest"
+          className="mt-4 rounded-md border border-brand/30 bg-brand/10 px-3 py-2 text-sm text-brand"
         >
           Import klaar: {params.created} aangemaakt, {params.skipped} overgeslagen
           (al aanwezig), {params.flagged} gemarkeerd voor controle.
@@ -48,7 +48,7 @@ export default async function ImportPage({
       {params.error ? (
         <p
           role="alert"
-          className="mt-4 rounded-md border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta-strong"
+          className="mt-4 rounded-md border border-brand/40 bg-brand/10 px-3 py-2 text-sm text-brand-strong"
         >
           {params.error}
         </p>

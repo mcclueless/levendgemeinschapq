@@ -48,7 +48,7 @@ export function SocialLinks({
             rel="noopener noreferrer"
             aria-label={LABELS[p]}
             title={LABELS[p]}
-            className="text-muted transition-colors hover:text-terracotta-strong"
+            className="text-muted transition-colors hover:text-brand-strong"
           >
             <svg
               viewBox="0 0 24 24"

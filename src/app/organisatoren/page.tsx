@@ -21,7 +21,7 @@ export default async function OrganisersPage() {
   return (
     <Container className="py-14">
       <AdminListingNotice />
-      <Badge tone="terracotta">Organisatoren</Badge>
+      <Badge tone="brand">Organisatoren</Badge>
       <h1 className="mt-4 text-4xl sm:text-5xl">Organisatoren</h1>
       <p className="mt-3 max-w-xl text-lg text-muted">
         De mensen en organisaties die activiteiten in de buurt mogelijk maken.
@@ -39,7 +39,7 @@ export default async function OrganisersPage() {
               <h2 className="text-xl">
                 <Link
                   href={organiser.href}
-                  className="hover:text-terracotta-strong"
+                  className="hover:text-brand-strong"
                 >
                   {organiser.name}
                 </Link>

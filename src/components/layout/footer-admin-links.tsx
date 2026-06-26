@@ -34,7 +34,7 @@ export function FooterAdminLinks() {
       <form action={logout} className="flex">
         <button
           type="submit"
-          className="text-terracotta-strong underline-offset-4 hover:underline"
+          className="text-brand-strong underline-offset-4 hover:underline"
         >
           Uitloggen
         </button>

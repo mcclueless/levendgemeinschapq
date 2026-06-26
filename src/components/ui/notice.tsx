@@ -4,8 +4,10 @@
  * stay visually consistent and WCAG-compliant.
  */
 const TONES = {
-  success: "border-forest/30 bg-forest/10 text-forest",
-  warning: "border-terracotta/40 bg-terracotta/10 text-terracotta-strong",
+  success: "border-brand/30 bg-brand/10 text-brand",
+  // Gold accent (not green) so a caution reads as a caution and is clearly
+  // distinct from a success confirmation; gold pairs with ink text for AA.
+  warning: "border-accent/50 bg-accent/15 text-ink",
 } as const;
 
 export function Notice({

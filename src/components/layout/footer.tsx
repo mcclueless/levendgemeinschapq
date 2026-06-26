@@ -11,7 +11,7 @@ export function Footer() {
   const year = "2026"; // build-stamped; avoids per-request Date in components
 
   return (
-    <footer className="mt-20 border-t border-border bg-sand">
+    <footer className="mt-20 border-t border-border bg-surface-2">
       <Container className="py-14">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div>

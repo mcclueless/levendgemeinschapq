@@ -35,7 +35,7 @@ export default async function AdminHome({
       {created ? (
         <p
           role="status"
-          className="mt-4 rounded-md border border-forest/30 bg-forest/10 px-3 py-2 text-sm text-forest"
+          className="mt-4 rounded-md border border-brand/30 bg-brand/10 px-3 py-2 text-sm text-brand"
         >
           Opgeslagen ({created}).
         </p>
@@ -44,7 +44,7 @@ export default async function AdminHome({
       {geo === "notfound" ? (
         <p
           role="status"
-          className="mt-3 rounded-md border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta-strong"
+          className="mt-3 rounded-md border border-brand/40 bg-brand/10 px-3 py-2 text-sm text-brand-strong"
         >
           Locatie niet gevonden voor dit adres — de kaart gebruikt het adres zelf.
           Controleer het adres als de kaart de verkeerde plek toont.
@@ -69,7 +69,7 @@ export default async function AdminHome({
           <Link
             key={l.href}
             href={l.href}
-            className="inline-flex h-11 items-center rounded-md border border-border bg-surface px-4 font-medium hover:bg-sand"
+            className="inline-flex h-11 items-center rounded-md border border-border bg-surface px-4 font-medium hover:bg-surface-2"
           >
             {l.label}
           </Link>
@@ -80,7 +80,7 @@ export default async function AdminHome({
         <p className="mt-8">
           <Link
             href="/beheer/queue"
-            className="font-medium text-terracotta-strong hover:underline"
+            className="font-medium text-brand-strong hover:underline"
           >
             {counts.pending} inzending(en) wachten op goedkeuring →
           </Link>
@@ -103,10 +103,10 @@ function Stat({
 }) {
   return (
     <Link href={href} className="block rounded-lg focus-visible:outline-3 focus-visible:outline-offset-2">
-      <Card className="p-5 transition-colors hover:bg-sand">
+      <Card className="p-5 transition-colors hover:bg-surface-2">
         <div className="text-3xl font-semibold">{value}</div>
         <div className="mt-1 text-sm text-muted">
-          {highlight && value > 0 ? <Badge tone="terracotta">{label}</Badge> : label}
+          {highlight && value > 0 ? <Badge tone="brand">{label}</Badge> : label}
         </div>
       </Card>
     </Link>

@@ -21,7 +21,7 @@ export default async function ProjectsPage() {
   return (
     <Container className="py-14">
       <AdminListingNotice />
-      <Badge tone="terracotta">Projecten</Badge>
+      <Badge tone="brand">Projecten</Badge>
       <h1 className="mt-4 text-4xl sm:text-5xl">Buurtinitiatieven</h1>
       <p className="mt-3 max-w-xl text-lg text-muted">
         Lopende en afgeronde projecten van bewoners en organisatoren in de buurt.

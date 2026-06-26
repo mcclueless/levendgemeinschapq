@@ -27,10 +27,10 @@ export function EventCard({ occurrence }: { occurrence: EventOccurrence }) {
       <Link href={event.href} className="block">
         <Thumb src={event.featuredImage} alt={event.title} />
         <div className="p-5">
-          <Badge tone="saffron">
+          <Badge tone="accent">
             <time dateTime={isoDate(start)}>{formatWhen(start)}</time>
           </Badge>
-          <h3 className="mt-3 text-xl group-hover:text-terracotta-strong">
+          <h3 className="mt-3 text-xl group-hover:text-brand-strong">
             {event.title}
           </h3>
           {event.venue ? (
@@ -55,7 +55,7 @@ export function EventRow({
     <li className={cn("border-b border-border last:border-0", className)}>
       <Link
         href={event.href}
-        className="flex flex-wrap items-baseline gap-x-3 gap-y-1 py-3.5 transition-colors hover:text-terracotta-strong"
+        className="flex flex-wrap items-baseline gap-x-3 gap-y-1 py-3.5 transition-colors hover:text-brand-strong"
       >
         <time
           dateTime={isoDate(start)}

@@ -61,7 +61,7 @@ export default async function OrganiserPage({
       />
       <Container className="py-14">
         <JsonLd data={organiserJsonLd(organiser)} />
-        <Badge tone="terracotta">Organisator</Badge>
+        <Badge tone="brand">Organisator</Badge>
         <h1 className="mt-4 text-4xl sm:text-5xl">{organiser.name}</h1>
 
         <CoverImage

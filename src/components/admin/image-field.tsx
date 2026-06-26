@@ -78,14 +78,14 @@ export function ImageField({
             <button
               type="button"
               onClick={() => fileRef.current?.click()}
-              className="inline-flex h-9 w-fit items-center rounded-md border border-border bg-surface px-3 text-sm font-medium hover:bg-sand"
+              className="inline-flex h-9 w-fit items-center rounded-md border border-border bg-surface px-3 text-sm font-medium hover:bg-surface-2"
             >
               Bestand kiezen
             </button>
             <button
               type="button"
               onClick={() => setOpen(true)}
-              className="inline-flex h-9 w-fit items-center rounded-md border border-border bg-surface px-3 text-sm font-medium hover:bg-sand"
+              className="inline-flex h-9 w-fit items-center rounded-md border border-border bg-surface px-3 text-sm font-medium hover:bg-surface-2"
             >
               Kies uit galerij{pool.length ? ` (${pool.length})` : ""}
             </button>
@@ -150,7 +150,7 @@ function MediaPicker({
             ref={closeRef}
             type="button"
             onClick={onClose}
-            className="rounded-sm px-3 py-1.5 text-sm font-medium text-muted hover:bg-cream hover:text-ink"
+            className="rounded-sm px-3 py-1.5 text-sm font-medium text-muted hover:bg-canvas hover:text-ink"
           >
             Sluiten
           </button>
@@ -169,8 +169,8 @@ function MediaPicker({
                     type="button"
                     onClick={() => onPick(m.url)}
                     className={`block w-full overflow-hidden rounded-md border-2 ${
-                      selected === m.url ? "border-terracotta-strong" : "border-border"
-                    } hover:border-terracotta-strong`}
+                      selected === m.url ? "border-brand-strong" : "border-border"
+                    } hover:border-brand-strong`}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img

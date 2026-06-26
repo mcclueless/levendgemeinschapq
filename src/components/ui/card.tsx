@@ -1,6 +1,6 @@
 import { cn } from "@/lib/cn";
 
-/** Surface card with warm hairline border and soft shadow. */
+/** Surface card with hairline border and soft shadow. */
 export function Card({
   as: Tag = "div",
   className,
@@ -24,19 +24,19 @@ export function Card({
 
 /** Small rounded label, e.g. a category or date pill. */
 export function Badge({
-  tone = "saffron",
+  tone = "accent",
   className,
   children,
 }: {
-  tone?: "saffron" | "terracotta" | "forest" | "neutral";
+  tone?: "accent" | "brand" | "success" | "neutral";
   className?: string;
   children: React.ReactNode;
 }) {
   const tones: Record<string, string> = {
-    saffron: "bg-saffron/20 text-ink",
-    terracotta: "bg-terracotta/12 text-terracotta-strong",
-    forest: "bg-forest/15 text-forest",
-    neutral: "bg-sand text-muted",
+    accent: "bg-accent/20 text-ink",
+    brand: "bg-brand/12 text-brand-strong",
+    success: "bg-brand/15 text-brand",
+    neutral: "bg-surface-2 text-muted",
   };
   return (
     <span

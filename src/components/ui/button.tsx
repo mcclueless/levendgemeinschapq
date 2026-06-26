@@ -8,11 +8,11 @@ const base =
   "inline-flex items-center justify-center gap-2 rounded-md font-medium transition-colors duration-150 focus-visible:outline-3 focus-visible:outline-offset-2 disabled:opacity-60 disabled:pointer-events-none";
 
 const variants: Record<Variant, string> = {
-  // terracotta-strong guarantees AA contrast with cream text
-  primary: "bg-terracotta-strong text-cream hover:bg-terracotta",
+  // brand-strong (dark green) guarantees AA contrast with white text (~8:1)
+  primary: "bg-brand-strong text-white hover:bg-brand",
   secondary:
-    "bg-surface text-ink border border-border hover:bg-sand",
-  ghost: "bg-transparent text-terracotta-strong hover:bg-sand",
+    "bg-surface text-ink border border-border hover:bg-surface-2",
+  ghost: "bg-transparent text-brand-strong hover:bg-surface-2",
 };
 
 const sizes: Record<Size, string> = {

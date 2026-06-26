@@ -61,7 +61,7 @@ export default async function VenuePage({
       />
       <Container className="py-14">
         <JsonLd data={venueJsonLd(venue)} />
-        <Badge tone="terracotta">Locatie</Badge>
+        <Badge tone="brand">Locatie</Badge>
         <h1 className="mt-4 text-4xl sm:text-5xl">{venue.name}</h1>
 
         <CoverImage

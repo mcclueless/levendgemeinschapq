@@ -23,7 +23,7 @@ export function MapEmbed({
 
   if (!embeds) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-border bg-sand px-6 py-12 text-center">
+      <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-border bg-surface-2 px-6 py-12 text-center">
         <p className="max-w-sm text-sm text-muted">
           De kaart wordt geladen via Google Maps. Daarvoor plaatsen we
           niet-essentiële cookies. Geef toestemming om de kaart te tonen.
@@ -31,7 +31,7 @@ export function MapEmbed({
         <button
           type="button"
           onClick={() => setConsent({ embeds: true })}
-          className="inline-flex h-10 items-center rounded-md bg-terracotta-strong px-4 text-sm font-medium text-cream hover:bg-terracotta"
+          className="inline-flex h-10 items-center rounded-md bg-brand-strong px-4 text-sm font-medium text-white hover:bg-brand"
         >
           Kaart tonen
         </button>

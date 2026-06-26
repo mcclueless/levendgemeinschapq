@@ -22,7 +22,7 @@ export default async function BlogPage() {
   return (
     <Container className="py-14">
       <AdminListingNotice />
-      <Badge tone="terracotta">Blog</Badge>
+      <Badge tone="brand">Blog</Badge>
       <h1 className="mt-4 text-4xl sm:text-5xl">Uit de buurt</h1>
       <p className="mt-3 max-w-xl text-lg text-muted">
         Verhalen, nieuws en updates van bewoners en organisatoren.
@@ -43,7 +43,7 @@ export default async function BlogPage() {
                   · {post.author}
                 </p>
                 <h2 className="mt-2 text-2xl">
-                  <Link href={post.href} className="hover:text-terracotta-strong">
+                  <Link href={post.href} className="hover:text-brand-strong">
                     {post.title}
                   </Link>
                 </h2>
@@ -53,7 +53,7 @@ export default async function BlogPage() {
                 <p className="mt-3">
                   <Link
                     href={post.href}
-                    className="text-sm font-medium text-terracotta-strong hover:underline"
+                    className="text-sm font-medium text-brand-strong hover:underline"
                   >
                     Lees verder →
                   </Link>

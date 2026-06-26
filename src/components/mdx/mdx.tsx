@@ -16,7 +16,7 @@ const components: MDXComponents = {
         href={href}
         rel="noopener noreferrer"
         target="_blank"
-        className="text-terracotta-strong underline underline-offset-2"
+        className="text-brand-strong underline underline-offset-2"
         {...rest}
       >
         {children}
@@ -24,7 +24,7 @@ const components: MDXComponents = {
     ) : (
       <Link
         href={href}
-        className="text-terracotta-strong underline underline-offset-2"
+        className="text-brand-strong underline underline-offset-2"
       >
         {children}
       </Link>

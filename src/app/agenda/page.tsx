@@ -27,7 +27,7 @@ export default async function AgendaPage() {
   return (
     <Container className="py-14">
       <AdminListingNotice />
-      <Badge tone="terracotta">Agenda</Badge>
+      <Badge tone="brand">Agenda</Badge>
       <h1 className="mt-4 text-4xl sm:text-5xl">Aankomende evenementen</h1>
       <p className="mt-3 max-w-xl text-lg text-muted">
         {total > 0

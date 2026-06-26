@@ -22,21 +22,21 @@ export function CookiePreferences() {
         <button
           type="button"
           onClick={rejectAll}
-          className="inline-flex h-10 items-center rounded-md border border-border bg-surface px-4 text-sm font-medium text-ink hover:bg-sand"
+          className="inline-flex h-10 items-center rounded-md border border-border bg-surface px-4 text-sm font-medium text-ink hover:bg-surface-2"
         >
           Alleen noodzakelijk
         </button>
         <button
           type="button"
           onClick={() => setConsent({ embeds: true })}
-          className="inline-flex h-10 items-center rounded-md border border-border bg-surface px-4 text-sm font-medium text-ink hover:bg-sand"
+          className="inline-flex h-10 items-center rounded-md border border-border bg-surface px-4 text-sm font-medium text-ink hover:bg-surface-2"
         >
           Kaarten toestaan
         </button>
         <button
           type="button"
           onClick={acceptAll}
-          className="inline-flex h-10 items-center rounded-md bg-terracotta-strong px-4 text-sm font-medium text-cream hover:bg-terracotta"
+          className="inline-flex h-10 items-center rounded-md bg-brand-strong px-4 text-sm font-medium text-white hover:bg-brand"
         >
           Alles accepteren
         </button>

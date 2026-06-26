@@ -7,7 +7,7 @@ import { site } from "@/lib/site";
 /** Site header with brand wordmark and primary navigation. */
 export function Header() {
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-cream/85 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-border bg-canvas/85 backdrop-blur">
       <Container className="flex h-16 items-center justify-between gap-6">
         <Link
           href="/"

@@ -23,7 +23,7 @@ export default async function LoginPage({
         {error ? (
           <p
             role="alert"
-            className="mt-4 rounded-md border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta-strong"
+            className="mt-4 rounded-md border border-brand/40 bg-brand/10 px-3 py-2 text-sm text-brand-strong"
           >
             Onjuist wachtwoord. Probeer het opnieuw.
           </p>

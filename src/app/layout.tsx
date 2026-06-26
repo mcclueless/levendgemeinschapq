@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fraunces, Hanken_Grotesk } from "next/font/google";
+import { Hanken_Grotesk } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
@@ -7,14 +7,7 @@ import { ConsentProvider } from "@/components/consent/consent-context";
 import { CookieBanner } from "@/components/consent/cookie-banner";
 import { site } from "@/lib/site";
 
-// Distinctive-but-legible pairing (design D10): soft serif display + warm sans body.
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-fraunces",
-  axes: ["opsz"],
-});
-
+// All-sans (design-system spec): a single grotesk for headings and body.
 const hanken = Hanken_Grotesk({
   subsets: ["latin"],
   display: "swap",
@@ -45,7 +38,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="nl" className={`${fraunces.variable} ${hanken.variable}`}>
+    <html lang="nl" className={hanken.variable}>
       <body className="flex min-h-dvh flex-col">
         <ConsentProvider>
           <a href="#main" className="skip-link">

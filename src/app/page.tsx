@@ -22,14 +22,14 @@ export default function HomePage() {
           className="pointer-events-none absolute inset-0 -z-10"
           style={{
             background:
-              "radial-gradient(60% 60% at 15% 10%, rgba(217,146,36,0.18), transparent 60%), radial-gradient(55% 55% at 90% 20%, rgba(184,80,46,0.14), transparent 55%)",
+              "radial-gradient(60% 60% at 15% 10%, rgba(44,122,69,0.16), transparent 60%), radial-gradient(55% 55% at 90% 20%, rgba(217,154,30,0.13), transparent 55%)",
           }}
         />
         <Container className="py-20 sm:py-28">
-          <Badge tone="terracotta">De buurtagenda</Badge>
+          <Badge tone="brand">De buurtagenda</Badge>
           <h1 className="mt-5 max-w-3xl text-4xl sm:text-6xl">
             Ontdek wat er speelt in de{" "}
-            <span className="text-terracotta-strong">Levende Gemeenschap</span>
+            <span className="text-brand-strong">Levende Gemeenschap</span>
           </h1>
           <p className="mt-5 max-w-xl text-lg text-muted">
             Eén overzichtelijke plek voor alle evenementen, organisatoren en

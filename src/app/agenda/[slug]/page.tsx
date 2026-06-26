@@ -71,13 +71,13 @@ export default async function EventPage({
           />
 
           <div className="flex flex-wrap items-center gap-2">
-            <Badge tone="saffron">
+            <Badge tone="accent">
               <time dateTime={isoDate(when)}>
                 {formatDateLong(when)} · {formatTime(when)}
               </time>
             </Badge>
             {event.recurrence ? (
-              <Badge tone="forest">
+              <Badge tone="success">
                 {event.recurrence.freq === "weekly" ? "Elke week" : "Elke maand"}
               </Badge>
             ) : null}
@@ -91,7 +91,7 @@ export default async function EventPage({
                 📍{" "}
                 <Link
                   href={event.venue.href}
-                  className="font-medium text-terracotta-strong hover:underline"
+                  className="font-medium text-brand-strong hover:underline"
                 >
                   {event.venue.name}
                 </Link>
@@ -102,7 +102,7 @@ export default async function EventPage({
                 {"  ·  "}georganiseerd door{" "}
                 <Link
                   href={event.organiser.href}
-                  className="font-medium text-terracotta-strong hover:underline"
+                  className="font-medium text-brand-strong hover:underline"
                 >
                   {event.organiser.name}
                 </Link>

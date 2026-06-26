@@ -1,53 +1,59 @@
 @import "tailwindcss";
 
 /* ============================================================================
-   Levende Gemeenschap — warm design system (design D9 / D10)
-   Refined-warm aesthetic. Every text/background pairing meets WCAG 2.1 AA.
+   Levende Gemeenschap — green design system (design-system spec)
+   Cool, green, all-sans aesthetic. Every text/background pairing meets
+   WCAG 2.1 AA (values contrast-verified). Tokens are role-named, not hue-named.
    ========================================================================== */
 @theme {
-  /* Warm palette --------------------------------------------------------- */
-  --color-cream: #fbf6ef; /* page background */
-  --color-sand: #f3e8d8; /* alternate surface */
+  /* Surfaces (cool neutral) --------------------------------------------- */
+  --color-canvas: #f4f7f4; /* page background */
   --color-surface: #ffffff; /* cards */
-  --color-border: #e7d8c4; /* hairlines */
+  --color-surface-2: #e9efea; /* alternate surface */
+  --color-border: #d6e0d9; /* hairlines */
 
-  --color-ink: #2a201a; /* primary text — ~13:1 on cream */
-  --color-muted: #6a5849; /* secondary text — ~5.6:1 on cream (AA) */
+  --color-ink: #18231d; /* primary text — ~15:1 on canvas */
+  --color-muted: #4d5b53; /* secondary text — ~6.6:1 on canvas (AA) */
 
-  --color-terracotta: #b8502e; /* brand */
-  --color-terracotta-strong: #963f20; /* brand for white text — ~5.4:1 (AA) */
-  --color-saffron: #d99224; /* warm accent */
-  --color-forest: #436145; /* secondary accent — events/nature */
+  /* Brand & accent (green + gold) --------------------------------------- */
+  --color-brand: #2c7a45; /* brand — AA as text on canvas (~4.9:1) */
+  --color-brand-strong: #225a34; /* brand for light text — ~7.5:1 (AA) */
+  --color-accent: #d99a1e; /* gold "pop" accent — pair with ink text */
 
   /* Admin chrome (admin-presence / design-system spec) ------------------- */
-  /* One dark "ink" treatment shared by the public admin banner and the
-     backend top bar: dark chrome = management mode. Pairings below meet
-     WCAG 2.1 AA against the --color-admin surface. */
-  --color-admin: #241c16; /* dark chrome surface */
-  --color-admin-fg: #f7efe4; /* text/icons on chrome — ~14:1 */
-  --color-admin-border: #4a3d31; /* hairline / chip border on chrome */
-  --color-admin-accent: #e8b04b; /* bright saffron accent — ~7.5:1 */
-  --color-admin-danger: #f0a085; /* destructive accent on dark — ~6.5:1 */
+  /* One dark, cool/green-tinted treatment shared by the public admin banner
+     and the backend top bar: dark chrome = management mode. Pairings below
+     meet WCAG 2.1 AA against the --color-admin surface. */
+  --color-admin: #15211a; /* dark green-tinted chrome surface */
+  --color-admin-fg: #eef3ee; /* text/icons on chrome — ~14.8:1 */
+  --color-admin-border: #35443a; /* hairline / chip border on chrome */
+  --color-admin-accent: #62cf86; /* bright green accent — ~8.5:1 */
+  --color-admin-danger: #f0a085; /* destructive accent on dark — ~8:1 (stays warm) */
 
-  /* Typography ----------------------------------------------------------- */
-  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  /* Typography (all-sans) ------------------------------------------------ */
+  --font-display: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
 
   /* Radii & shadow ------------------------------------------------------- */
   --radius-sm: 0.5rem;
   --radius-md: 0.875rem;
   --radius-lg: 1.25rem;
-  --shadow-card: 0 1px 2px rgba(42, 32, 26, 0.04),
-    0 8px 24px -12px rgba(42, 32, 26, 0.18);
+  --shadow-card: 0 1px 2px rgba(24, 35, 29, 0.05),
+    0 8px 24px -12px rgba(24, 35, 29, 0.18);
 }
 
 /* Base ---------------------------------------------------------------------- */
+/* Base element styles live in @layer base so Tailwind utilities (which sit in
+   the later `utilities` layer) reliably override them. Without this, an
+   unlayered `a { color: inherit }` beats `text-white` / `text-brand-strong`
+   on every <a>, silently forcing all link/button text to the inherited ink. */
+@layer base {
 html {
   scroll-behavior: smooth;
 }
 
 body {
-  background-color: var(--color-cream);
+  background-color: var(--color-canvas);
   color: var(--color-ink);
   font-family: var(--font-sans);
   font-size: 1.0625rem;
@@ -56,14 +62,16 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* All-sans: headings share the body sans at a heavier weight + tighter
+   tracking for a clean, modern-event hierarchy (design-system spec). */
 h1,
 h2,
 h3,
 h4 {
   font-family: var(--font-display);
-  font-weight: 600;
-  line-height: 1.12;
-  letter-spacing: -0.01em;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
   color: var(--color-ink);
   text-wrap: balance;
 }
@@ -74,10 +82,11 @@ a {
 
 /* Visible focus for keyboard users (accessibility-compliance spec) --------- */
 :focus-visible {
-  outline: 3px solid var(--color-terracotta);
+  outline: 3px solid var(--color-brand);
   outline-offset: 2px;
   border-radius: 4px;
 }
+} /* end @layer base */
 
 /* Shared admin chrome (admin-presence / design-system spec) ----------------- */
 /* Dark "ink" surface used by both the public admin banner and the backend top
@@ -157,7 +166,7 @@ a {
   margin-top: 0.35em;
 }
 .prose-warm blockquote {
-  border-left: 3px solid var(--color-saffron);
+  border-left: 3px solid var(--color-accent);
   padding-left: 1rem;
   color: var(--color-muted);
   font-style: italic;
@@ -173,7 +182,7 @@ a {
   top: -3rem;
   z-index: 100;
   background: var(--color-ink);
-  color: var(--color-cream);
+  color: var(--color-canvas);
   padding: 0.6rem 1rem;
   border-radius: var(--radius-sm);
   transition: top 0.15s ease;

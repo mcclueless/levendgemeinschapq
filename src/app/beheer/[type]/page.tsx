@@ -39,8 +39,8 @@ function isSegment(s: string): s is AdminSegment {
 }
 
 function StatusBadge({ status }: { status: PublishStatus }) {
-  if (status === "published") return <Badge tone="forest">Gepubliceerd</Badge>;
-  if (status === "pending") return <Badge tone="terracotta">In wachtrij</Badge>;
+  if (status === "published") return <Badge tone="success">Gepubliceerd</Badge>;
+  if (status === "pending") return <Badge tone="accent">In wachtrij</Badge>;
   return <Badge tone="neutral">Verborgen</Badge>;
 }
 
@@ -77,7 +77,7 @@ export default async function ManageListPage({
         <h1 className="text-3xl">{TITLES[type]}</h1>
         <Link
           href={NEW_LINK[type]}
-          className="inline-flex h-10 items-center rounded-md border border-border bg-surface px-4 text-sm font-medium hover:bg-sand"
+          className="inline-flex h-10 items-center rounded-md border border-border bg-surface px-4 text-sm font-medium hover:bg-surface-2"
         >
           + Nieuw
         </Link>
@@ -86,7 +86,7 @@ export default async function ManageListPage({
       {geo === "notfound" ? (
         <p
           role="status"
-          className="mt-6 rounded-md border border-terracotta/40 bg-terracotta/10 px-4 py-3 text-sm text-terracotta-strong"
+          className="mt-6 rounded-md border border-brand/40 bg-brand/10 px-4 py-3 text-sm text-brand-strong"
         >
           Locatie niet gevonden voor dit adres — de kaart gebruikt het adres zelf.
           Controleer het adres als de kaart de verkeerde plek toont.
@@ -96,7 +96,7 @@ export default async function ManageListPage({
       {blocked && blockedRefs.length > 0 ? (
         <div
           role="alert"
-          className="mt-6 rounded-md border border-terracotta/40 bg-terracotta/10 px-4 py-3 text-sm text-terracotta-strong"
+          className="mt-6 rounded-md border border-brand/40 bg-brand/10 px-4 py-3 text-sm text-brand-strong"
         >
           <p className="font-medium">
             “{blockedItem?.title ?? blocked}” kan niet verborgen worden: nog
@@ -119,7 +119,7 @@ export default async function ManageListPage({
       {undeletable && undeletableRefs.length > 0 ? (
         <div
           role="alert"
-          className="mt-6 rounded-md border border-terracotta/40 bg-terracotta/10 px-4 py-3 text-sm text-terracotta-strong"
+          className="mt-6 rounded-md border border-brand/40 bg-brand/10 px-4 py-3 text-sm text-brand-strong"
         >
           <p className="font-medium">
             “{undeletableItem?.title ?? undeletable}” kan niet verwijderd worden:
@@ -153,7 +153,7 @@ export default async function ManageListPage({
                 <div className="flex items-center gap-2">
                   <Link
                     href={`/beheer/${segment}/${item.slug}/bewerken`}
-                    className="inline-flex h-9 items-center rounded-md border border-border bg-surface px-3 text-sm font-medium hover:bg-sand"
+                    className="inline-flex h-9 items-center rounded-md border border-border bg-surface px-3 text-sm font-medium hover:bg-surface-2"
                   >
                     Bewerken
                   </Link>
@@ -163,7 +163,7 @@ export default async function ManageListPage({
                       <input type="hidden" name="slug" value={item.slug} />
                       <ConfirmButton
                         message={`“${item.title}” verbergen van de website?`}
-                        className="inline-flex h-9 items-center rounded-md border border-border bg-surface px-3 text-sm font-medium text-terracotta-strong hover:bg-sand"
+                        className="inline-flex h-9 items-center rounded-md border border-border bg-surface px-3 text-sm font-medium text-brand-strong hover:bg-surface-2"
                       >
                         Verbergen
                       </ConfirmButton>
@@ -174,7 +174,7 @@ export default async function ManageListPage({
                       <input type="hidden" name="slug" value={item.slug} />
                       <button
                         type="submit"
-                        className="inline-flex h-9 items-center rounded-md border border-border bg-surface px-3 text-sm font-medium text-forest hover:bg-sand"
+                        className="inline-flex h-9 items-center rounded-md border border-border bg-surface px-3 text-sm font-medium text-brand hover:bg-surface-2"
                       >
                         Publiceren
                       </button>
@@ -185,7 +185,7 @@ export default async function ManageListPage({
                     <input type="hidden" name="slug" value={item.slug} />
                     <ConfirmButton
                       message={`“${item.title}” definitief verwijderen? Dit kan niet ongedaan worden gemaakt.`}
-                      className="inline-flex h-9 items-center rounded-md border border-terracotta/50 bg-surface px-3 text-sm font-medium text-terracotta-strong hover:bg-terracotta/10"
+                      className="inline-flex h-9 items-center rounded-md border border-brand/50 bg-surface px-3 text-sm font-medium text-brand-strong hover:bg-brand/10"
                     >
                       Verwijderen
                     </ConfirmButton>
