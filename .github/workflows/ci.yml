@@ -11,9 +11,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # No `version:` here on purpose. package.json's `packageManager`
+      # (pnpm@10.0.0) is authoritative, and action-setup hard-errors when both
+      # are given — which silently broke every CI run from 2026-06-25 onward.
       - uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - uses: actions/setup-node@v4
         with:
@@ -31,9 +32,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # No `version:` here on purpose. package.json's `packageManager`
+      # (pnpm@10.0.0) is authoritative, and action-setup hard-errors when both
+      # are given — which silently broke every CI run from 2026-06-25 onward.
       - uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - uses: actions/setup-node@v4
         with:
