@@ -4,6 +4,7 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { Card, Badge } from "@/components/ui/card";
 import { requireAdmin } from "@/lib/auth-server";
 import { getContentCounts } from "@/content/admin";
+import { listFeeds } from "@/content/feeds";
 import { adminListPath } from "@/lib/routes";
 
 export const metadata: Metadata = { title: "Beheer", robots: { index: false } };
@@ -23,14 +24,46 @@ export default async function AdminHome({
   searchParams: Promise<{ created?: string; geo?: string }>;
 }) {
   await requireAdmin();
-  const [{ created, geo }, counts] = await Promise.all([
+  const [{ created, geo }, counts, feeds] = await Promise.all([
     searchParams,
     getContentCounts(),
+    listFeeds(),
   ]);
+  // Sync is manual and nothing notifies anyone, so a feed that has stopped
+  // working is otherwise invisible — the dashboard is the one page an admin
+  // reliably sees. Paused feeds are excluded: they are not expected to be
+  // syncing, and reporting their stale failures would train people to ignore
+  // this warning (add-managed-calendar-feeds D12).
+  const brokenFeeds = feeds.filter((f) => f.lastError && !f.paused);
 
   return (
     <AdminShell>
       <h1 className="text-3xl">Overzicht</h1>
+
+      {brokenFeeds.length ? (
+        <div
+          role="alert"
+          className="mt-4 rounded-md border border-brand/40 bg-brand/10 px-3 py-2 text-sm text-brand-strong"
+        >
+          <p className="font-medium">
+            {brokenFeeds.length === 1
+              ? "Een agenda-feed kon niet worden gesynchroniseerd:"
+              : `${brokenFeeds.length} agenda-feeds konden niet worden gesynchroniseerd:`}
+          </p>
+          <ul className="mt-1 grid gap-1">
+            {brokenFeeds.map((f) => (
+              <li key={f.id}>
+                <span className="font-medium">{f.label}</span> — {f.lastError}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2">
+            <Link href="/beheer/feeds" className="underline underline-offset-2">
+              Naar agenda-feeds
+            </Link>
+          </p>
+        </div>
+      ) : null}
 
       {created ? (
         <p

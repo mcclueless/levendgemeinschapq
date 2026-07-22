@@ -1,10 +1,4 @@
-# calendar-import Specification
-
-## Purpose
-
-Defines importing events from a Google Calendar / iCal URL: fetch and validation, field mapping, RRULE recurrence handling, deduplication by calendar UID, and routing imports into the approval queue.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Import events from Google Calendar or iCal link
 The backend SHALL allow an editor to save a Google Calendar or iCal (.ics) URL as a named feed, together with the default Venue and Organiser to apply to its entries. The system SHALL fetch a saved feed on demand and create Event records from its entries. A feed SHALL remain available after import so that it can be re-synchronised, edited, or deleted without re-entering its URL or defaults.
@@ -21,24 +15,6 @@ The backend SHALL allow an editor to save a Google Calendar or iCal (.ics) URL a
 - **WHEN** a feed's URL is unreachable or is not a valid calendar feed
 - **THEN** the system SHALL report the failure, SHALL NOT create partial or malformed events, and SHALL retain the saved feed so the editor can correct it
 
-### Requirement: Field mapping
-The system SHALL map calendar fields to Event fields: summary to title, description to description, start/end to date and time, and location to a venue hint.
-
-#### Scenario: Mapping standard fields
-- **WHEN** a calendar entry with summary, description, start, end, and location is imported
-- **THEN** the system SHALL populate the corresponding Event fields from those values
-
-#### Scenario: Unmatched venue or organiser
-- **WHEN** an imported entry's location does not match an existing Venue
-- **THEN** the system SHALL flag the imported event for an editor to assign a Venue and Organiser before publication
-
-### Requirement: Recurrence import
-The system SHALL interpret calendar recurrence rules (RRULE) so that recurring calendar entries are imported as repeatable events.
-
-#### Scenario: Recurring entry imported as repeatable
-- **WHEN** a calendar entry carries an RRULE for weekly or monthly recurrence
-- **THEN** the system SHALL create a repeatable event reflecting that recurrence
-
 ### Requirement: Deduplication and review queue
 Imported events SHALL be deduplicated against existing events by calendar UID, and imported items SHALL enter the approval queue rather than publishing automatically. When an entry's UID is already present on the site, the system SHALL skip it and SHALL NOT modify the existing event, so that editorial changes made after import are preserved.
 
@@ -53,6 +29,8 @@ Imported events SHALL be deduplicated against existing events by calendar UID, a
 #### Scenario: Imports await approval
 - **WHEN** events are imported from a feed
 - **THEN** the system SHALL place them in the approval queue in an unpublished state
+
+## ADDED Requirements
 
 ### Requirement: On-demand synchronisation of a saved feed
 The system SHALL provide an explicit action to synchronise a saved feed, and an action to synchronise all saved feeds. Synchronisation SHALL NOT occur on a schedule or as a side effect of visitors viewing the site; it happens only when an authorized user asks for it.

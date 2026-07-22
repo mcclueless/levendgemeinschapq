@@ -27,7 +27,14 @@ import {
 import { socialsFromForm } from "@/content/socials-form";
 import { validateEventRange } from "@/content/event-form";
 import { geocode, type GeocodeResult } from "@/content/geocode";
-import { importFromUrl } from "@/content/ical-import";
+import { syncFeed, type SyncResult } from "@/content/ical-import";
+import {
+  createFeed,
+  deleteFeed,
+  getFeed,
+  listFeeds,
+  updateFeed,
+} from "@/content/feeds";
 import { revalidatePublic, revalidateAfterItemChange } from "@/content/revalidate";
 import { adminListPath, publicListPath } from "@/lib/routes";
 
@@ -662,26 +669,135 @@ export async function deleteMediaAction(formData: FormData) {
   redirect("/beheer/galerij?media=verwijderd");
 }
 
-// ── Calendar import ──────────────────────────────────────────────────────────
-export async function importCalendar(formData: FormData) {
+// ── Calendar feeds (add-managed-calendar-feeds) ──────────────────────────────
+
+const FEEDS = "/beheer/feeds";
+
+function feedFields(form: FormData) {
+  return {
+    label: str(form, "label"),
+    url: str(form, "url"),
+    defaultVenue: str(form, "defaultVenue"),
+    defaultOrganiser: str(form, "defaultOrganiser"),
+  };
+}
+
+export async function createFeedAction(formData: FormData) {
   await assertAdmin();
-  const url = str(formData, "url");
-  const defaultVenue = str(formData, "defaultVenue");
-  const defaultOrganiser = str(formData, "defaultOrganiser");
-  if (!url || !defaultVenue || !defaultOrganiser) {
+  const f = feedFields(formData);
+  if (!f.label || !f.url || !f.defaultVenue || !f.defaultOrganiser) {
     redirect("/beheer/import?error=1");
   }
-  const result = await importFromUrl(url!, {
-    defaultVenue: defaultVenue!,
-    defaultOrganiser: defaultOrganiser!,
+  const id = await createFeed({
+    label: f.label!,
+    url: f.url!,
+    defaultVenue: f.defaultVenue!,
+    defaultOrganiser: f.defaultOrganiser!,
   });
+  revalidatePath(FEEDS);
+  revalidatePath("/beheer");
+  redirect(`${FEEDS}?created=${id}`);
+}
+
+export async function updateFeedAction(formData: FormData) {
+  await assertAdmin();
+  const id = str(formData, "id");
+  if (!id) redirect(FEEDS);
+  const f = feedFields(formData);
+  if (!f.label || !f.url || !f.defaultVenue || !f.defaultOrganiser) {
+    redirect(`${FEEDS}/${id}/bewerken?error=1`);
+  }
+  await updateFeed(id!, {
+    label: f.label,
+    url: f.url,
+    defaultVenue: f.defaultVenue,
+    defaultOrganiser: f.defaultOrganiser,
+  });
+  revalidatePath(FEEDS);
+  revalidatePath("/beheer");
+  redirect(FEEDS);
+}
+
+/**
+ * Remove a feed. Its events are deliberately left alone (design D9) — once
+ * imported, the site owns them; deleting a feed is tidying a list, not a
+ * destructive content operation.
+ */
+export async function deleteFeedAction(formData: FormData) {
+  await assertAdmin();
+  const id = str(formData, "id");
+  if (!id) redirect(FEEDS);
+  await deleteFeed(id!);
+  revalidatePath(FEEDS);
+  revalidatePath("/beheer");
+  redirect(`${FEEDS}?deleted=1`);
+}
+
+/** Pause/resume. A paused feed keeps everything but is skipped by "Sync alle". */
+export async function toggleFeedPausedAction(formData: FormData) {
+  await assertAdmin();
+  const id = str(formData, "id");
+  if (!id) redirect(FEEDS);
+  const feed = await getFeed(id!);
+  if (!feed) redirect(FEEDS);
+  await updateFeed(id!, { paused: !feed!.paused });
+  revalidatePath(FEEDS);
+  revalidatePath("/beheer");
+  redirect(FEEDS);
+}
+
+/** Run one feed and record the outcome on it (design D7). */
+async function runFeed(id: string): Promise<{ label: string; result: SyncResult } | null> {
+  const feed = await getFeed(id);
+  if (!feed) return null;
+  const result = await syncFeed(feed);
+  const failed = result.errors.length > 0 && result.created === 0 && result.skipped === 0;
+  await updateFeed(id, {
+    lastSyncedAt: new Date().toISOString(),
+    lastCreated: result.created,
+    lastSkipped: result.skipped,
+    lastHidden: result.hidden,
+    lastFlagged: result.flagged,
+    // Cleared on success, so a fixed feed stops warning on the dashboard.
+    lastError: failed ? result.errors[0] : undefined,
+  });
+  return { label: feed.label, result };
+}
+
+export async function syncFeedAction(formData: FormData) {
+  await assertAdmin();
+  const id = str(formData, "id");
+  if (!id) redirect(FEEDS);
+  await runFeed(id!);
+  await revalidatePublic();
+  revalidatePath(FEEDS);
   revalidatePath("/beheer/queue");
   revalidatePath("/beheer");
-  const params = new URLSearchParams({
-    created: String(result.created),
-    skipped: String(result.skipped),
-    flagged: String(result.flagged),
-  });
-  if (result.errors.length) params.set("error", result.errors[0]);
-  redirect(`/beheer/import?${params.toString()}`);
+  redirect(`${FEEDS}?synced=${id}`);
+}
+
+/**
+ * Sync every non-paused feed. Each feed is run independently so one failure
+ * cannot stop the rest (design D10), and each records its own outcome — an
+ * aggregate would hide *which* feed failed, undoing the only mechanism that
+ * surfaces a broken feed at all.
+ */
+export async function syncAllFeedsAction() {
+  await assertAdmin();
+  const feeds = await listFeeds();
+  for (const feed of feeds.filter((f) => !f.paused)) {
+    try {
+      await runFeed(feed.id);
+    } catch (err) {
+      await updateFeed(feed.id, {
+        lastSyncedAt: new Date().toISOString(),
+        lastError: (err as Error).message,
+      });
+    }
+  }
+  await revalidatePublic();
+  revalidatePath(FEEDS);
+  revalidatePath("/beheer/queue");
+  revalidatePath("/beheer");
+  redirect(`${FEEDS}?synced=alle`);
 }

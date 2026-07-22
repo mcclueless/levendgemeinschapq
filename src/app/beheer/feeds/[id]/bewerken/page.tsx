@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { AdminShell } from "@/components/admin/admin-shell";
-import Link from "next/link";
 import {
   Field,
   FormError,
@@ -9,44 +9,39 @@ import {
   SubmitButton,
 } from "@/components/admin/form";
 import { requireAdmin } from "@/lib/auth-server";
+import { getFeed } from "@/content/feeds";
 import { getOrganisers, getVenues } from "@/content/repository";
-import { createFeedAction } from "../actions";
+import { updateFeedAction } from "../../../actions";
 
-export const metadata: Metadata = {
-  title: "Feed toevoegen",
-  robots: { index: false },
-};
+export const metadata: Metadata = { title: "Feed bewerken", robots: { index: false } };
 export const dynamic = "force-dynamic";
 
-export default async function ImportPage({
+export default async function EditFeedPage({
+  params,
   searchParams,
 }: {
+  params: Promise<{ id: string }>;
   searchParams: Promise<{ error?: string }>;
 }) {
   await requireAdmin();
-  const [params, venues, organisers] = await Promise.all([
-    searchParams,
+  const [{ id }, { error }] = await Promise.all([params, searchParams]);
+  const [feed, venues, organisers] = await Promise.all([
+    getFeed(id),
     getVenues(),
     getOrganisers(),
   ]);
+  if (!feed) notFound();
 
   return (
     <AdminShell>
-      <h1 className="text-3xl">Feed toevoegen</h1>
-      <p className="mt-2 max-w-2xl text-muted">
-        Sla een Google Calendar- of iCal-link (.ics) op. De link blijft bewaard,
-        zodat je hem later met één klik opnieuw kunt synchroniseren — zie{" "}
-        <Link href="/beheer/feeds" className="underline underline-offset-2">
-          Agenda-feeds
-        </Link>
-        . Geïmporteerde evenementen komen als concept in de wachtrij.
-      </p>
+      <h1 className="text-3xl">Feed bewerken</h1>
+      <FormError code={error} />
 
-      <FormError code={params.error} />
+      <form action={updateFeedAction} className="mt-8 grid max-w-2xl gap-5">
+        <input type="hidden" name="id" value={feed.id} />
 
-      <form action={createFeedAction} className="mt-8 grid max-w-2xl gap-5">
         <Field label="Naam" htmlFor="label" required hint="Alleen voor jezelf, in het overzicht.">
-          <Input id="label" name="label" required placeholder="Buurtagenda Noord" />
+          <Input id="label" name="label" required defaultValue={feed.label} />
         </Field>
 
         <Field
@@ -55,15 +50,17 @@ export default async function ImportPage({
           required
           hint="Een openbare Google Calendar- of iCal-link (.ics)."
         >
-          <Input id="url" name="url" type="url" placeholder="https://…/basic.ics" required />
+          <Input id="url" name="url" type="url" required defaultValue={feed.url} />
         </Field>
 
         <div className="grid gap-5 sm:grid-cols-2">
           <Field label="Standaard locatie" htmlFor="defaultVenue" required>
-            <Select id="defaultVenue" name="defaultVenue" required defaultValue="">
-              <option value="" disabled>
-                Kies…
-              </option>
+            <Select
+              id="defaultVenue"
+              name="defaultVenue"
+              required
+              defaultValue={feed.defaultVenue}
+            >
               {venues.map((v) => (
                 <option key={v.slug} value={v.slug}>
                   {v.name}
@@ -72,10 +69,12 @@ export default async function ImportPage({
             </Select>
           </Field>
           <Field label="Standaard organisator" htmlFor="defaultOrganiser" required>
-            <Select id="defaultOrganiser" name="defaultOrganiser" required defaultValue="">
-              <option value="" disabled>
-                Kies…
-              </option>
+            <Select
+              id="defaultOrganiser"
+              name="defaultOrganiser"
+              required
+              defaultValue={feed.defaultOrganiser}
+            >
               {organisers.map((o) => (
                 <option key={o.slug} value={o.slug}>
                   {o.name}
@@ -86,7 +85,7 @@ export default async function ImportPage({
         </div>
 
         <div>
-          <SubmitButton>Feed opslaan</SubmitButton>
+          <SubmitButton>Opslaan</SubmitButton>
         </div>
       </form>
     </AdminShell>

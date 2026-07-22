@@ -95,6 +95,16 @@ export const EventFrontmatter = z.object({
   recurrence: RecurrenceSchema.optional(),
   /** Calendar UID for import de-duplication (calendar-import spec). */
   uid: z.string().optional(),
+  /**
+   * Which saved feed produced this event (add-managed-calendar-feeds D5).
+   * Scopes cancellation-hiding so a sync can only ever hide its own events.
+   *
+   * Optional on purpose: events imported before feeds existed carry a `uid` but
+   * no `feedId`, and `parseAll` *skips* documents that fail validation — a
+   * required field would silently remove every one of them from the public site
+   * and the backend list. They are adopted on the next sync instead.
+   */
+  feedId: z.string().optional(),
   status: PublishStatus.default("published"),
   /** Who/how it was submitted, and review metadata (approval queue). */
   submittedBy: z.string().optional(),
