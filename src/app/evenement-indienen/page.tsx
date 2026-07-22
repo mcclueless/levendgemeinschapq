@@ -9,6 +9,8 @@ import {
   SubmitButton,
   Textarea,
 } from "@/components/admin/form";
+import { UploadOnlyImageField } from "@/components/admin/image-field";
+import { SocialFields } from "@/components/admin/social-fields";
 import { pageMetadata } from "@/lib/metadata";
 import { getOrganisers, getVenues } from "@/content/repository";
 import { submitEvent } from "./actions";
@@ -66,6 +68,16 @@ export default async function SubmitPage({
             <Input id="title" name="title" required />
           </Field>
 
+          {/* Upload only — no image bank for unauthenticated visitors, and the
+              page never fetches the pool at all (design D1). */}
+          <Field
+            label="Afbeelding"
+            htmlFor="image"
+            hint="Optioneel. JPG, PNG, GIF, WebP of AVIF, maximaal 10 MB."
+          >
+            <UploadOnlyImageField />
+          </Field>
+
           <div className="grid gap-5 sm:grid-cols-2">
             <Field label="Start" htmlFor="start" required>
               <Input id="start" name="start" type="datetime-local" required />
@@ -119,6 +131,8 @@ export default async function SubmitPage({
               <Input id="recurrenceUntil" name="recurrenceUntil" type="date" />
             </Field>
           </div>
+
+          <SocialFields />
 
           <Field label="Korte omschrijving" htmlFor="excerpt">
             <Input id="excerpt" name="excerpt" />

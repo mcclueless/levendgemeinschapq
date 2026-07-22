@@ -97,6 +97,12 @@ export const FORM_ERRORS: Record<string, string> = {
     "De einddatum van de herhaling ligt vóór de startdatum van het evenement.",
   "range-end-before-start":
     "Het einde van het evenement ligt vóór de start. Controleer de start- en einddatum.",
+  "upload-type":
+    "Dit bestandstype kan niet worden geüpload. Gebruik een JPG, PNG, GIF, WebP of AVIF (geen SVG).",
+  "upload-size":
+    "De afbeelding is te groot. Maximaal 10 MB — verklein de foto en probeer het opnieuw.",
+  "upload-corrupt":
+    "Het bestand lijkt geen geldige afbeelding te zijn. Controleer of je de juiste foto hebt gekozen.",
 };
 
 /** Platform labels for the `socials-<platform>` error codes. */

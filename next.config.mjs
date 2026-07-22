@@ -1,6 +1,17 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  experimental: {
+    // Server Actions default to a 1 MB request body, which silently 500s any
+    // image upload above it — an ordinary phone photo never reached
+    // saveUploadChecked at all, on the admin path or the public one.
+    //
+    // Deliberately ABOVE the 10 MB MAX_UPLOAD_BYTES cap: multipart encoding and
+    // the rest of the form add overhead, and we want *our* check to reject an
+    // oversized file with a message naming the limit, rather than Next
+    // rejecting the request with an untranslatable 500.
+    serverActions: { bodySizeLimit: "12mb" },
+  },
   images: {
     // Media is served from the public S3 media bucket (see design D8).
     // Covers both virtual-hosted-style (<bucket>.s3.<region>.amazonaws.com)

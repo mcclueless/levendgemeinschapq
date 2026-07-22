@@ -18,7 +18,7 @@ import {
   updateDocument,
 } from "@/content/write";
 import { findImageReferences, findReferences, getEditable } from "@/content/admin";
-import { deleteMedia, saveUpload } from "@/content/media";
+import { deleteMedia, saveUploadChecked } from "@/content/media";
 import {
   ADMIN_FREQUENCIES,
   recurrenceFromForm,
@@ -55,8 +55,15 @@ function str(form: FormData, key: string): string | undefined {
  * only then is stored. Returns undefined when neither is provided — callers
  * preserve the existing cover on edit.
  */
-async function coverImage(form: FormData): Promise<string | undefined> {
-  return str(form, "featuredImageUrl") ?? (await saveUpload(form.get("image")));
+async function coverImage(
+  form: FormData,
+  back: string,
+): Promise<string | undefined> {
+  const picked = str(form, "featuredImageUrl");
+  if (picked) return picked;
+  const result = await saveUploadChecked(form.get("image"));
+  if (!result.ok) redirect(`${back}?error=${result.reason}`);
+  return result.url;
 }
 
 /** Geocode-outcome flag for editor feedback (venue-address-geocoding). */
@@ -189,7 +196,7 @@ export async function createEvent(formData: FormData) {
   // Validate before the upload, so a rejected form does not leave a stored file
   // behind for a document that was never created.
   const socials = socialsOrRedirect(formData, "/beheer/nieuw/evenement");
-  const eventImage = await coverImage(formData);
+  const eventImage = await coverImage(formData, "/beheer/nieuw/evenement");
   await createDocument(
     "event",
     title!,
@@ -216,7 +223,7 @@ export async function createVenue(formData: FormData) {
   const name = str(formData, "name");
   if (!name) redirect("/beheer/nieuw/locatie?error=1");
   const address = str(formData, "address");
-  const venueImage = await coverImage(formData);
+  const venueImage = await coverImage(formData, "/beheer/nieuw/locatie");
   // Prefer coordinates from an autocomplete selection; else geocode the address.
   const picked = pickedCoords(formData);
   const geo = !picked && address ? await geocode(address) : null;
@@ -247,7 +254,7 @@ export async function createOrganiser(formData: FormData) {
   await assertAdmin();
   const name = str(formData, "name");
   if (!name) redirect("/beheer/nieuw/organisator?error=1");
-  const organiserImage = await coverImage(formData);
+  const organiserImage = await coverImage(formData, "/beheer/nieuw/organisator");
   await createDocument(
     "organiser",
     name!,
@@ -274,7 +281,7 @@ export async function createBlog(formData: FormData) {
   const author = str(formData, "author");
   const date = str(formData, "date");
   if (!title || !author || !date) redirect("/beheer/nieuw/blog?error=1");
-  const blogImage = await coverImage(formData);
+  const blogImage = await coverImage(formData, "/beheer/nieuw/blog");
   const relatedVenues = formData.getAll("relatedVenues").filter((v): v is string => typeof v === "string" && v !== "");
   const relatedOrganisers = formData.getAll("relatedOrganisers").filter((v): v is string => typeof v === "string" && v !== "");
   await createDocument(
@@ -312,7 +319,7 @@ export async function createProject(formData: FormData) {
   if (!title || !venue || organisers.length === 0) {
     redirect("/beheer/nieuw/project?error=1");
   }
-  const projectImage = await coverImage(formData);
+  const projectImage = await coverImage(formData, "/beheer/nieuw/project");
   await createDocument(
     "project",
     title!,
@@ -367,7 +374,7 @@ export async function updateEvent(formData: FormData) {
   );
   if (!recurrence.ok) redirect(`${back}?error=${recurrence.reason}`);
   const socials = socialsOrRedirect(formData, back);
-  const eventImage = await coverImage(formData);
+  const eventImage = await coverImage(formData, back);
   await updateDocument(
     "event",
     slug!,
@@ -396,7 +403,7 @@ export async function updateVenue(formData: FormData) {
   const name = str(formData, "name");
   if (!name) redirect(`${adminListPath("venue")}/${slug}/bewerken?error=1`);
   const address = str(formData, "address");
-  const venueImage = await coverImage(formData);
+  const venueImage = await coverImage(formData, `${adminListPath("venue")}/${slug}/bewerken`);
   // Prefer an autocomplete selection; else re-geocode the address. On no
   // result, omit lat/lng so the merge keeps existing coordinates.
   const picked = pickedCoords(formData);
@@ -429,7 +436,7 @@ export async function updateOrganiser(formData: FormData) {
   if (!slug) redirect(adminListPath("organiser"));
   const name = str(formData, "name");
   if (!name) redirect(`${adminListPath("organiser")}/${slug}/bewerken?error=1`);
-  const organiserImage = await coverImage(formData);
+  const organiserImage = await coverImage(formData, `${adminListPath("organiser")}/${slug}/bewerken`);
   await updateDocument(
     "organiser",
     slug!,
@@ -463,7 +470,7 @@ export async function updateBlog(formData: FormData) {
   if (!title || !author || !date) {
     redirect(`${adminListPath("blog")}/${slug}/bewerken?error=1`);
   }
-  const blogImage = await coverImage(formData);
+  const blogImage = await coverImage(formData, `${adminListPath("blog")}/${slug}/bewerken`);
   const relatedVenues = formData
     .getAll("relatedVenues")
     .filter((v): v is string => typeof v === "string" && v !== "");
@@ -499,7 +506,7 @@ export async function updateProject(formData: FormData) {
   if (!title || !venue || organisers.length === 0) {
     redirect(`${adminListPath("project")}/${slug}/bewerken?error=1`);
   }
-  const projectImage = await coverImage(formData);
+  const projectImage = await coverImage(formData, `${adminListPath("project")}/${slug}/bewerken`);
   // `date` is omitted from the patch so the original ordering date is preserved.
   await updateDocument(
     "project",
@@ -634,7 +641,8 @@ export async function deleteFromPublic(formData: FormData) {
 
 export async function uploadMedia(formData: FormData) {
   await assertAdmin();
-  await saveUpload(formData.get("image"));
+  const result = await saveUploadChecked(formData.get("image"));
+  if (!result.ok) redirect(`/beheer/galerij?error=${result.reason}`);
   revalidatePath("/beheer/galerij");
   redirect("/beheer/galerij?media=geupload");
 }

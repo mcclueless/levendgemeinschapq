@@ -7,6 +7,8 @@ import {
   recurrenceFromForm,
 } from "@/content/recurrence-form";
 import { validateEventRange } from "@/content/event-form";
+import { socialsFromForm } from "@/content/socials-form";
+import { saveUploadChecked } from "@/content/media";
 
 function str(form: FormData, key: string): string | undefined {
   const v = form.get(key);
@@ -45,6 +47,17 @@ export async function submitEvent(formData: FormData) {
     redirect(`/evenement-indienen?error=${recurrence.reason}`);
   }
 
+  const socials = socialsFromForm(formData);
+  if (!socials.ok) {
+    redirect(`/evenement-indienen?error=socials-${socials.platform}`);
+  }
+
+  // Cover comes from an uploaded file ONLY. `featuredImageUrl` is deliberately
+  // never read here: honouring it would let a hand-crafted POST set the cover
+  // to an existing library image or any URL on the internet (design D2).
+  const upload = await saveUploadChecked(formData.get("image"));
+  if (!upload.ok) redirect(`/evenement-indienen?error=${upload.reason}`);
+
   await createDocument(
     "event",
     title!,
@@ -55,6 +68,8 @@ export async function submitEvent(formData: FormData) {
       venue,
       organiser,
       excerpt: str(formData, "excerpt"),
+      featuredImage: upload.url,
+      socials: socials.socials,
       recurrence: recurrence.recurrence,
       status: "pending",
       submittedBy: submitter,

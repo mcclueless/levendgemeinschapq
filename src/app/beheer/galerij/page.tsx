@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AdminShell } from "@/components/admin/admin-shell";
-import { Field, SubmitButton } from "@/components/admin/form";
+import { Field, FormError, SubmitButton } from "@/components/admin/form";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { Notice } from "@/components/ui/notice";
 import { requireAdmin } from "@/lib/auth-server";
@@ -20,10 +20,10 @@ const MEDIA_MESSAGE: Record<string, string> = {
 export default async function MediaLibraryPage({
   searchParams,
 }: {
-  searchParams: Promise<{ media?: string; inuse?: string }>;
+  searchParams: Promise<{ media?: string; inuse?: string; error?: string }>;
 }) {
   await requireAdmin();
-  const [{ media, inuse }, images] = await Promise.all([
+  const [{ media, inuse, error }, images] = await Promise.all([
     searchParams,
     listMedia(),
   ]);
@@ -41,6 +41,8 @@ export default async function MediaLibraryPage({
         Alle geüploade afbeeldingen. Upload nieuwe of verwijder afbeeldingen die
         nergens meer worden gebruikt.
       </p>
+
+      <FormError code={error} />
 
       {media && MEDIA_MESSAGE[media] ? (
         <Notice className="mt-4">{MEDIA_MESSAGE[media]}</Notice>

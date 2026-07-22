@@ -32,6 +32,8 @@ export interface PendingEvent {
   excerpt?: string;
   body: string;
   featuredImage?: string;
+  /** Submitted social links, so a reviewer judges the links before publishing. */
+  socials?: Record<string, string>;
   submittedBy?: string;
   submittedAt?: string;
   reviewNote?: string;
@@ -92,6 +94,7 @@ export async function getPendingSubmissions(): Promise<Submission[]> {
       excerpt: e.data.excerpt,
       body: e.body,
       featuredImage: e.data.featuredImage,
+      socials: e.data.socials,
       submittedBy: e.data.submittedBy,
       submittedAt: e.data.submittedAt?.toISOString(),
       reviewNote: e.data.reviewNote,

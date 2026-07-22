@@ -7,7 +7,10 @@ import type { MediaItem } from "@/content/media";
  * Cover-image field (cover-image-bank): set a cover by uploading a new file
  * (existing `image` input) or picking one from the pool of already-uploaded
  * images (sets a hidden `featuredImageUrl`). The action resolves
- * `featuredImageUrl ?? saveUpload(image) ?? existing`.
+ * `featuredImageUrl ?? saveUploadChecked(image) ?? existing`.
+ *
+ * For unauthenticated surfaces use {@link UploadOnlyImageField} instead — it
+ * takes no `pool` at all, so the library cannot leak into the page payload.
  */
 export function ImageField({
   pool,
@@ -186,6 +189,74 @@ function MediaPicker({
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Upload-only cover-image field, for surfaces that must not see the image bank
+ * (add-public-media-and-socials D1).
+ *
+ * Note what this component does NOT take: there is no `pool` parameter. Hiding
+ * the picker while still accepting a pool would leave every uploaded image's
+ * URL, key and size serialized into the payload of an unauthenticated page. A
+ * boolean flag would leave that possible; an absent parameter does not — the
+ * leak is unrepresentable rather than merely switched off.
+ *
+ * It also emits no `featuredImageUrl`. The public action ignores that field
+ * regardless (D2) — this just means there is nothing to ignore.
+ */
+export function UploadOnlyImageField({ hint }: { hint?: string }) {
+  const [filePreview, setFilePreview] = useState<string | undefined>(undefined);
+  const [fileName, setFileName] = useState<string | undefined>(undefined);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  function onFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0];
+    setFileName(f?.name);
+    setFilePreview(f ? URL.createObjectURL(f) : undefined);
+  }
+
+  return (
+    <div className="grid gap-2">
+      <div className="flex items-start gap-4">
+        {filePreview ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={filePreview}
+            alt=""
+            className="h-24 w-32 shrink-0 rounded-md border border-border object-cover"
+          />
+        ) : (
+          <div className="flex h-24 w-32 shrink-0 items-center justify-center rounded-md border border-dashed border-border text-center text-xs text-muted">
+            Geen afbeelding
+          </div>
+        )}
+
+        <div className="grid gap-2">
+          <input
+            ref={fileRef}
+            id="image"
+            type="file"
+            name="image"
+            accept="image/png,image/jpeg,image/gif,image/webp,image/avif"
+            onChange={onFile}
+            className="sr-only"
+          />
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            className="inline-flex h-9 w-fit items-center rounded-md border border-border bg-surface px-3 text-sm font-medium hover:bg-surface-2"
+          >
+            Bestand kiezen
+          </button>
+          <p className="text-xs text-muted">
+            {fileName ?? "Geen bestand gekozen"}
+          </p>
+        </div>
+      </div>
+
+      {hint ? <p className="text-xs text-muted">{hint}</p> : null}
     </div>
   );
 }

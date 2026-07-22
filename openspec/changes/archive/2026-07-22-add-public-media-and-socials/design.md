@@ -187,6 +187,28 @@ image can resize it, which is what they would have to do for the web anyway.
 Enforced server-side in `saveUpload`. A client-side `accept` attribute or a size
 check in the browser is a convenience only — same reasoning as D2.
 
+**A 10 MB cap is not achievable without also raising Next's Server Action body
+limit** — discovered during implementation, and it invalidates the naive reading
+of this decision. `serverActions.bodySizeLimit` defaults to **1 MB**, and
+`next.config.mjs` never set it. Anything larger is rejected by the framework
+with a raw 500 *before* `saveUploadChecked` runs, so:
+
+- the 10 MB cap was unreachable — nothing between 1 MB and 10 MB could ever be
+  accepted, and the friendly "too large" message could never fire;
+- **this was already broken for administrators**, not a new consequence of
+  public uploads. Every cover image and media-library upload over 1 MB has been
+  failing with an untranslated 500 for as long as the feature has existed. An
+  ordinary phone photo never reached the upload code at all.
+
+`next.config.mjs` now sets `serverActions: { bodySizeLimit: "12mb" }`,
+deliberately **above** `MAX_UPLOAD_BYTES`. Multipart encoding plus the rest of
+the form add overhead, and the gap is what lets *our* check reject an oversized
+file with a message naming the limit instead of the framework rejecting the
+request with a 500 nobody can translate.
+
+The two numbers are coupled: raising the cap without raising the body limit
+silently reintroduces the 500.
+
 Consequence worth noting: 10 MB × unlimited anonymous submissions is unbounded
 storage growth, and nothing in this change rate-limits submissions. The cap
 bounds a single upload, not the aggregate. See Risks.

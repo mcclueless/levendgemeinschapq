@@ -96,6 +96,24 @@ function SubmissionCard({ submission: s }: { submission: Submission }) {
             <>
               <Detail label="Wanneer" value={when(s.start, s.end)} />
               <Detail label="Herhaling" value={recurrenceLabel(s.recurrence)} />
+              {s.socials && Object.keys(s.socials).length ? (
+                <div className="sm:col-span-2">
+                  <dt className="text-muted">Sociale links</dt>
+                  <dd className="mt-1 flex flex-wrap gap-x-4 gap-y-1">
+                    {Object.entries(s.socials).map(([platform, url]) => (
+                      <a
+                        key={platform}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer nofollow"
+                        className="underline underline-offset-2"
+                      >
+                        {platform}
+                      </a>
+                    ))}
+                  </dd>
+                </div>
+              ) : null}
               <Detail label="Locatie" value={s.venueName} />
               <Detail label="Organisator" value={s.organiserName} />
             </>
