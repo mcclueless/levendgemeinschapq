@@ -44,6 +44,19 @@ function when(start: string, end?: string): string {
   return end ? `${base}–${formatTime(new Date(end))}` : base;
 }
 
+/**
+ * The full proposed series, so a reviewer judges what was actually submitted.
+ * An open-ended recurrence is called out explicitly rather than shown as a bare
+ * interval — imported entries can still legitimately have no end date.
+ */
+function recurrenceLabel(r?: { freq: "weekly" | "monthly"; until?: string }): string {
+  if (!r) return "Eenmalig";
+  const freq = r.freq === "weekly" ? "Wekelijks" : "Maandelijks";
+  return r.until
+    ? `${freq}, t/m ${formatDateLong(new Date(r.until))}`
+    : `${freq} — zonder einddatum`;
+}
+
 function SubmissionCard({ submission: s }: { submission: Submission }) {
   return (
     <Card as="li" className="overflow-hidden">
@@ -82,16 +95,7 @@ function SubmissionCard({ submission: s }: { submission: Submission }) {
           {s.kind === "event" ? (
             <>
               <Detail label="Wanneer" value={when(s.start, s.end)} />
-              <Detail
-                label="Herhaling"
-                value={
-                  s.recurrence === "weekly"
-                    ? "Wekelijks"
-                    : s.recurrence === "monthly"
-                      ? "Maandelijks"
-                      : "Eenmalig"
-                }
-              />
+              <Detail label="Herhaling" value={recurrenceLabel(s.recurrence)} />
               <Detail label="Locatie" value={s.venueName} />
               <Detail label="Organisator" value={s.organiserName} />
             </>

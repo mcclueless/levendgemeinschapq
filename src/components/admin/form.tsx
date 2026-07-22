@@ -83,3 +83,30 @@ export function SubmitButton({ children }: { children: React.ReactNode }) {
     </button>
   );
 }
+
+/**
+ * Messages for the `?error=` flag the content actions redirect back with.
+ * Shared so the create and edit forms — and the public submission form — cannot
+ * describe the same failure differently (add-recurrence-end-date D5).
+ */
+export const FORM_ERRORS: Record<string, string> = {
+  "1": "Vul alle verplichte velden in.",
+  "recurrence-missing":
+    "Kies een einddatum voor de herhaling — een herhalend evenement moet een einddatum hebben.",
+  "recurrence-range":
+    "De einddatum van de herhaling ligt vóór de startdatum van het evenement.",
+};
+
+/** Renders the message for an `?error=` value, or nothing when absent/unknown. */
+export function FormError({ code }: { code?: string }) {
+  const message = code ? FORM_ERRORS[code] : undefined;
+  if (!message) return null;
+  return (
+    <p
+      role="alert"
+      className="mt-4 rounded-md border border-brand/40 bg-brand/10 px-3 py-2 text-sm text-brand-strong"
+    >
+      {message}
+    </p>
+  );
+}

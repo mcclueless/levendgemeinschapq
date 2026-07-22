@@ -2,6 +2,10 @@
 
 import { redirect } from "next/navigation";
 import { createDocument } from "@/content/write";
+import {
+  PUBLIC_FREQUENCIES,
+  recurrenceFromForm,
+} from "@/content/recurrence-form";
 
 function str(form: FormData, key: string): string | undefined {
   const v = form.get(key);
@@ -24,6 +28,18 @@ export async function submitEvent(formData: FormData) {
     redirect("/evenement-indienen?error=1");
   }
 
+  // Weekly only. A hand-crafted POST carrying `monthly` is treated as
+  // non-repeating rather than persisted — the omitted <option> is a
+  // convenience, this is the contract (add-recurrence-end-date D7).
+  const recurrence = recurrenceFromForm(
+    formData,
+    new Date(start!),
+    PUBLIC_FREQUENCIES,
+  );
+  if (!recurrence.ok) {
+    redirect(`/evenement-indienen?error=${recurrence.reason}`);
+  }
+
   await createDocument(
     "event",
     title!,
@@ -34,6 +50,7 @@ export async function submitEvent(formData: FormData) {
       venue,
       organiser,
       excerpt: str(formData, "excerpt"),
+      recurrence: recurrence.recurrence,
       status: "pending",
       submittedBy: submitter,
       submittedAt: new Date().toISOString(),

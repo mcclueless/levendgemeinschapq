@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { AdminShell } from "@/components/admin/admin-shell";
 import {
   Field,
+  FormError,
   Input,
   Select,
   SubmitButton,
@@ -62,10 +63,13 @@ function toDateInput(v: unknown): string {
 
 export default async function EditPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ type: string; slug: string }>;
+  searchParams: Promise<{ error?: string }>;
 }) {
   await requireAdmin();
+  const { error } = await searchParams;
   const { type: segment, slug } = await params;
   if (!isSegment(segment)) notFound();
   const type = ADMIN_SEGMENT_TO_TYPE[segment];
@@ -84,6 +88,7 @@ export default async function EditPage({
     return (
       <AdminShell>
         <h1 className="text-3xl">Evenement bewerken</h1>
+        <FormError code={error} />
         <form action={updateEvent} className={formClass}>
           <input type="hidden" name="slug" value={slug} />
           <Field label="Titel" htmlFor="title" required>
@@ -136,17 +141,31 @@ export default async function EditPage({
               </Select>
             </Field>
           </div>
-          <Field label="Herhaling" htmlFor="recurrence">
-            <Select
-              id="recurrence"
-              name="recurrence"
-              defaultValue={d.recurrence?.freq ?? "none"}
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field label="Herhaling" htmlFor="recurrence">
+              <Select
+                id="recurrence"
+                name="recurrence"
+                defaultValue={d.recurrence?.freq ?? "none"}
+              >
+                <option value="none">Eenmalig</option>
+                <option value="weekly">Wekelijks</option>
+                <option value="monthly">Maandelijks</option>
+              </Select>
+            </Field>
+            <Field
+              label="Herhalen tot en met"
+              htmlFor="recurrenceUntil"
+              hint="Verplicht bij een herhaling. Dit is de laatste dag waarop het evenement terugkomt — niet het eindtijdstip van één keer."
             >
-              <option value="none">Eenmalig</option>
-              <option value="weekly">Wekelijks</option>
-              <option value="monthly">Maandelijks</option>
-            </Select>
-          </Field>
+              <Input
+                id="recurrenceUntil"
+                name="recurrenceUntil"
+                type="date"
+                defaultValue={toDateInput(d.recurrence?.until)}
+              />
+            </Field>
+          </div>
           <SocialFields defaults={d.socials} />
           <Field label="Korte omschrijving" htmlFor="excerpt">
             <Input id="excerpt" name="excerpt" defaultValue={d.excerpt} />

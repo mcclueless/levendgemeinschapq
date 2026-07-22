@@ -1,7 +1,14 @@
 import Link from "next/link";
 import { Container } from "@/components/ui/container";
 import { Badge } from "@/components/ui/card";
-import { Field, Input, Select, SubmitButton, Textarea } from "@/components/admin/form";
+import {
+  Field,
+  FormError,
+  Input,
+  Select,
+  SubmitButton,
+  Textarea,
+} from "@/components/admin/form";
 import { pageMetadata } from "@/lib/metadata";
 import { getOrganisers, getVenues } from "@/content/repository";
 import { submitEvent } from "./actions";
@@ -52,14 +59,7 @@ export default async function SubmitPage({
           door de redactie verschijnt het op de agenda.
         </p>
 
-        {params.error ? (
-          <p
-            role="alert"
-            className="mt-4 rounded-md border border-brand/40 bg-brand/10 px-3 py-2 text-sm text-brand-strong"
-          >
-            Vul alle verplichte velden in.
-          </p>
-        ) : null}
+        <FormError code={params.error} />
 
         <form action={submitEvent} className="mt-8 grid gap-5">
           <Field label="Titel" htmlFor="title" required>
@@ -99,6 +99,24 @@ export default async function SubmitPage({
                   </option>
                 ))}
               </Select>
+            </Field>
+          </div>
+
+          {/* Weekly only — monthly stays admin-only, and an administrator can
+              widen a submission on approval (add-recurrence-end-date D7). */}
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field label="Herhaling" htmlFor="recurrence">
+              <Select id="recurrence" name="recurrence" defaultValue="none">
+                <option value="none">Eenmalig</option>
+                <option value="weekly">Wekelijks</option>
+              </Select>
+            </Field>
+            <Field
+              label="Herhalen tot en met"
+              htmlFor="recurrenceUntil"
+              hint="Verplicht bij een herhaling. De laatste dag waarop het evenement terugkomt — niet het eindtijdstip van één keer."
+            >
+              <Input id="recurrenceUntil" name="recurrenceUntil" type="date" />
             </Field>
           </div>
 

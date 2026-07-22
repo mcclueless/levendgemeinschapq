@@ -20,6 +20,11 @@ import {
 import { findImageReferences, findReferences } from "@/content/admin";
 import { deleteMedia, saveUpload } from "@/content/media";
 import { SOCIAL_PLATFORMS } from "@/content/schema";
+import {
+  ADMIN_FREQUENCIES,
+  recurrenceFromForm,
+  type RecurrenceFormResult,
+} from "@/content/recurrence-form";
 import { geocode, type GeocodeResult } from "@/content/geocode";
 import { importFromUrl } from "@/content/ical-import";
 import { revalidatePublic, revalidateAfterItemChange } from "@/content/revalidate";
@@ -147,10 +152,19 @@ function socialsFrom(form: FormData) {
 }
 
 // ── Content creation (admin) ─────────────────────────────────────────────────
-function recurrenceFrom(form: FormData) {
-  const freq = str(form, "recurrence");
-  if (freq === "weekly" || freq === "monthly") return { freq, interval: 1 };
-  return undefined;
+
+/**
+ * Recurrence from an admin event form. The backend offers both intervals; the
+ * end date is required whenever one is chosen (add-recurrence-end-date D5).
+ * Validation lives in the shared parser so this path cannot drift from the
+ * public submission form.
+ */
+function adminRecurrence(form: FormData, start: string | undefined): RecurrenceFormResult {
+  return recurrenceFromForm(
+    form,
+    start ? new Date(start) : undefined,
+    ADMIN_FREQUENCIES,
+  );
 }
 
 export async function createEvent(formData: FormData) {
@@ -161,6 +175,10 @@ export async function createEvent(formData: FormData) {
   const organiser = str(formData, "organiser");
   if (!title || !start || !venue || !organiser) {
     redirect("/beheer/nieuw/evenement?error=1");
+  }
+  const recurrence = adminRecurrence(formData, start);
+  if (!recurrence.ok) {
+    redirect(`/beheer/nieuw/evenement?error=${recurrence.reason}`);
   }
   const eventImage = await coverImage(formData);
   await createDocument(
@@ -175,7 +193,7 @@ export async function createEvent(formData: FormData) {
       excerpt: str(formData, "excerpt"),
       featuredImage: eventImage,
       socials: socialsFrom(formData),
-      recurrence: recurrenceFrom(formData),
+      recurrence: recurrence.recurrence,
       status: formData.get("publish") ? "published" : "draft",
     },
     str(formData, "body") ?? "",
@@ -323,6 +341,12 @@ export async function updateEvent(formData: FormData) {
   if (!title || !start || !venue || !organiser) {
     redirect(`${adminListPath("event")}/${slug}/bewerken?error=1`);
   }
+  const recurrence = adminRecurrence(formData, start);
+  if (!recurrence.ok) {
+    redirect(
+      `${adminListPath("event")}/${slug}/bewerken?error=${recurrence.reason}`,
+    );
+  }
   const eventImage = await coverImage(formData);
   await updateDocument(
     "event",
@@ -335,7 +359,7 @@ export async function updateEvent(formData: FormData) {
       organiser,
       excerpt: str(formData, "excerpt"),
       socials: socialsFrom(formData),
-      recurrence: recurrenceFrom(formData),
+      recurrence: recurrence.recurrence,
       ...(eventImage ? { featuredImage: eventImage } : {}),
     },
     str(formData, "body") ?? "",

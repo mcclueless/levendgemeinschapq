@@ -3,6 +3,7 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import {
   CheckboxField,
   Field,
+  FormError,
   Input,
   Select,
   SubmitButton,
@@ -21,9 +22,14 @@ export const metadata: Metadata = {
 };
 export const dynamic = "force-dynamic";
 
-export default async function NewEventPage() {
+export default async function NewEventPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
   await requireAdmin();
-  const [venues, organisers, pool] = await Promise.all([
+  const [params, venues, organisers, pool] = await Promise.all([
+    searchParams,
     getVenues(),
     getOrganisers(),
     listMedia(),
@@ -32,6 +38,8 @@ export default async function NewEventPage() {
   return (
     <AdminShell>
       <h1 className="text-3xl">Nieuw evenement</h1>
+
+      <FormError code={params.error} />
 
       <form action={createEvent} className="mt-8 grid max-w-2xl gap-5">
         <Field label="Titel" htmlFor="title" required>
@@ -78,13 +86,22 @@ export default async function NewEventPage() {
           </Field>
         </div>
 
-        <Field label="Herhaling" htmlFor="recurrence">
-          <Select id="recurrence" name="recurrence" defaultValue="none">
-            <option value="none">Eenmalig</option>
-            <option value="weekly">Wekelijks</option>
-            <option value="monthly">Maandelijks</option>
-          </Select>
-        </Field>
+        <div className="grid gap-5 sm:grid-cols-2">
+          <Field label="Herhaling" htmlFor="recurrence">
+            <Select id="recurrence" name="recurrence" defaultValue="none">
+              <option value="none">Eenmalig</option>
+              <option value="weekly">Wekelijks</option>
+              <option value="monthly">Maandelijks</option>
+            </Select>
+          </Field>
+          <Field
+            label="Herhalen tot en met"
+            htmlFor="recurrenceUntil"
+            hint="Verplicht bij een herhaling. Dit is de laatste dag waarop het evenement terugkomt — niet het eindtijdstip van één keer."
+          >
+            <Input id="recurrenceUntil" name="recurrenceUntil" type="date" />
+          </Field>
+        </div>
 
         <SocialFields />
 

@@ -22,7 +22,13 @@ export interface PendingEvent {
   venueName: string;
   organiserSlug: string;
   organiserName: string;
-  recurrence?: "weekly" | "monthly";
+  /**
+   * The proposed series, not just its interval — a submitter can now say
+   * "every week until December", and approving that unseen is not review
+   * (add-recurrence-end-date D9). `until` stays optional: imported entries and
+   * documents predating the end-date requirement are legitimately open-ended.
+   */
+  recurrence?: { freq: "weekly" | "monthly"; until?: string };
   excerpt?: string;
   body: string;
   featuredImage?: string;
@@ -77,7 +83,12 @@ export async function getPendingSubmissions(): Promise<Submission[]> {
       venueName: label(venueName, e.data.venue),
       organiserSlug: e.data.organiser,
       organiserName: label(organiserName, e.data.organiser),
-      recurrence: e.data.recurrence?.freq,
+      recurrence: e.data.recurrence
+        ? {
+            freq: e.data.recurrence.freq,
+            until: e.data.recurrence.until?.toISOString(),
+          }
+        : undefined,
       excerpt: e.data.excerpt,
       body: e.body,
       featuredImage: e.data.featuredImage,
