@@ -3,7 +3,7 @@
 - **Reported:** 2026-07-22
 - **Severity:** Low today, latent — the bad data is accepted and stored, but no
   public surface renders `end`, so nothing visibly breaks yet
-- **Status:** Open
+- **Status:** **Fixed** 2026-07-22 (validation only; existing bad data untouched)
 - **Affects:** all three event forms (admin create, admin edit, public submission)
 
 ## Summary
@@ -122,3 +122,37 @@ The data is being accumulated now and will need cleaning then.
   fix (2).
 - Whether a multi-day event is a legitimate use case here (a two-day festival).
   If so, (3) is a real display bug in its own right and not merely cosmetic.
+
+---
+
+## Fix applied — 2026-07-22
+
+Fix direction **1** only. Deliberately **not** (2).
+
+New `src/content/event-form.ts` — `validateEventRange(start, end)`, called by
+`createEvent`, `updateEvent` and `submitEvent`. Rejects with
+`?error=range-end-before-start`; the message is in `FORM_ERRORS` alongside the
+recurrence ones, so all three forms report it identically.
+
+**(2) was rejected on evidence, not principle.** The audit the report asked for
+found **two** already-stored events with an end preceding their start —
+`content/events/party-at-atticus.mdx` (committed in the first commit) and the
+test submission that prompted this report. A schema-level `.refine()` would
+therefore have made `party-at-atticus` vanish from the public site and the
+backend list immediately, via `parseAll`'s skip. Exactly the D2 hazard, and this
+time it had live victims.
+
+Consequence, matching the recurrence end date's: existing bad data keeps working
+until someone edits it, at which point the form demands a correction.
+
+Verified: end before start rejected on all three paths; a valid range saves
+normally.
+
+### Still open
+
+**(3) — the queue's `when()` still shows start's date with end's time**, so a
+genuinely multi-day event is displayed wrong, and the two existing bad records
+still *look* fine to a reviewer. Independent of validation and not fixed here.
+
+Whether a multi-day event is a legitimate use case here remains unanswered. If it
+is, (3) is a real display bug rather than a cosmetic one.

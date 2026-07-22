@@ -45,13 +45,39 @@ export const SOCIAL_PLATFORMS = [
   "linkedin",
   "youtube",
 ] as const;
+
+/**
+ * A social profile link. `.url()` alone accepts `javascript:alert(1)`, and the
+ * value is rendered straight into an `href`, so the scheme allowlist is what
+ * actually closes that hole. Safe to enforce at the schema layer here: no
+ * stored content carries socials yet, so nothing existing can be invalidated —
+ * unlike `recurrence.until` or an event's `end`, where tightening the schema
+ * would make already-stored documents vanish via `parseAll`'s skip.
+ * Writers must agree with this: see `socials-form.ts`.
+ */
+const webUrl = () =>
+  z
+    .string()
+    .url()
+    .refine(
+      (v) => {
+        try {
+          const { protocol } = new URL(v);
+          return protocol === "http:" || protocol === "https:";
+        } catch {
+          return false;
+        }
+      },
+      { message: "must be an http(s) URL" },
+    );
+
 export const SocialsSchema = z
   .object({
-    instagram: z.string().url().optional(),
-    facebook: z.string().url().optional(),
-    x: z.string().url().optional(),
-    linkedin: z.string().url().optional(),
-    youtube: z.string().url().optional(),
+    instagram: webUrl().optional(),
+    facebook: webUrl().optional(),
+    x: webUrl().optional(),
+    linkedin: webUrl().optional(),
+    youtube: webUrl().optional(),
   })
   .optional();
 export type Socials = z.infer<typeof SocialsSchema>;

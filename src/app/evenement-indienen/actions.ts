@@ -6,6 +6,7 @@ import {
   PUBLIC_FREQUENCIES,
   recurrenceFromForm,
 } from "@/content/recurrence-form";
+import { validateEventRange } from "@/content/event-form";
 
 function str(form: FormData, key: string): string | undefined {
   const v = form.get(key);
@@ -28,6 +29,10 @@ export async function submitEvent(formData: FormData) {
     redirect("/evenement-indienen?error=1");
   }
 
+  const end = str(formData, "end");
+  const range = validateEventRange(start, end);
+  if (!range.ok) redirect(`/evenement-indienen?error=${range.reason}`);
+
   // Weekly only. A hand-crafted POST carrying `monthly` is treated as
   // non-repeating rather than persisted — the omitted <option> is a
   // convenience, this is the contract (add-recurrence-end-date D7).
@@ -46,7 +51,7 @@ export async function submitEvent(formData: FormData) {
     {
       title,
       start,
-      end: str(formData, "end"),
+      end,
       venue,
       organiser,
       excerpt: str(formData, "excerpt"),

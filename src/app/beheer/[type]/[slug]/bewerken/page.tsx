@@ -234,6 +234,7 @@ export default async function EditPage({
     return (
       <AdminShell>
         <h1 className="text-3xl">Organisator bewerken</h1>
+        <FormError code={error} />
         <form action={updateOrganiser} className={formClass}>
           <input type="hidden" name="slug" value={slug} />
           <Field label="Naam" htmlFor="name" required>

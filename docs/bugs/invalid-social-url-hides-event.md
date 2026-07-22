@@ -2,7 +2,7 @@
 
 - **Reported:** 2026-07-22
 - **Severity:** Content loss — the item becomes invisible and un-editable, with no error anywhere in the UI
-- **Status:** Open
+- **Status:** **Fixed** 2026-07-22
 - **Affects:** any content type with `socials` (event, organiser)
 
 ## Summary
@@ -128,3 +128,44 @@ DOM layer. Do not rely on it either way — `data:` and other schemes also pass
 
 (1) + (2) + (3) are small and belong together. (4) is a bigger idea worth its own
 discussion.
+
+---
+
+## Fix applied — 2026-07-22
+
+All three of (1), (2) and (3), as recommended.
+
+New `src/content/socials-form.ts` — `socialsFromForm(form)` normalises a
+scheme-less value to `https://`, validates it, and rejects any non-web scheme,
+returning the offending platform so the form can name it. `socialsFrom` in
+`actions.ts` is replaced by `socialsOrRedirect(form, back)`, which redirects to
+`?error=socials-<platform>`; `FormError` renders a message naming the field.
+Wired into all four call sites (event + organiser, create + edit), and the
+organiser forms gained the error banner they previously lacked.
+
+`SocialsSchema` also gained the scheme allowlist (3). Safe to tighten *here*,
+unlike `recurrence.until` or an event's `end`: an audit confirmed **no stored
+content carries socials at all**, so nothing existing could be invalidated by
+the stricter rule. Writer and reader now agree, which is what closes the
+vanishing-document path.
+
+Verified:
+
+```
+  instagram.com/buurttuin   → stored as https://instagram.com/buurttuin
+  javascript:alert(1)       → rejected, ?error=socials-instagram
+  data:text/html,<script>   → rejected at the schema too
+  the saved event           → detail page 200, present in admin list,
+                              0 "skipped invalid document" in the log
+```
+
+### Item (4) is NOT fixed and remains the bigger issue
+
+`parseAll` still silently skips documents the app wrote. This fix removes one
+way to trigger it; the mechanism is intact and would fire again for any future
+writer/reader disagreement. A backend surface listing unparseable documents
+would turn a class of silent disappearances into a visible list. Worth its own
+proposal.
+
+Also unresolved: whether React refuses to render a `javascript:` href at the DOM
+layer. Still deliberately not relied upon — the fix is at the validation layer.

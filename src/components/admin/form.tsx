@@ -95,11 +95,33 @@ export const FORM_ERRORS: Record<string, string> = {
     "Kies een einddatum voor de herhaling — een herhalend evenement moet een einddatum hebben.",
   "recurrence-range":
     "De einddatum van de herhaling ligt vóór de startdatum van het evenement.",
+  "range-end-before-start":
+    "Het einde van het evenement ligt vóór de start. Controleer de start- en einddatum.",
 };
+
+/** Platform labels for the `socials-<platform>` error codes. */
+const SOCIAL_LABEL: Record<string, string> = {
+  instagram: "Instagram",
+  facebook: "Facebook",
+  x: "X",
+  linkedin: "LinkedIn",
+  youtube: "YouTube",
+};
+
+function messageFor(code: string): string | undefined {
+  if (FORM_ERRORS[code]) return FORM_ERRORS[code];
+  // `socials-<platform>` — name the offending field rather than making the
+  // editor hunt through five inputs.
+  const platform = code.startsWith("socials-") ? code.slice(8) : undefined;
+  if (platform && SOCIAL_LABEL[platform]) {
+    return `De ${SOCIAL_LABEL[platform]}-link is geen geldig webadres. Gebruik een volledige URL, bijvoorbeeld https://${platform}.com/jouwnaam.`;
+  }
+  return undefined;
+}
 
 /** Renders the message for an `?error=` value, or nothing when absent/unknown. */
 export function FormError({ code }: { code?: string }) {
-  const message = code ? FORM_ERRORS[code] : undefined;
+  const message = code ? messageFor(code) : undefined;
   if (!message) return null;
   return (
     <p

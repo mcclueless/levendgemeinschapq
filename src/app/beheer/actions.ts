@@ -17,14 +17,15 @@ import {
   setStatus,
   updateDocument,
 } from "@/content/write";
-import { findImageReferences, findReferences } from "@/content/admin";
+import { findImageReferences, findReferences, getEditable } from "@/content/admin";
 import { deleteMedia, saveUpload } from "@/content/media";
-import { SOCIAL_PLATFORMS } from "@/content/schema";
 import {
   ADMIN_FREQUENCIES,
   recurrenceFromForm,
   type RecurrenceFormResult,
 } from "@/content/recurrence-form";
+import { socialsFromForm } from "@/content/socials-form";
+import { validateEventRange } from "@/content/event-form";
 import { geocode, type GeocodeResult } from "@/content/geocode";
 import { importFromUrl } from "@/content/ical-import";
 import { revalidatePublic, revalidateAfterItemChange } from "@/content/revalidate";
@@ -140,15 +141,17 @@ export async function rejectSubmission(formData: FormData) {
   revalidatePath("/beheer");
 }
 
-/** Curated social links from a content form (editorial-enrichments). Returns
- *  only the platforms that were filled in, or undefined when none were. */
-function socialsFrom(form: FormData) {
-  const entries = SOCIAL_PLATFORMS.map(
-    (p) => [p, str(form, p)] as const,
-  ).filter((e): e is readonly [(typeof SOCIAL_PLATFORMS)[number], string] =>
-    Boolean(e[1]),
-  );
-  return entries.length ? Object.fromEntries(entries) : undefined;
+/**
+ * Curated social links from a content form (editorial-enrichments), normalised
+ * and validated before they are written. Writing an unvalidated URL used to
+ * make the whole document unreadable, which removed it from the site *and* the
+ * backend list (docs/bugs/invalid-social-url-hides-event.md). The caller
+ * redirects with `?error=socials-<platform>` on failure.
+ */
+function socialsOrRedirect(form: FormData, back: string) {
+  const result = socialsFromForm(form);
+  if (!result.ok) redirect(`${back}?error=socials-${result.platform}`);
+  return result.socials;
 }
 
 // ── Content creation (admin) ─────────────────────────────────────────────────
@@ -176,10 +179,16 @@ export async function createEvent(formData: FormData) {
   if (!title || !start || !venue || !organiser) {
     redirect("/beheer/nieuw/evenement?error=1");
   }
+  const end = str(formData, "end");
+  const range = validateEventRange(start, end);
+  if (!range.ok) redirect(`/beheer/nieuw/evenement?error=${range.reason}`);
   const recurrence = adminRecurrence(formData, start);
   if (!recurrence.ok) {
     redirect(`/beheer/nieuw/evenement?error=${recurrence.reason}`);
   }
+  // Validate before the upload, so a rejected form does not leave a stored file
+  // behind for a document that was never created.
+  const socials = socialsOrRedirect(formData, "/beheer/nieuw/evenement");
   const eventImage = await coverImage(formData);
   await createDocument(
     "event",
@@ -187,12 +196,12 @@ export async function createEvent(formData: FormData) {
     {
       title,
       start,
-      end: str(formData, "end"),
+      end,
       venue,
       organiser,
       excerpt: str(formData, "excerpt"),
       featuredImage: eventImage,
-      socials: socialsFrom(formData),
+      socials,
       recurrence: recurrence.recurrence,
       status: formData.get("publish") ? "published" : "draft",
     },
@@ -250,7 +259,7 @@ export async function createOrganiser(formData: FormData) {
       location: str(formData, "location"),
       featuredImage: organiserImage,
       excerpt: str(formData, "excerpt"),
-      socials: socialsFrom(formData),
+      socials: socialsOrRedirect(formData, "/beheer/nieuw/organisator"),
       status: formData.get("publish") ? "published" : "draft",
     },
     str(formData, "body") ?? "",
@@ -341,12 +350,23 @@ export async function updateEvent(formData: FormData) {
   if (!title || !start || !venue || !organiser) {
     redirect(`${adminListPath("event")}/${slug}/bewerken?error=1`);
   }
-  const recurrence = adminRecurrence(formData, start);
-  if (!recurrence.ok) {
-    redirect(
-      `${adminListPath("event")}/${slug}/bewerken?error=${recurrence.reason}`,
-    );
-  }
+  const back = `${adminListPath("event")}/${slug}/bewerken`;
+  const end = str(formData, "end");
+  const range = validateEventRange(start, end);
+  if (!range.ok) redirect(`${back}?error=${range.reason}`);
+  // No form exposes `interval`, so carry the stored one through rather than
+  // rebuilding the recurrence from the form alone — otherwise an imported
+  // "every 2 weeks" silently became every week on any save, including one that
+  // only changed the title (docs/bugs/recurrence-edit-clobber.md).
+  const stored = await getEditable("event", slug!);
+  const recurrence = recurrenceFromForm(
+    formData,
+    new Date(start!),
+    ADMIN_FREQUENCIES,
+    stored?.data.recurrence?.interval,
+  );
+  if (!recurrence.ok) redirect(`${back}?error=${recurrence.reason}`);
+  const socials = socialsOrRedirect(formData, back);
   const eventImage = await coverImage(formData);
   await updateDocument(
     "event",
@@ -354,11 +374,11 @@ export async function updateEvent(formData: FormData) {
     {
       title,
       start,
-      end: str(formData, "end"),
+      end,
       venue,
       organiser,
       excerpt: str(formData, "excerpt"),
-      socials: socialsFrom(formData),
+      socials,
       recurrence: recurrence.recurrence,
       ...(eventImage ? { featuredImage: eventImage } : {}),
     },
@@ -420,7 +440,10 @@ export async function updateOrganiser(formData: FormData) {
       website: str(formData, "website"),
       location: str(formData, "location"),
       excerpt: str(formData, "excerpt"),
-      socials: socialsFrom(formData),
+      socials: socialsOrRedirect(
+        formData,
+        `${adminListPath("organiser")}/${slug}/bewerken`,
+      ),
       ...(organiserImage ? { featuredImage: organiserImage } : {}),
     },
     str(formData, "body") ?? "",

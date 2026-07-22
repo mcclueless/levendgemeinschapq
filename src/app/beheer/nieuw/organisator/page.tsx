@@ -3,6 +3,7 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import {
   CheckboxField,
   Field,
+  FormError,
   Input,
   Select,
   SubmitButton,
@@ -21,13 +22,23 @@ export const metadata: Metadata = {
 };
 export const dynamic = "force-dynamic";
 
-export default async function NewOrganiserPage() {
+export default async function NewOrganiserPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
   await requireAdmin();
-  const [pool, venues] = await Promise.all([listMedia(), getVenues()]);
+  const [params, pool, venues] = await Promise.all([
+    searchParams,
+    listMedia(),
+    getVenues(),
+  ]);
 
   return (
     <AdminShell>
       <h1 className="text-3xl">Nieuwe organisator</h1>
+
+      <FormError code={params.error} />
 
       <form action={createOrganiser} className="mt-8 grid max-w-2xl gap-5">
         <Field label="Naam" htmlFor="name" required>

@@ -75,6 +75,14 @@ export function recurrenceFromForm(
   form: FormData,
   start: Date | undefined,
   allow: readonly RecurrenceFreq[],
+  /**
+   * The stored `interval`, when editing. No form exposes this field, so
+   * rebuilding the recurrence from the form alone silently reset an
+   * iCal-imported "every 2 weeks" to every week on any save — including a save
+   * that only changed the title (docs/bugs/recurrence-edit-clobber.md).
+   * Carrying it through preserves what the editor never had a chance to see.
+   */
+  storedInterval?: number,
 ): RecurrenceFormResult {
   const raw = field(form, RECURRENCE_FIELD);
   const freq = allow.find((f) => f === raw);
@@ -90,5 +98,10 @@ export function recurrenceFromForm(
     return { ok: false, reason: "recurrence-range" };
   }
 
-  return { ok: true, recurrence: { freq, interval: 1, until } };
+  const interval =
+    storedInterval && Number.isInteger(storedInterval) && storedInterval > 0
+      ? storedInterval
+      : 1;
+
+  return { ok: true, recurrence: { freq, interval, until } };
 }

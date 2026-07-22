@@ -2,7 +2,7 @@
 
 - **Reported:** 2026-07-22
 - **Severity:** Data loss — silent, on save, with no error shown
-- **Status:** Open — **narrowed** 2026-07-22 after `add-recurrence-end-date` shipped
+- **Status:** **Fixed** 2026-07-22
 - **Re-verified:** 2026-07-22 against the implemented change (see "Current state")
 - **Spec violated:** `openspec/specs/editorial-backend/spec.md` → *Requirement: Create and edit all content types* — "on save SHALL update the same document in place, keeping its slug and any fields the form does not expose"
 
@@ -170,3 +170,38 @@ recurrence) would both now be applied in that module.
   none does, the practical impact today is limited to `until` — which the change
   proposal above will incidentally cover — and the remaining `interval` risk is
   latent rather than active.
+
+---
+
+## Fix applied — 2026-07-22
+
+Fix direction **2** (merge over the stored recurrence), not 1.
+
+`updateEvent` now loads the stored document and passes its `interval` into
+`recurrenceFromForm(form, start, allow, storedInterval)`, which uses it instead
+of the hardcoded `1`. Exposing `interval` on the form (option 1) was rejected:
+it only holds while the form covers every key, and it would have put a field in
+front of editors that the product deliberately does not offer.
+
+Verified end to end — stored `freq: weekly, interval: 2, until: …`, edit changing
+only the title:
+
+```
+  BEFORE   freq: weekly   interval: 2   until: 2026-12-31T22:59:59.999Z
+  AFTER    freq: weekly   interval: 2   until: 2026-12-31T22:59:59.999Z
+                          ▲ preserved   ▲ preserved
+  uid: fortnightly@example.com          ▲ preserved
+```
+
+Also verified that switching *Herhaling* to **Eenmalig** still removes the
+`recurrence` key entirely rather than leaving a stale interval behind.
+
+**Option 3 is still open and still worth a design discussion.** `mergeDocument`
+continues to merge top-level keys only, so `socials` — and any nested field added
+later — remains exposed to exactly this failure. This fix closes `recurrence`,
+not the class.
+
+### "Not yet verified" — resolved
+
+Whether a real feed carries a non-1 `INTERVAL` no longer matters: the fix is in
+regardless, and it costs one extra read on an admin-only path.
