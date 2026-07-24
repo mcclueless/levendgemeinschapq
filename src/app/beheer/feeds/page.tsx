@@ -26,6 +26,7 @@ function lastRun(f: Feed): string {
     `${f.lastCreated ?? 0} nieuw`,
     `${f.lastSkipped ?? 0} overgeslagen`,
   ];
+  if (f.lastSkippedPast) parts.push(`${f.lastSkippedPast} verlopen`);
   if (f.lastHidden) parts.push(`${f.lastHidden} verborgen`);
   if (f.lastFlagged) parts.push(`${f.lastFlagged} gemarkeerd`);
   return `${parts.join(", ")} · ${when}`;

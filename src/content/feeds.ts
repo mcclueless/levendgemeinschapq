@@ -35,6 +35,8 @@ export const FeedFrontmatter = z.object({
   lastSyncedAt: z.coerce.date().optional(),
   lastCreated: z.number().int().nonnegative().optional(),
   lastSkipped: z.number().int().nonnegative().optional(),
+  /** Entries not imported because they were already fully in the past. */
+  lastSkippedPast: z.number().int().nonnegative().optional(),
   lastHidden: z.number().int().nonnegative().optional(),
   lastFlagged: z.number().int().nonnegative().optional(),
   /** Reason the most recent sync failed; cleared on a successful sync. */

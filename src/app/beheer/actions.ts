@@ -756,6 +756,7 @@ async function runFeed(id: string): Promise<{ label: string; result: SyncResult 
     lastSyncedAt: new Date().toISOString(),
     lastCreated: result.created,
     lastSkipped: result.skipped,
+    lastSkippedPast: result.skippedPast,
     lastHidden: result.hidden,
     lastFlagged: result.flagged,
     // Cleared on success, so a fixed feed stops warning on the dashboard.

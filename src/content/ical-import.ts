@@ -2,6 +2,9 @@ import ical from "node-ical";
 import { CONTENT_PREFIX, getStore } from "./storage";
 import { parseAll } from "./parse";
 import { createDocument, patchFrontmatter, setStatus, slugify } from "./write";
+import { firstOccurrenceFrom } from "./recurrence";
+import { mapRecurrence } from "./ical-recurrence";
+import { startOfToday } from "@/lib/date";
 import type { Feed } from "./feeds";
 
 /**
@@ -24,6 +27,8 @@ import type { Feed } from "./feeds";
 export interface SyncResult {
   created: number;
   skipped: number;
+  /** Entries not imported because they are already fully in the past. */
+  skippedPast: number;
   /** Events hidden because the feed no longer lists them. */
   hidden: number;
   /** Created events whose venue could not be matched automatically. */
@@ -42,23 +47,7 @@ interface VEventLike {
   location?: string;
   start?: Date;
   end?: Date;
-  rrule?: { options?: { freq?: number; interval?: number; until?: Date } };
-}
-
-// rrule freq constants (from the rrule library used by node-ical).
-const FREQ_WEEKLY = 2;
-const FREQ_MONTHLY = 1;
-
-function mapRecurrence(rrule?: {
-  options?: { freq?: number; interval?: number; until?: Date };
-}) {
-  const opts = rrule?.options;
-  if (!opts) return undefined;
-  if (opts.freq === FREQ_WEEKLY)
-    return { freq: "weekly", interval: opts.interval ?? 1, until: opts.until };
-  if (opts.freq === FREQ_MONTHLY)
-    return { freq: "monthly", interval: opts.interval ?? 1, until: opts.until };
-  return undefined; // daily/yearly not supported in v1
+  rrule?: { options?: { freq?: unknown; interval?: number; until?: Date } };
 }
 
 function uidFor(item: VEventLike): string {
@@ -77,6 +66,7 @@ export async function syncFeed(feed: Feed): Promise<SyncResult> {
   const result: SyncResult = {
     created: 0,
     skipped: 0,
+    skippedPast: 0,
     hidden: 0,
     flagged: 0,
     adopted: 0,
@@ -105,6 +95,9 @@ export async function syncFeed(feed: Feed): Promise<SyncResult> {
   );
   const venueSlugs = new Set(venues.map((v) => v.slug));
   const feedUids = new Set(entries.map(uidFor));
+  // Same "today" boundary the upcoming-event listings use, so import and display
+  // agree on where today begins (import-current-and-future-events D1).
+  const today = startOfToday();
 
   for (const item of entries) {
     const uid = uidFor(item);
@@ -129,11 +122,55 @@ export async function syncFeed(feed: Feed): Promise<SyncResult> {
       continue;
     }
 
+    // Import only current-and-future entries. A past one-off, or a recurrence
+    // whose end has passed, is skipped; a recurrence that started in the past
+    // but still recurs has its stored start rolled forward to the next
+    // occurrence, so the review queue shows an upcoming date, not a historical
+    // one (import-current-and-future-events D1–D3).
+    const mapped = mapRecurrence(item.rrule);
+    const hasRrule = Boolean(item.rrule?.options);
+    let start = item.start!;
+
+    if (mapped) {
+      const next = firstOccurrenceFrom(item.start!, mapped, today);
+      if (!next) {
+        result.skippedPast++;
+        continue;
+      }
+      start = next;
+    } else if (hasRrule) {
+      // A recurrence we cannot expand (e.g. daily/yearly): keep it unless it has
+      // already ended, and flag it so an editor sets the next date rather than
+      // silently dropping a genuinely repeating event (D4).
+      const until = item.rrule?.options?.until;
+      if (until && until < today) {
+        result.skippedPast++;
+        continue;
+      }
+    } else if (item.start! < today) {
+      result.skippedPast++;
+      continue;
+    }
+
+    const unexpandableRecurrence = hasRrule && !mapped;
+
     // Match location to a known venue, else fall back and flag for review.
     const locationSlug = item.location ? slugify(item.location) : "";
     const matchedVenue = venueSlugs.has(locationSlug) ? locationSlug : null;
     const venue = matchedVenue ?? feed.defaultVenue;
     const flagged = !matchedVenue;
+
+    const notes: string[] = [];
+    if (flagged) {
+      notes.push(
+        `Locatie "${item.location ?? "onbekend"}" kon niet automatisch worden gekoppeld — controleer de locatie.`,
+      );
+    }
+    if (unexpandableRecurrence) {
+      notes.push(
+        "Deze herhaling kon niet automatisch worden uitgeklapt — stel de volgende datum handmatig in.",
+      );
+    }
 
     try {
       await createDocument(
@@ -141,20 +178,18 @@ export async function syncFeed(feed: Feed): Promise<SyncResult> {
         item.summary ?? "Geïmporteerd evenement",
         {
           title: item.summary ?? "Geïmporteerd evenement",
-          start: item.start!.toISOString(),
+          start: start.toISOString(),
           end: item.end ? item.end.toISOString() : undefined,
           venue,
           organiser: feed.defaultOrganiser,
           excerpt: item.description?.slice(0, 200),
           uid,
           feedId: feed.id,
-          recurrence: mapRecurrence(item.rrule),
+          recurrence: mapped,
           status: "pending",
           submittedBy: `Agenda-import (${feed.label})`,
           submittedAt: new Date().toISOString(),
-          reviewNote: flagged
-            ? `Locatie "${item.location ?? "onbekend"}" kon niet automatisch worden gekoppeld — controleer de locatie.`
-            : undefined,
+          reviewNote: notes.length > 0 ? notes.join(" ") : undefined,
         },
         item.description ?? "",
       );
