@@ -1,9 +1,5 @@
-# homepage Specification
+## MODIFIED Requirements
 
-## Purpose
-
-Defines the homepage's visual composition — its split photo/colour panel structure, the duotone wash applied to its neighbourhood photography, and the contrast and performance constraints that treatment must satisfy — while leaving its wording and listings untouched. `projects` defines where the homepage projects section sits and `content-storage` defines how the page is rendered; this capability defines what the page looks like.
-## Requirements
 ### Requirement: Photographic split panels on the homepage
 The homepage SHALL present its introductory content as a split panel pairing a
 photograph with an adjacent flat colour panel carrying the text, and SHALL
@@ -27,31 +23,7 @@ serves.
 - **THEN** the system SHALL present the panel content without horizontal overflow
   and without obscuring any text
 
-### Requirement: Text over homepage imagery meets contrast requirements
-Every text and background pairing on the homepage SHALL meet WCAG 2.1 AA contrast, including where text is presented over or adjacent to a photograph. Because a photograph's luminance is not fixed, the system SHALL guarantee the local background behind such text rather than relying on the colour wash alone.
-
-#### Scenario: Text over a photograph remains legible
-- **WHEN** homepage text is presented over a photographic area
-- **THEN** the system SHALL provide a deterministic background treatment behind that text sufficient to meet AA contrast, regardless of the underlying image
-
-#### Scenario: Automated accessibility checks continue to pass
-- **WHEN** the homepage is audited by the project's automated accessibility checks
-- **THEN** it SHALL meet the configured accessibility threshold
-
-### Requirement: Homepage imagery is served within the performance budget
-Homepage photographs SHALL be served as locally hosted, appropriately sized assets in modern image formats, with intrinsic dimensions declared so that loading them causes no layout shift. The homepage SHALL NOT load its decorative photography from an external site.
-
-#### Scenario: Images do not shift the layout
-- **WHEN** the homepage loads and its photographs arrive
-- **THEN** the page SHALL NOT shift its layout, and SHALL remain within the project's configured cumulative-layout-shift budget
-
-#### Scenario: Photography is self-hosted
-- **WHEN** the homepage renders its photographs
-- **THEN** the system SHALL serve them from this site's own assets and SHALL NOT reference a third-party or predecessor site
-
-#### Scenario: Each photograph keeps its intended framing
-- **WHEN** a homepage photograph is cropped to fit its panel
-- **THEN** the system SHALL position the crop so the photograph's subject remains visible
+## ADDED Requirements
 
 ### Requirement: Homepage presents the organisation's activities and identity
 The homepage SHALL present, in addition to its listings, a "what we do" section
@@ -108,3 +80,20 @@ this change.
 - **THEN** its heading, supporting paragraph, and call-to-action labels SHALL read
   exactly as they did before this change
 
+## REMOVED Requirements
+
+### Requirement: Homepage photography is tinted to the site palette
+**Reason**: The community found the green wash muddied the neighbourhood
+photographs; this change presents them untreated. The photographs no longer need
+a unifying tint because they are now the organisation's own curated images.
+**Migration**: Remove the `Wash` overlay from the homepage photo components; no
+data or configuration migration is required. The palette tokens themselves are
+unchanged and no new palette colours are introduced.
+
+### Requirement: Homepage content and wording are unchanged by presentation
+**Reason**: This change deliberately adds narrative sections (the three pillars,
+the tagline separator, and the who-we-are grid) with new wording, so a blanket
+"wording is unchanged" guarantee no longer holds.
+**Migration**: The preservation guarantees that remain relevant — the hero
+wording and the upcoming-events and projects listing titles, limits, ordering, and
+empty states — are carried forward by the "Homepage section order" requirement.

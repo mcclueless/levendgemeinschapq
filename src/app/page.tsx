@@ -2,6 +2,9 @@ import { Container } from "@/components/ui/container";
 import { ButtonLink } from "@/components/ui/button";
 import { Badge } from "@/components/ui/card";
 import { PhotoBand, PhotoPanel } from "@/components/home/photo-panel";
+import { Pillars } from "@/components/home/pillars";
+import { TaglineBand } from "@/components/home/tagline-band";
+import { WhoWeAre } from "@/components/home/who-we-are";
 import { UpcomingEvents } from "@/components/events/upcoming-events";
 import { FeaturedProjects } from "@/components/projects/featured-projects";
 import { JsonLd } from "@/components/seo/json-ld";
@@ -66,14 +69,16 @@ export default function HomePage() {
         </Container>
       </div>
 
-      {/* Textless photographic band separating the two listings. Left-anchored
-          crop: this photograph is near-square with its subject off-centre, so a
-          centre crop would cut it (design D6). */}
-      <PhotoBand
-        image={projecten}
-        alt="Illustratie van een plattegrond van de buurttuin, met genummerde perken rond een fontein"
-        objectPosition="0% 50%"
-      />
+      {/* What we do — the three community pillars (community-pillars). Takes the
+          mid-page slot the projecten band used to hold. */}
+      <div className="bg-surface-2">
+        <Container className="py-14 sm:py-20">
+          <Pillars />
+        </Container>
+      </div>
+
+      {/* Tagline separator between the pillars and the projects section. */}
+      <TaglineBand />
 
       {/* Projects — newest initiatives, self-resolving listing ------------ */}
       <div className="bg-surface-2">
@@ -86,6 +91,23 @@ export default function HomePage() {
           />
         </Container>
       </div>
+
+      {/* Who we are — the collaborating organisatoren (community-pillars). */}
+      <div className="bg-canvas">
+        <Container className="py-14 sm:py-20">
+          <WhoWeAre />
+        </Container>
+      </div>
+
+      {/* Textless photographic band, relocated flush above the footer so the
+          neighbourhood photograph leads gracefully into it (design D4).
+          Left-anchored crop: this photograph is near-square with its subject
+          off-centre, so a centre crop would cut it (design D6). */}
+      <PhotoBand
+        image={projecten}
+        alt="Illustratie van een plattegrond van de buurttuin, met genummerde perken rond een fontein"
+        objectPosition="0% 50%"
+      />
     </>
   );
 }
