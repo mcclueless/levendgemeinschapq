@@ -17,7 +17,7 @@ export interface GeocodeResult {
 const ENDPOINT = "https://nominatim.openstreetmap.org/search";
 // Identifies the app per Nominatim's policy; contact is the site admin.
 const USER_AGENT =
-  "levende-gemeenschap/1.0 (+https://levendegemeenschap.nl; admin@levendegemeenschap.nl)";
+  "levende-gemeenschap/1.0 (+https://goeddoen.net; info@goeddoen.net)";
 const TIMEOUT_MS = 4000;
 
 export async function geocode(address: string): Promise<GeocodeResult | null> {

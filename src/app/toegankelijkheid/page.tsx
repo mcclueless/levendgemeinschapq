@@ -29,8 +29,8 @@ export default function ToegankelijkheidPage() {
         <h2>Iets niet toegankelijk?</h2>
         <p>
           Kom je toch een drempel tegen? Laat het ons weten via{" "}
-          <a href="mailto:toegankelijkheid@levendegemeenschap.nl">
-            toegankelijkheid@levendegemeenschap.nl
+          <a href="mailto:info@goeddoen.net">
+            info@goeddoen.net
           </a>{" "}
           — dan lossen we het op.
         </p>

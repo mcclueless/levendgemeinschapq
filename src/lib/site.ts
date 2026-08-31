@@ -1,11 +1,13 @@
 /**
  * Site-wide configuration: canonical identity, navigation, and footer content.
- * Canonical domain decided in design.md (Resolved Decisions): levendegemeenschap.nl.
+ * Canonical origin: goeddoen.net (adopt-goeddoen-net-domain D1). The apex is
+ * canonical; www redirects to it. Overridden per deployment by
+ * NEXT_PUBLIC_SITE_URL.
  * Content language: Dutch-only at launch.
  */
 export const site = {
   name: process.env.NEXT_PUBLIC_SITE_NAME ?? "Levende Gemeenschap",
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://levendegemeenschap.nl",
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://goeddoen.net",
   tagline: "Ontdek wat er speelt in de buurt",
   description:
     "De buurtagenda van de Levende Gemeenschap: vind evenementen, organisatoren en locaties bij jou in de buurt.",

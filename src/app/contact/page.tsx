@@ -14,8 +14,8 @@ export default function ContactPage() {
         <h1 className="text-4xl sm:text-5xl">Contact</h1>
         <p>
           Vragen, ideeën of iets te melden? We horen graag van je. Mail ons op{" "}
-          <a href="mailto:hallo@levendegemeenschap.nl">
-            hallo@levendegemeenschap.nl
+          <a href="mailto:info@goeddoen.net">
+            info@goeddoen.net
           </a>
           .
         </p>

@@ -21,8 +21,8 @@ export default function PrivacyPage() {
         <p>
           De Levende Gemeenschap (“wij”) beheert deze buurtagenda. Voor vragen
           over privacy kun je mailen naar{" "}
-          <a href="mailto:privacy@levendegemeenschap.nl">
-            privacy@levendegemeenschap.nl
+          <a href="mailto:info@goeddoen.net">
+            info@goeddoen.net
           </a>
           .
         </p>

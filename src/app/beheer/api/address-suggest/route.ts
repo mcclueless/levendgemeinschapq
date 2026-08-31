@@ -27,7 +27,7 @@ interface PhotonProps {
 
 const ENDPOINT = "https://photon.komoot.io/api/";
 const USER_AGENT =
-  "levende-gemeenschap/1.0 (+https://levendegemeenschap.nl; admin@levendegemeenschap.nl)";
+  "levende-gemeenschap/1.0 (+https://goeddoen.net; info@goeddoen.net)";
 // Bias suggestions toward Maastricht (ranking hint, not a hard bound).
 const BIAS_LAT = "50.851";
 const BIAS_LON = "5.69";
