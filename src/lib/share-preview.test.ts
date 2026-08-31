@@ -10,7 +10,13 @@ import type { RecurrenceLike } from "./recurrence-label";
  * previews carry when, where and what").
  */
 
-const WHEN = new Date(2026, 8, 5, 14, 0); // Sat 5 Sep 2026, 14:00
+/**
+ * Sat 5 Sep 2026, 14:00 in Europe/Amsterdam — pinned in UTC on purpose.
+ * `formatTime` always renders in Europe/Amsterdam, so building this from
+ * local-time components would assert a different clock time on every machine:
+ * 14:00 here, 16:00 on a UTC CI runner (September is CEST, UTC+2).
+ */
+const WHEN = new Date(Date.UTC(2026, 8, 5, 12, 0));
 const weekly = (interval = 1): RecurrenceLike => ({ freq: "weekly", interval });
 
 test("description leads with the date, not the excerpt", () => {
