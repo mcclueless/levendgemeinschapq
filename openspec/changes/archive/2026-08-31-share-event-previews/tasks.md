@@ -76,7 +76,7 @@
       poor feedback loop.
 - [x] 6.3 Check the composed description against a recurring event, a
       non-recurring event, an event with no excerpt, and an event with no venue.
-- [ ] 6.4 Validate with an external preview debugger against a URL no client has
+- [x] 6.4 Validate with an external preview debugger against a URL no client has
       cached. Expect previously shared links to keep their old card; that is the
       documented cache behaviour, not a defect.
 - [x] 6.5 Confirm the review queue and the public event page now describe the same

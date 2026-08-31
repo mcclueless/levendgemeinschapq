@@ -38,6 +38,13 @@ An Event MAY have a featured image. When present, the featured image SHALL appea
 ### Requirement: Repeatable (recurring) events
 An editor SHALL be able to mark an event as repeatable on a recurrence interval (at minimum: weekly and monthly). When an event is marked repeatable, the system SHALL require a recurrence end date and SHALL NOT persist a newly authored recurrence without one. A repeatable event SHALL surface as an upcoming occurrence for each future date implied by its recurrence, up to and including its recurrence end date. A recurrence that carries no end date — because it predates this requirement or arrived through calendar import — SHALL remain valid and SHALL be treated as open-ended. The recurrence end date SHALL be distinct from the event's optional end date and time, which bounds a single occurrence.
 
+Wherever the system describes a recurrence to a reader, that description SHALL
+reflect the recurrence's interval as well as its frequency, so that an event
+repeating every second week is not described as repeating every week. The system
+SHALL use one consistent description of a given recurrence everywhere it appears,
+including the public event page, the editorial review queue, and event
+social-sharing metadata.
+
 #### Scenario: Weekly recurrence appears each week
 - **WHEN** an event is marked to repeat weekly
 - **THEN** the system SHALL present the next future occurrence in upcoming-event listings as each prior occurrence passes
@@ -73,6 +80,14 @@ An editor SHALL be able to mark an event as repeatable on a recurrence interval 
 #### Scenario: End date supplied without a recurrence interval
 - **WHEN** an editor supplies a recurrence end date but marks the event as non-repeating
 - **THEN** the system SHALL save the event as non-repeating, SHALL NOT persist a recurrence end date, and SHALL NOT report an error
+
+#### Scenario: A multi-interval recurrence is described by its interval
+- **WHEN** an event repeats on an interval greater than one, such as every second week
+- **THEN** every description of that recurrence the system presents SHALL convey the interval, and SHALL NOT describe the event as repeating on the underlying frequency alone
+
+#### Scenario: One recurrence vocabulary across surfaces
+- **WHEN** the same recurring event is presented on its public page, in the editorial review queue, and in its social-sharing metadata
+- **THEN** the interval phrase SHALL be worded identically on all three, and an editorial surface MAY additionally state the end of the series, which reader-facing surfaces omit
 
 ### Requirement: Upcoming-only listing with limit and "See more"
 The system SHALL provide reusable event listings that show only events occurring today or in the future, ordered by soonest start first. A listing SHALL accept a configurable maximum number of events, and when more upcoming events exist than the limit, SHALL display a "See more…" affordance linking to the full list.
