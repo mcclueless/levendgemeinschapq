@@ -24,6 +24,9 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
       - run: pnpm lint
+      # Before `build` on purpose: the suite runs in under a second, so a broken
+      # test reports in seconds rather than after a full Next build.
+      - run: pnpm test
       - run: pnpm build
 
   lighthouse:
