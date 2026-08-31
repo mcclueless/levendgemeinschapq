@@ -8,6 +8,8 @@ import { getAllEvents, getEvent } from "@/content/repository";
 import { nextOccurrence } from "@/content/recurrence";
 import { formatDateLong, formatTime, isoDate, startOfToday } from "@/lib/date";
 import { pageMetadata } from "@/lib/metadata";
+import { shareDescription, shareTitle } from "@/lib/share-preview";
+import { recurrenceLabel } from "@/lib/recurrence-label";
 import { eventJsonLd } from "@/lib/structured-data";
 import { JsonLd } from "@/components/seo/json-ld";
 import { eventCover } from "@/lib/images";
@@ -30,12 +32,22 @@ export async function generateMetadata({
   const { slug } = await params;
   const event = await getEvent(slug);
   if (!event) return {};
+  // The same occurrence the page body renders, so a shared card never
+  // advertises a date that differs from the page it opens (D3).
+  const when =
+    nextOccurrence(event.start, event.recurrence, startOfToday()) ?? event.start;
   return pageMetadata({
     title: event.title,
     description: event.excerpt,
     path: event.href,
     type: "article",
     images: event.featuredImage ? [event.featuredImage] : undefined,
+    shareTitle: shareTitle(event.title, event.venue?.name),
+    shareDescription: shareDescription({
+      when,
+      recurrence: event.recurrence,
+      excerpt: event.excerpt,
+    }),
   });
 }
 
@@ -78,7 +90,7 @@ export default async function EventPage({
             </Badge>
             {event.recurrence ? (
               <Badge tone="success">
-                {event.recurrence.freq === "weekly" ? "Elke week" : "Elke maand"}
+                {recurrenceLabel(event.recurrence)}
               </Badge>
             ) : null}
           </div>

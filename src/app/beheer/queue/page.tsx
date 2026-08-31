@@ -6,6 +6,7 @@ import { Mdx } from "@/components/mdx/mdx";
 import { requireAdmin } from "@/lib/auth-server";
 import { getPendingSubmissions, type Submission } from "@/content/admin";
 import { formatDateLong, formatTime } from "@/lib/date";
+import { recurrenceDetail } from "@/lib/recurrence-label";
 import { approveSubmission, rejectSubmission } from "../actions";
 
 export const metadata: Metadata = {
@@ -42,19 +43,6 @@ function when(start: string, end?: string): string {
   const s = new Date(start);
   const base = `${formatDateLong(s)} · ${formatTime(s)}`;
   return end ? `${base}–${formatTime(new Date(end))}` : base;
-}
-
-/**
- * The full proposed series, so a reviewer judges what was actually submitted.
- * An open-ended recurrence is called out explicitly rather than shown as a bare
- * interval — imported entries can still legitimately have no end date.
- */
-function recurrenceLabel(r?: { freq: "weekly" | "monthly"; until?: string }): string {
-  if (!r) return "Eenmalig";
-  const freq = r.freq === "weekly" ? "Wekelijks" : "Maandelijks";
-  return r.until
-    ? `${freq}, t/m ${formatDateLong(new Date(r.until))}`
-    : `${freq} — zonder einddatum`;
 }
 
 function SubmissionCard({ submission: s }: { submission: Submission }) {
@@ -95,7 +83,7 @@ function SubmissionCard({ submission: s }: { submission: Submission }) {
           {s.kind === "event" ? (
             <>
               <Detail label="Wanneer" value={when(s.start, s.end)} />
-              <Detail label="Herhaling" value={recurrenceLabel(s.recurrence)} />
+              <Detail label="Herhaling" value={recurrenceDetail(s.recurrence)} />
               {s.socials && Object.keys(s.socials).length ? (
                 <div className="sm:col-span-2">
                   <dt className="text-muted">Sociale links</dt>

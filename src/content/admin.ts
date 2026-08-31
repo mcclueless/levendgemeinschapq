@@ -28,7 +28,7 @@ export interface PendingEvent {
    * (add-recurrence-end-date D9). `until` stays optional: imported entries and
    * documents predating the end-date requirement are legitimately open-ended.
    */
-  recurrence?: { freq: "weekly" | "monthly"; until?: string };
+  recurrence?: { freq: "weekly" | "monthly"; interval?: number; until?: string };
   excerpt?: string;
   body: string;
   featuredImage?: string;
@@ -88,6 +88,7 @@ export async function getPendingSubmissions(): Promise<Submission[]> {
       recurrence: e.data.recurrence
         ? {
             freq: e.data.recurrence.freq,
+            interval: e.data.recurrence.interval,
             until: e.data.recurrence.until?.toISOString(),
           }
         : undefined,
