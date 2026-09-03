@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { Container } from "@/components/ui/container";
 import { Badge } from "@/components/ui/card";
 import { Mdx } from "@/components/mdx/mdx";
-import { getAllEvents, getEvent } from "@/content/repository";
+import { getEvent } from "@/content/repository";
 import { nextOccurrence } from "@/content/recurrence";
 import { formatDateLong, formatTime, isoDate, startOfToday } from "@/lib/date";
 import { pageMetadata } from "@/lib/metadata";
@@ -17,12 +17,27 @@ import { SocialLinks } from "@/components/content/social-links";
 import { AdminBarMount } from "@/components/admin/admin-bar-mount";
 import { adminEditPath } from "@/lib/routes";
 
-export const revalidate = 600;
-
-export async function generateStaticParams() {
-  const events = await getAllEvents();
-  return events.map((e) => ({ slug: e.slug }));
-}
+/**
+ * Rendered per request, not cached (fix-stale-recurring-event-dates D1a/D3).
+ *
+ * This page shows the next occurrence of a recurring event, computed against
+ * `startOfToday()` — a value that is only correct on the day it is produced.
+ * Under `generateStaticParams` + `revalidate`, that day was the day of the last
+ * build: measurement showed the ISR entry going STALE after its window and never
+ * being replaced, because background regeneration does not persist on this
+ * deployment. A page built on 31 August still advertised 2 September on
+ * 3 September, and only a redeploy corrected it.
+ *
+ * Lowering `revalidate` would not have helped, since the window is not what
+ * fails. Rendering per request is correct by construction and matches the
+ * listing routes, which are already `force-dynamic` — and which stayed right
+ * throughout, so a visitor could be sent from a correct listing to a stale page.
+ *
+ * The date must stay server-rendered: preview crawlers run no JavaScript, so
+ * computing it in the browser would fix the page and leave every share card
+ * wrong (D2).
+ */
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,

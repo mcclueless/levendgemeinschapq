@@ -55,6 +55,34 @@ every share card wrong, because preview crawlers execute no JavaScript. Any
 candidate fix must keep the value in the server-rendered HTML. This rules out the
 otherwise-tempting client-side approach.
 
+### D1a: What the investigation found
+
+Measured against the deployed site on 2026-09-03, with no deploy during the window
+(tasks 1.1–1.3):
+
+```
+t+0s   … t+480s    x-nextjs-cache: HIT      inside the 600s window
+t+540s … t+960s    x-nextjs-cache: STALE    eight consecutive requests
+```
+
+Working ISR serves `STALE` once, regenerates in the background, and answers the
+next request with a fresh `HIT`. Here the entry went stale and stayed stale for
+seven further minutes across eight requests. It is marked stale, served, and the
+regeneration never writes back.
+
+A cache-busting request returned `x-cache: Miss from cloudfront` together with
+`x-nextjs-cache: HIT`, so the response reached the origin and Next served it from
+its own store. **CloudFront over-serving is eliminated.** What remains is that
+background regeneration does not persist on this Amplify `WEB_COMPUTE`
+deployment — consistent with the compute layer having no writable, shared
+`.next/cache` across instances, so a regenerated page is discarded rather than
+replacing the entry.
+
+The practical consequence is stronger than the original symptom suggested: a
+statically generated page here is frozen at build time permanently, and only a
+deploy replaces it. Lowering `revalidate` cannot help, because the window is not
+what fails.
+
 ### D3: Candidate remedies, to be chosen once D1 lands
 
 **Render the route per request** (`dynamic = "force-dynamic"`). Correct by
