@@ -59,3 +59,21 @@
 - [ ] 3.5 Confirm the page stays correct across a day boundary with no deploy in
       between. This is the only check that actually proves the fix; a verification
       that follows a build passes either way. It cannot be hurried.
+
+      Split into what could be settled early and what could not:
+
+      - [x] The caching half. Three requests to a live event page return no
+            `x-nextjs-cache` header at all, `cache-control: private, no-cache,
+            no-store, max-age=0, must-revalidate`, and `Miss from cloudfront`
+            every time. No cache layer remains that could serve tomorrow a render
+            produced today — which was the entire failure mechanism.
+      - [x] The rollover half, pinned rather than awaited. `startOfToday` takes an
+            injectable clock, so `recurrence.test.ts` now crosses the boundary
+            directly: the same expression the page uses yields 9 Sep at 23:59 on
+            8 Sep, 16 Sep at 00:01 on 10 Sep, and still yields 9 Sep at midday on
+            9 Sep so a same-day event is not skipped.
+      - [ ] Observing production actually roll over. Still outstanding, and still
+            not hurryable: check a recurring event page after the next UTC
+            midnight with no deploy in between. The two checks above make failure
+            structurally hard rather than merely unobserved, but they are
+            inference, not observation.
