@@ -4,7 +4,14 @@ import { useConsent } from "./consent-context";
 
 /** Lets visitors review and change their cookie choice (on /cookies). */
 export function CookiePreferences() {
-  const { embeds, decided, acceptAll, rejectAll, setConsent } = useConsent();
+  const { embeds, analytics, decided, acceptAll, rejectAll, setConsent } =
+    useConsent();
+
+  // Named per category rather than as one on/off: a visitor may reasonably
+  // want the map without being measured, or the reverse.
+  const allowed = [embeds ? "kaarten" : null, analytics ? "statistieken" : null]
+    .filter(Boolean)
+    .join(" + ");
 
   return (
     <div className="not-prose rounded-lg border border-border bg-surface p-6">
@@ -13,8 +20,8 @@ export function CookiePreferences() {
         <strong className="text-ink">
           {!decided
             ? "nog niet gekozen"
-            : embeds
-              ? "noodzakelijke + niet-essentiële cookies"
+            : allowed
+              ? `noodzakelijk + ${allowed}`
               : "alleen noodzakelijke cookies"}
         </strong>
       </p>
@@ -32,6 +39,13 @@ export function CookiePreferences() {
           className="inline-flex h-10 items-center rounded-md border border-border bg-surface px-4 text-sm font-medium text-ink hover:bg-surface-2"
         >
           Kaarten toestaan
+        </button>
+        <button
+          type="button"
+          onClick={() => setConsent({ analytics: true })}
+          className="inline-flex h-10 items-center rounded-md border border-border bg-surface px-4 text-sm font-medium text-ink hover:bg-surface-2"
+        >
+          Statistieken toestaan
         </button>
         <button
           type="button"

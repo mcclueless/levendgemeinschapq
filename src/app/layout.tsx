@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { ConsentProvider } from "@/components/consent/consent-context";
 import { CookieBanner } from "@/components/consent/cookie-banner";
+import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 import { site } from "@/lib/site";
 
 // All-sans (design-system spec): a single grotesk for headings and body.
@@ -50,6 +51,7 @@ export default function RootLayout({
           </main>
           <Footer />
           <CookieBanner />
+          <GoogleAnalytics />
         </ConsentProvider>
       </body>
     </html>

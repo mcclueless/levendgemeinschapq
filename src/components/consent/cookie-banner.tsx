@@ -24,7 +24,8 @@ export function CookieBanner() {
       <div className="mx-auto flex max-w-6xl flex-col gap-4 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-8">
         <p className="max-w-2xl text-sm text-muted">
           We gebruiken alleen noodzakelijke cookies om de site te laten werken.
-          Voor extra’s zoals kaarten plaatsen we niet-essentiële cookies, maar
+          Voor extra’s zoals kaarten en bezoekersstatistieken plaatsen we
+          niet-essentiële cookies, maar
           alleen met jouw toestemming. Lees meer in ons{" "}
           <Link href="/cookies" className="text-brand-strong underline underline-offset-2">
             cookiebeleid

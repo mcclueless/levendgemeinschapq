@@ -9,7 +9,7 @@
 - [x] 1.3 Wait for the association to leave `PENDING_VERIFICATION` / `IN_PROGRESS`
       and reach `AVAILABLE`. This can take minutes or hours; a pending state is
       expected, not a failure.
-- [ ] 1.4 Confirm `https://goeddoen.net` serves the site over a valid certificate,
+- [x] 1.4 Confirm `https://goeddoen.net` serves the site over a valid certificate,
       and that `https://www.goeddoen.net` redirects to the apex.
 
 ## 2. Point the deployment at the new origin
@@ -21,7 +21,7 @@
       permitted to write. Branch values take precedence for `main`.) `AUTH_URL` must be
       correct *before* the build that serves the new domain — a stale value leaves
       the public site healthy while administrator sign-in fails (D2).
-- [ ] 2.2 Trigger a build so the new values take effect: `NEXT_PUBLIC_*` is inlined
+- [x] 2.2 Trigger a build so the new values take effect: `NEXT_PUBLIC_*` is inlined
       at build time, and `amplify.yml` writes `AUTH_URL` into `.env.production`
       during the build.
 - [ ] 2.3 BLOCKED — needs the user. While in the Amplify console, rotate
@@ -53,19 +53,19 @@
 
 ## 4. Verification
 
-- [ ] 4.1 Run `pnpm typecheck`, `pnpm lint`, `pnpm test` and `pnpm build`.
-- [ ] 4.2 Fetch `https://goeddoen.net/robots.txt` and confirm both the `Host` line
+- [x] 4.1 Run `pnpm typecheck`, `pnpm lint`, `pnpm test` and `pnpm build`.
+- [x] 4.2 Fetch `https://goeddoen.net/robots.txt` and confirm both the `Host` line
       and the sitemap URL name the new origin.
-- [ ] 4.3 Fetch `https://goeddoen.net/sitemap.xml` and confirm entries carry the new
+- [x] 4.3 Fetch `https://goeddoen.net/sitemap.xml` and confirm entries carry the new
       origin, not the Amplify hostname.
-- [ ] 4.4 Fetch an event page and confirm its canonical link tag and `og:url` name
+- [x] 4.4 Fetch an event page and confirm its canonical link tag and `og:url` name
       `goeddoen.net`. Check the same page via the `.amplifyapp.com` hostname: it
       SHALL still serve, and its canonical tag SHALL name `goeddoen.net` (D5).
-- [ ] 4.5 Sign in to `/beheer` on `https://goeddoen.net` and confirm the session
+- [x] 4.5 Sign in to `/beheer` on `https://goeddoen.net` and confirm the session
       holds across a page load. This is the check that catches a stale `AUTH_URL`,
       and nothing else will.
 - [ ] 4.6 Share a `goeddoen.net` event URL into WhatsApp and confirm the card is
       correct. Use a URL not shared before — previews are cached per URL with no
       purge, so an old card proves nothing about the new origin.
-- [ ] 4.7 Confirm the site still reaches Nominatim: exercise the address-suggest
+- [x] 4.7 Confirm the site still reaches Nominatim: exercise the address-suggest
       path in the backend and check a suggestion returns.

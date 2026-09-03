@@ -32,6 +32,13 @@ export default function CookiesPage() {
           knop om het onderdeel handmatig te laden.
         </p>
 
+        <h2>Bezoekersstatistieken</h2>
+        <p>
+          We gebruiken Google Analytics om te zien welke pagina’s in de buurt
+          gelezen worden. Ook dit gebeurt alleen met jouw toestemming: geef je
+          die niet, dan laden we het script niet en wordt er niets gemeten.
+        </p>
+
         <h2>Je voorkeuren</h2>
         <p>Hier kun je je keuze op elk moment aanpassen:</p>
         <CookiePreferences />
