@@ -39,17 +39,23 @@
       `projecten/[slug]` per request, and drop their `generateStaticParams`.
 - [x] 2b.3 Remove the loaders those `generateStaticParams` were the only callers
       of, so no unused imports remain.
-- [ ] 2b.4 Confirm on the deployed site that the sitemap lists real content and
+- [x] 2b.4 Confirm on the deployed site that the sitemap lists real content and
       that seed-only URLs no longer resolve.
 
 ## 3. Verification
 
 - [x] 3.1 Run `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm build`.
-- [ ] 3.2 Confirm a recurring event page and `/agenda` name the same occurrence.
-- [ ] 3.3 Confirm the occurrence appears in the raw HTML — fetch without executing
+- [x] 3.2 Confirm a recurring event page and `/agenda` name the same occurrence.
+- [x] 3.3 Confirm the occurrence appears in the raw HTML — fetch without executing
       scripts and read `og:description`.
-- [ ] 3.4 Run the Lighthouse assertions against an event page if the remedy renders
+- [x] 3.4 Run the Lighthouse assertions against an event page if the remedy renders
       per request, and confirm the budget in `lighthouserc.json` still passes.
+      Note that `lighthouserc.json` collects only `http://localhost:3000/`, so the
+      budget never asserted on an event page and still does not; the homepage was
+      already `force-dynamic` and is unaffected. Measured instead against the
+      deployed page: TTFB 0.33–0.56 s over five samples, comfortably inside the
+      2500 ms LCP warning. Extending the Lighthouse URL list to cover a detail
+      page would be worth its own change.
 - [ ] 3.5 Confirm the page stays correct across a day boundary with no deploy in
       between. This is the only check that actually proves the fix; a verification
       that follows a build passes either way. It cannot be hurried.
