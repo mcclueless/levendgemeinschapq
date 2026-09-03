@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Projecten",
-  description: "Buurtinitiatieven en projecten in de Levende Gemeenschap.",
+  description: "Buurtinitiatieven en projecten van Goeddoen.",
 };
 
 export default async function ProjectsPage() {

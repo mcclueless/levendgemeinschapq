@@ -3,7 +3,7 @@ import { pageMetadata } from "@/lib/metadata";
 
 export const metadata = pageMetadata({
   title: "Privacyverklaring",
-  description: "Hoe de Levende Gemeenschap omgaat met je persoonsgegevens.",
+  description: "Hoe Goeddoen omgaat met je persoonsgegevens.",
   path: "/privacy",
 });
 
@@ -19,7 +19,7 @@ export default function PrivacyPage() {
 
         <h2>Wie zijn wij</h2>
         <p>
-          De Levende Gemeenschap (“wij”) beheert deze buurtagenda. Voor vragen
+          Goeddoen (“wij”) beheert deze buurtagenda. Voor vragen
           over privacy kun je mailen naar{" "}
           <a href="mailto:info@goeddoen.net">
             info@goeddoen.net

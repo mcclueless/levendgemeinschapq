@@ -3,7 +3,7 @@ import { pageMetadata } from "@/lib/metadata";
 
 export const metadata = pageMetadata({
   title: "Over ons",
-  description: "Over de buurtagenda van de Levende Gemeenschap.",
+  description: "Over de buurtagenda van Goeddoen.",
   path: "/over",
 });
 
@@ -13,7 +13,7 @@ export default function OverPage() {
       <article className="prose-warm mx-auto">
         <h1 className="text-4xl sm:text-5xl">Over ons</h1>
         <p>
-          De Levende Gemeenschap is de buurtagenda voor onze wijk. We brengen
+          Goeddoen is de buurtagenda voor onze wijk. We brengen
           evenementen, locaties en organisatoren op één plek samen, zodat
           iedereen makkelijk kan vinden wat er speelt — en makkelijk kan meedoen.
         </p>

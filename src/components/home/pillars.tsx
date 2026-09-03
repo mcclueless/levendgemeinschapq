@@ -25,7 +25,7 @@ export function Pillars() {
     <section>
       <SectionHeading
         title="Wat we doen"
-        subtitle="De Levende Gemeenschap richt zich op drie pijlers."
+        subtitle="Goeddoen richt zich op drie pijlers."
       />
 
       <div className="grid gap-6 sm:grid-cols-3">

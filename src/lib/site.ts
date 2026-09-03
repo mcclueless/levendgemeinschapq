@@ -6,11 +6,11 @@
  * Content language: Dutch-only at launch.
  */
 export const site = {
-  name: process.env.NEXT_PUBLIC_SITE_NAME ?? "Levende Gemeenschap",
+  name: process.env.NEXT_PUBLIC_SITE_NAME ?? "Goeddoen",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://goeddoen.net",
   tagline: "Ontdek wat er speelt in de buurt",
   description:
-    "De buurtagenda van de Levende Gemeenschap: vind evenementen, organisatoren en locaties bij jou in de buurt.",
+    "De buurtagenda van Goeddoen: vind evenementen, organisatoren en locaties bij jou in de buurt.",
   locale: "nl_NL",
 } as const;
 

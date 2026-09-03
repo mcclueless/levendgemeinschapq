@@ -1,7 +1,7 @@
 import { Container } from "@/components/ui/container";
 import { ButtonLink } from "@/components/ui/button";
 import { Badge } from "@/components/ui/card";
-import { PhotoBand, PhotoPanel } from "@/components/home/photo-panel";
+import { PhotoPanel } from "@/components/home/photo-panel";
 import { Pillars } from "@/components/home/pillars";
 import { TaglineBand } from "@/components/home/tagline-band";
 import { WhoWeAre } from "@/components/home/who-we-are";
@@ -10,7 +10,6 @@ import { FeaturedProjects } from "@/components/projects/featured-projects";
 import { JsonLd } from "@/components/seo/json-ld";
 import { siteJsonLd } from "@/lib/structured-data";
 import church from "../../public/home/sint-theresiakerk.webp";
-import projecten from "../../public/home/projecten.webp";
 
 // Rendered per request (dynamic-content-listings): the upcoming-events preview
 // reads S3 live so a publish/edit/hide/delete shows on the next request, with
@@ -35,8 +34,8 @@ export default function HomePage() {
         {/* text-white is explicit: globals.css sets `h1..h4 { color: ink }`
             in the base layer, which beats an inherited colour. */}
         <h1 className="mt-5 text-4xl text-white sm:text-5xl lg:text-6xl">
-          Ontdek wat er speelt in de{" "}
-          <span className="text-accent">Levende Gemeenschap</span>
+          Ontdek wat er speelt in de buurt —{" "}
+          <span className="text-accent">met Goeddoen</span>
         </h1>
         <p className="mt-5 max-w-xl text-lg text-white/85">
           Eén overzichtelijke plek voor alle evenementen, organisatoren en
@@ -99,15 +98,6 @@ export default function HomePage() {
         </Container>
       </div>
 
-      {/* Textless photographic band, relocated flush above the footer so the
-          neighbourhood photograph leads gracefully into it (design D4).
-          Left-anchored crop: this photograph is near-square with its subject
-          off-centre, so a centre crop would cut it (design D6). */}
-      <PhotoBand
-        image={projecten}
-        alt="Illustratie van een plattegrond van de buurttuin, met genummerde perken rond een fontein"
-        objectPosition="0% 50%"
-      />
     </>
   );
 }

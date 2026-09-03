@@ -23,7 +23,7 @@ export async function WhoWeAre() {
     <section>
       <SectionHeading
         title="Wie we zijn"
-        subtitle="De organisaties die samen de Levende Gemeenschap vormen."
+        subtitle="De organisaties die samen Goeddoen vormen."
         moreHref={routes.organisers}
       />
 
