@@ -1,0 +1,111 @@
+## Context
+
+`/agenda/[slug]` is the only route rendering a value derived from
+`startOfToday()`. It does so twice — in `generateMetadata`, for `og:description`,
+and in the page body — deliberately from the same expression so the card and the
+page cannot disagree.
+
+The route is statically generated (`generateStaticParams`) with
+`revalidate = 600`. Responses carry `cache-control: s-maxage=600,
+stale-while-revalidate=31535400` and `x-nextjs-cache: HIT`. Yet a page built on
+31 August still served 31 August's answer on 3 September, and only a rebuild
+corrected it. A cache-busting query string changed nothing, which is expected —
+Next keys the ISR entry on the route, not the query — so it neither confirms nor
+refutes CDN involvement.
+
+`/agenda` and the other listing routes are `force-dynamic`, so they render per
+request and were correct throughout. The site therefore already accepts
+per-request rendering for its busiest pages.
+
+## Goals / Non-Goals
+
+**Goals:**
+
+- An event page shows the correct next occurrence on the day it is read.
+- The same date appears in the server-rendered HTML, so share cards are correct
+  for crawlers that run no JavaScript.
+- Understand whether ISR revalidation functions on this platform, since the answer
+  governs every other cached route.
+
+**Non-Goals:**
+
+- Changing recurrence expansion or share-preview composition. Both are correct.
+- Reworking the listing pages.
+- Migrating off Amplify.
+
+## Decisions
+
+### D1: Establish the cause before choosing the remedy
+
+Three explanations fit the evidence — revalidation never firing on Amplify
+`WEB_COMPUTE`, an ISR cache that does not persist or is not consulted across
+compute instances, or a CDN layer serving beyond `s-maxage` under
+`stale-while-revalidate`. They are distinguishable with a short investigation:
+watch `age` and `x-nextjs-cache` across repeated requests spanning more than ten
+minutes, and compare the origin against the CDN.
+
+They also imply different fixes, and two of the three would make a `revalidate`
+adjustment useless. Guessing here risks a change that appears to work because a
+deploy happened to intervene — which is exactly how this bug hid for three days.
+
+### D2: The date must stay server-rendered
+
+Computing the occurrence in the browser would fix what a person sees and leave
+every share card wrong, because preview crawlers execute no JavaScript. Any
+candidate fix must keep the value in the server-rendered HTML. This rules out the
+otherwise-tempting client-side approach.
+
+### D3: Candidate remedies, to be chosen once D1 lands
+
+**Render the route per request** (`dynamic = "force-dynamic"`). Correct by
+construction, and consistent with the listing pages, which already do this. Costs
+per-request rendering on event pages; the performance budget is the thing to watch.
+
+**Scheduled rebuild.** A daily build refreshes every static page. Cheap to run, but
+it fixes the symptom on a timer and leaves the underlying caching unexplained; a
+page is still wrong for up to a day.
+
+**Platform configuration.** If ISR is simply misconfigured, correcting it fixes
+every cached route at once and preserves static delivery. Best outcome if the
+investigation supports it.
+
+The first is the safe fallback: it is small, reversible, and provably correct. The
+third is preferable if D1 shows ISR can be made to work.
+
+### D4: Treat the freshness guarantee as spec-level
+
+The current specs say what an event page displays, not when that is determined.
+Because the displayed value depends on the day of reading, "correct" is a property
+of time as much as of content, and a spec that omits it cannot catch this class of
+bug — as it did not. The requirement is written in terms of what a reader sees, so
+it holds whichever remedy D3 selects.
+
+## Risks / Trade-offs
+
+**Per-request rendering could dent the performance budget** → `lighthouserc.json`
+warns below 0.9 performance and 2500 ms LCP, and errors below 0.95 for
+accessibility and SEO. The listings already render dynamically without apparent
+trouble, but event pages should be measured rather than assumed.
+
+**A deploy masks the bug** → Any verification that happens to follow a build will
+pass regardless of whether the fix works. Confirming a fix means observing a page
+stay correct across a day boundary with no deploy in between, which is slower than
+it sounds and cannot be rushed.
+
+**The blast radius may be wider than one route** → If revalidation is not firing,
+four other content routes are serving deploy-time content while claiming a
+ten-minute window. They are not visibly wrong today, so this change does not alter
+them; it should say plainly whether they are affected so a later change can act.
+
+**Timezone interacts with the day boundary** → `startOfToday()` uses server-local
+midnight rather than Europe/Amsterdam midnight, already noted as a design risk in
+`src/lib/date.ts`. Rendering per request makes the boundary matter more often, since
+the value is recomputed continuously rather than at deploys. Out of scope here, but
+adjacent enough to name.
+
+## Open Questions
+
+- Should the other four statically generated content routes change with this one,
+  or wait until they demonstrate a visible problem? Fixing them together is
+  coherent; fixing only the broken one keeps the change small and its verification
+  honest.
