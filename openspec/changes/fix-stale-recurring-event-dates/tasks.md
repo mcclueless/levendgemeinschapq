@@ -31,6 +31,17 @@
 - [x] 2.3 Keep `generateMetadata` and the page body deriving the date from one
       expression, so the card and the page cannot drift apart.
 
+## 2b. Phantom pages (scope extension, D5)
+
+- [x] 2b.1 Render `sitemap.ts` per request, so it lists production content rather
+      than the committed seed.
+- [x] 2b.2 Render `blog/[slug]`, `locaties/[slug]`, `organisatoren/[slug]` and
+      `projecten/[slug]` per request, and drop their `generateStaticParams`.
+- [x] 2b.3 Remove the loaders those `generateStaticParams` were the only callers
+      of, so no unused imports remain.
+- [ ] 2b.4 Confirm on the deployed site that the sitemap lists real content and
+      that seed-only URLs no longer resolve.
+
 ## 3. Verification
 
 - [x] 3.1 Run `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm build`.

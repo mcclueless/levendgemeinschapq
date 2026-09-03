@@ -9,17 +9,21 @@ import { Gallery } from "@/components/content/gallery";
 import { MapEmbed } from "@/components/content/map-embed";
 import { UpcomingEvents } from "@/components/events/upcoming-events";
 import { JsonLd } from "@/components/seo/json-ld";
-import { getVenue, getVenues } from "@/content/repository";
+import { getVenue } from "@/content/repository";
 import { pageMetadata } from "@/lib/metadata";
 import { venueJsonLd } from "@/lib/structured-data";
 import { AdminBarMount } from "@/components/admin/admin-bar-mount";
 import { adminEditPath } from "@/lib/routes";
 
-export const revalidate = 600;
+/**
+ * Rendered per request (fix-stale-recurring-event-dates D5). Anything prerendered
+ * at build time describes the committed `content/` seed, not production: the
+ * store reads the seed during `next build` and S3 at runtime, and the
+ * regeneration that was supposed to reconcile the two never persists on this
+ * deployment. Prerendering therefore froze seed data permanently.
+ */
+export const dynamic = "force-dynamic";
 
-export async function generateStaticParams() {
-  return (await getVenues()).map((v) => ({ slug: v.slug }));
-}
 
 export async function generateMetadata({
   params,

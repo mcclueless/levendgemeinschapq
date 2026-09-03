@@ -108,6 +108,48 @@ of time as much as of content, and a spec that omits it cannot catch this class 
 bug — as it did not. The requirement is written in terms of what a reader sees, so
 it holds whichever remedy D3 selects.
 
+### D5: The scope widened once the cause was known — phantom pages
+
+Fixing the event route exposed something larger. `getStore()` reads the committed
+`content/` seed during `next build` and S3 at runtime, justified in
+`src/content/storage.ts` by the claim that "the seed equals the S3 state at deploy,
+and time-based ISR reconciles any post-deploy edits, so this build/runtime split is
+freshness-safe".
+
+Both halves are false. The seed and S3 have diverged completely — the seed holds
+`repair-cafe`, `t-anker`, `repair-noord`; production holds `burendag`, `annakerk`,
+`thee-resia-samentuin-2` — and D1a establishes that nothing reconciles them,
+because regeneration never persists.
+
+So everything prerendered described seed data, permanently:
+
+- The sitemap listed 25 URLs, of which every content URL was fictional. No real
+  event, venue or organiser appeared in it at all. That directly violates the
+  `seo-discoverability` requirement that a published item's canonical URL appears
+  in the sitemap.
+- Every `[slug]` route served a 200 for seed content that does not exist in
+  production — `/locaties/t-anker`, `/organisatoren/repair-noord`,
+  `/projecten/gemeenschapstuin-de-brink` — indefinitely, because revalidation never
+  removed them.
+
+This is the same defect as the stale date, in a more damaging form: not a page
+showing an old value, but a page that should not exist at all. Since the remedy is
+identical and the cause is one, the sitemap and the four remaining detail routes
+are rendered per request here rather than deferred, and `generateStaticParams` is
+removed with them — under `force-dynamic` it prerenders nothing and only preserved
+the illusion that these routes had a build-time identity worth keeping.
+
+This widens the change beyond its proposal, which scoped itself to
+`/agenda/[slug]` and said the other routes "are not visibly wrong today". That was
+wrong: they were visibly wrong, and I had not looked. Recorded here rather than
+quietly folded in.
+
+A consequence worth stating: the site no longer prerenders any content page. For a
+neighbourhood calendar whose content lives in S3 and changes through a backend,
+that is the honest arrangement — but it means every content page now costs a
+render, and the build/runtime store split (`storage.ts:189`) remains as a latent
+trap for anything that reintroduces prerendering.
+
 ## Risks / Trade-offs
 
 **Per-request rendering could dent the performance budget** → `lighthouserc.json`

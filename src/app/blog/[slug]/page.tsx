@@ -4,7 +4,7 @@ import { Container } from "@/components/ui/container";
 import { Mdx } from "@/components/mdx/mdx";
 import { CoverImage } from "@/components/content/cover-image";
 import { RelatedInfo } from "@/components/content/related-info";
-import { getBlogPost, getBlogPosts } from "@/content/repository";
+import { getBlogPost } from "@/content/repository";
 import { formatDateLong, isoDate } from "@/lib/date";
 import { pageMetadata } from "@/lib/metadata";
 import { blogPostingJsonLd } from "@/lib/structured-data";
@@ -12,11 +12,15 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { AdminBarMount } from "@/components/admin/admin-bar-mount";
 import { adminEditPath } from "@/lib/routes";
 
-export const revalidate = 600;
+/**
+ * Rendered per request (fix-stale-recurring-event-dates D5). Anything prerendered
+ * at build time describes the committed `content/` seed, not production: the
+ * store reads the seed during `next build` and S3 at runtime, and the
+ * regeneration that was supposed to reconcile the two never persists on this
+ * deployment. Prerendering therefore froze seed data permanently.
+ */
+export const dynamic = "force-dynamic";
 
-export async function generateStaticParams() {
-  return (await getBlogPosts()).map((p) => ({ slug: p.slug }));
-}
 
 export async function generateMetadata({
   params,

@@ -4,16 +4,20 @@ import { notFound } from "next/navigation";
 import { Container } from "@/components/ui/container";
 import { Mdx } from "@/components/mdx/mdx";
 import { CoverImage } from "@/components/content/cover-image";
-import { getProject, getProjects } from "@/content/repository";
+import { getProject } from "@/content/repository";
 import { pageMetadata } from "@/lib/metadata";
 import { AdminBarMount } from "@/components/admin/admin-bar-mount";
 import { adminEditPath } from "@/lib/routes";
 
-export const revalidate = 600;
+/**
+ * Rendered per request (fix-stale-recurring-event-dates D5). Anything prerendered
+ * at build time describes the committed `content/` seed, not production: the
+ * store reads the seed during `next build` and S3 at runtime, and the
+ * regeneration that was supposed to reconcile the two never persists on this
+ * deployment. Prerendering therefore froze seed data permanently.
+ */
+export const dynamic = "force-dynamic";
 
-export async function generateStaticParams() {
-  return (await getProjects()).map((p) => ({ slug: p.slug }));
-}
 
 export async function generateMetadata({
   params,
