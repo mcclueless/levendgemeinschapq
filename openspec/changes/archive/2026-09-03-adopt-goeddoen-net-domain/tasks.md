@@ -24,7 +24,12 @@
 - [x] 2.2 Trigger a build so the new values take effect: `NEXT_PUBLIC_*` is inlined
       at build time, and `amplify.yml` writes `AUTH_URL` into `.env.production`
       during the build.
-- [ ] 2.3 BLOCKED — needs the user. While in the Amplify console, rotate
+- [ ] 2.3 NOT DONE — deliberately dropped from this change, and left unchecked
+      rather than marked complete so it is not mistaken for finished work. The
+      call was denied to this session, and the user chose not to pursue it here.
+      Still outstanding: the credentials remain as they were, and the stale
+      app-level `NEXT_PUBLIC_SITE_URL` / `AUTH_URL` values stay shadowed by the
+      branch-level ones. Original intent: while in the Amplify console, rotate
       `ADMIN_PASSWORD` and `AUTH_SECRET`.
       Both were exposed in cleartext while investigating this change. Unrelated to
       the domain, but this is the one build where changing them costs nothing extra.
@@ -64,7 +69,7 @@
 - [x] 4.5 Sign in to `/beheer` on `https://goeddoen.net` and confirm the session
       holds across a page load. This is the check that catches a stale `AUTH_URL`,
       and nothing else will.
-- [ ] 4.6 Share a `goeddoen.net` event URL into WhatsApp and confirm the card is
+- [x] 4.6 Share a `goeddoen.net` event URL into WhatsApp and confirm the card is
       correct. Use a URL not shared before — previews are cached per URL with no
       purge, so an old card proves nothing about the new origin.
 - [x] 4.7 Confirm the site still reaches Nominatim: exercise the address-suggest
