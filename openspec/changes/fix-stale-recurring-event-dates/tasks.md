@@ -72,8 +72,22 @@
             directly: the same expression the page uses yields 9 Sep at 23:59 on
             8 Sep, 16 Sep at 00:01 on 10 Sep, and still yields 9 Sep at midday on
             9 Sep so a same-day event is not skipped.
-      - [ ] Observing production actually roll over. Still outstanding, and still
-            not hurryable: check a recurring event page after the next UTC
-            midnight with no deploy in between. The two checks above make failure
-            structurally hard rather than merely unobserved, but they are
-            inference, not observation.
+      - [x] Observing production across a day boundary. Checked on 2026-09-04,
+            18 hours after the last deploy (2b17100, 2026-09-03T14:56) with none
+            since, so the precondition finally held. All twelve event pages in
+            the sitemap render a date correct for the day: nine today or later,
+            and three in the past which are non-recurring events that have simply
+            happened — `nextOccurrence` returns null for those and the page falls
+            back to the event's own start, as intended. Cache headers unchanged
+            after 18 hours: no `x-nextjs-cache`, `no-store`, CloudFront miss. With
+            no cache entry to serve, the page necessarily re-executed
+            `startOfToday()` on this request.
+      - [ ] A discriminating rollover, still outstanding. None of the four
+            recurring events would answer differently on the build day (3 Sep)
+            than today: `high-mass` and `kerkdiensten-zuiderkruis` next fall on
+            5 and 6 Sep, `de-buurttafel` on 9 Sep, `stilteviering` on 15 Sep — all
+            unchanged by the boundary. So today's sweep is consistent with the fix
+            without demonstrating it. The first date that separates the two is
+            2026-09-06: `high-mass` recurs weekly on Saturday, so after its 5 Sep
+            occurrence it must show 12 Sep, where a build-day answer would still
+            say 5 Sep.
