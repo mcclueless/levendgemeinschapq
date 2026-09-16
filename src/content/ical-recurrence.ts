@@ -34,9 +34,14 @@ export function mapRecurrence(rrule?: {
   const opts = rrule?.options;
   if (!opts) return undefined;
   const freq = freqName(opts.freq);
+  // Omit `until` entirely for an open-ended rule rather than setting it to
+  // `undefined`: the importer serializes this object as nested YAML, and js-yaml
+  // refuses to dump `undefined` — which made every open-ended weekly/monthly
+  // entry fail to import.
+  const until = opts.until ? { until: opts.until } : {};
   if (freq === "WEEKLY")
-    return { freq: "weekly", interval: opts.interval ?? 1, until: opts.until };
+    return { freq: "weekly", interval: opts.interval ?? 1, ...until };
   if (freq === "MONTHLY")
-    return { freq: "monthly", interval: opts.interval ?? 1, until: opts.until };
+    return { freq: "monthly", interval: opts.interval ?? 1, ...until };
   return undefined; // daily/yearly not expandable in v1
 }

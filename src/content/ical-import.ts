@@ -152,6 +152,13 @@ export async function syncFeed(feed: Feed): Promise<SyncResult> {
       continue;
     }
 
+    // Carry the end along with a rolled-forward start, keeping the duration;
+    // otherwise the stored end stays on the first occurrence and precedes the
+    // start (the range event-form.ts rejects).
+    const end = item.end
+      ? new Date(item.end.getTime() + (start.getTime() - item.start!.getTime()))
+      : undefined;
+
     const unexpandableRecurrence = hasRrule && !mapped;
 
     // Match location to a known venue, else fall back and flag for review.
@@ -179,7 +186,7 @@ export async function syncFeed(feed: Feed): Promise<SyncResult> {
         {
           title: item.summary ?? "Geïmporteerd evenement",
           start: start.toISOString(),
-          end: item.end ? item.end.toISOString() : undefined,
+          end: end?.toISOString(),
           venue,
           organiser: feed.defaultOrganiser,
           excerpt: item.description?.slice(0, 200),

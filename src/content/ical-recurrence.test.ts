@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import ical from "node-ical";
+import matter from "gray-matter";
 import { mapRecurrence, freqName } from "./ical-recurrence";
 
 /**
@@ -33,7 +34,15 @@ test("freqName accepts node-ical's string freq and legacy numeric freq", () => {
 
 test("maps a real WEEKLY RRULE to a weekly recurrence", () => {
   const rec = mapRecurrence(rruleOf("RRULE:FREQ=WEEKLY;INTERVAL=2"));
-  assert.deepEqual(rec, { freq: "weekly", interval: 2, until: undefined });
+  assert.deepEqual(rec, { freq: "weekly", interval: 2 });
+});
+
+test("an open-ended recurrence can be written as frontmatter", () => {
+  // The importer stores this object as nested YAML. An `until: undefined` key
+  // made js-yaml throw, so every open-ended weekly/monthly entry failed to import.
+  const rec = mapRecurrence(rruleOf("RRULE:FREQ=WEEKLY"));
+  assert.equal("until" in rec!, false);
+  assert.doesNotThrow(() => matter.stringify("\n", { recurrence: rec }));
 });
 
 test("maps a real MONTHLY RRULE and preserves UNTIL", () => {
