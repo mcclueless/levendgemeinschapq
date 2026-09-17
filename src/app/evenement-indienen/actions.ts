@@ -9,6 +9,7 @@ import {
 import { validateEventRange } from "@/content/event-form";
 import { socialsFromForm } from "@/content/socials-form";
 import { saveUploadChecked } from "@/content/media";
+import { siteInputToIso } from "@/lib/date";
 
 function str(form: FormData, key: string): string | undefined {
   const v = form.get(key);
@@ -40,7 +41,7 @@ export async function submitEvent(formData: FormData) {
   // convenience, this is the contract (add-recurrence-end-date D7).
   const recurrence = recurrenceFromForm(
     formData,
-    new Date(start!),
+    new Date(siteInputToIso(start)!),
     PUBLIC_FREQUENCIES,
   );
   if (!recurrence.ok) {
@@ -63,8 +64,9 @@ export async function submitEvent(formData: FormData) {
     title!,
     {
       title,
-      start,
-      end,
+      // Typed Amsterdam wall time, stored unambiguously (siteInputToIso).
+      start: siteInputToIso(start),
+      end: siteInputToIso(end),
       venue,
       organiser,
       excerpt: str(formData, "excerpt"),

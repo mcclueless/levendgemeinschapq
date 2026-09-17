@@ -4,9 +4,11 @@ import {
   addDays,
   addMonths,
   formatTime,
-  parseSiteDateTime,
+  parseStoredDateTime,
+  siteInputToIso,
   siteWallTime,
   startOfToday,
+  toSiteInputValue,
 } from "./date";
 
 /**
@@ -41,19 +43,41 @@ test("times just around the DST switch resolve to real instants", () => {
   assert.equal(formatTime(siteWallTime(2026, 3, 29, 3, 30)), "03:30");
 });
 
-test("a form-entered wall time is read as site time", () => {
-  const d = parseSiteDateTime("2026-09-25T19:30") as Date;
-  assert.equal(d.toISOString(), "2026-09-25T17:30:00.000Z");
+test("an offset-less stored time is read as UTC, as production always read it", () => {
+  // An imported High Mass (19:30 Amsterdam) saved through the old edit form.
+  const d = parseStoredDateTime("2026-08-22T17:30") as Date;
+  assert.equal(d.toISOString(), "2026-08-22T17:30:00.000Z");
   assert.equal(formatTime(d), "19:30");
-  assert.equal((parseSiteDateTime("2026-09-25T19:30:15") as Date).toISOString(), "2026-09-25T17:30:15.000Z");
+  assert.equal((parseStoredDateTime("2026-08-22T17:30:15") as Date).toISOString(), "2026-08-22T17:30:15.000Z");
 });
 
 test("values with an offset, Z, or already a Date are unchanged", () => {
-  assert.equal((parseSiteDateTime("2026-09-25T19:30:00.000Z") as Date).toISOString(), "2026-09-25T19:30:00.000Z");
-  assert.equal((parseSiteDateTime("2026-06-20T17:00:00+02:00") as Date).toISOString(), "2026-06-20T15:00:00.000Z");
+  assert.equal((parseStoredDateTime("2026-09-25T19:30:00.000Z") as Date).toISOString(), "2026-09-25T19:30:00.000Z");
+  assert.equal((parseStoredDateTime("2026-06-20T17:00:00+02:00") as Date).toISOString(), "2026-06-20T15:00:00.000Z");
   const date = new Date("2026-01-01T10:00:00Z");
-  assert.equal(parseSiteDateTime(date), date);
-  assert.equal(parseSiteDateTime(undefined), undefined);
+  assert.equal(parseStoredDateTime(date), date);
+  assert.equal(parseStoredDateTime(undefined), undefined);
+});
+
+test("a typed form time is stored as unambiguous UTC", () => {
+  assert.equal(siteInputToIso("2026-09-25T19:30"), "2026-09-25T17:30:00.000Z");
+  assert.equal(siteInputToIso("2026-12-11T19:30"), "2026-12-11T18:30:00.000Z");
+  assert.equal(siteInputToIso(undefined), undefined);
+  assert.equal(siteInputToIso("not a date"), "not a date");
+});
+
+test("the edit form shows Amsterdam time, and saving it unchanged keeps the instant", () => {
+  for (const stored of [
+    "2026-08-22T17:30:00.000Z", // as imported
+    "2026-08-22T17:30", // imported, then saved through the old form
+    new Date("2026-08-22T17:30:00.000Z"), // unquoted YAML timestamp
+  ]) {
+    const shown = toSiteInputValue(stored);
+    assert.equal(shown, "2026-08-22T19:30");
+    assert.equal(siteInputToIso(shown), "2026-08-22T17:30:00.000Z");
+  }
+  assert.equal(toSiteInputValue(undefined), "");
+  assert.equal(toSiteInputValue("garbage"), "");
 });
 
 test("startOfToday is Amsterdam midnight, also just after it", () => {

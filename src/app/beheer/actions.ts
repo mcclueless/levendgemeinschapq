@@ -45,6 +45,7 @@ import {
   isPermalinkType,
 } from "@/content/permalink";
 import { adminEditPath, adminListPath, publicListPath } from "@/lib/routes";
+import { siteInputToIso } from "@/lib/date";
 
 type ManagedType = "event" | "venue" | "organiser" | "blog" | "project";
 
@@ -187,7 +188,7 @@ function socialsOrRedirect(form: FormData, back: string) {
 function adminRecurrence(form: FormData, start: string | undefined): RecurrenceFormResult {
   return recurrenceFromForm(
     form,
-    start ? new Date(start) : undefined,
+    start ? new Date(siteInputToIso(start)!) : undefined,
     ADMIN_FREQUENCIES,
   );
 }
@@ -217,8 +218,9 @@ export async function createEvent(formData: FormData) {
     title!,
     {
       title,
-      start,
-      end,
+      // Typed Amsterdam wall time, stored unambiguously (siteInputToIso).
+      start: siteInputToIso(start),
+      end: siteInputToIso(end),
       venue,
       organiser,
       excerpt: str(formData, "excerpt"),
@@ -383,7 +385,7 @@ export async function updateEvent(formData: FormData) {
   const stored = await getEditable("event", slug!);
   const recurrence = recurrenceFromForm(
     formData,
-    new Date(start!),
+    new Date(siteInputToIso(start)!),
     ADMIN_FREQUENCIES,
     stored?.data.recurrence?.interval,
   );
@@ -395,8 +397,9 @@ export async function updateEvent(formData: FormData) {
     slug!,
     {
       title,
-      start,
-      end,
+      // Typed Amsterdam wall time, stored unambiguously (siteInputToIso).
+      start: siteInputToIso(start),
+      end: siteInputToIso(end),
       venue,
       organiser,
       excerpt: str(formData, "excerpt"),

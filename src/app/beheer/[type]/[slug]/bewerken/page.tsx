@@ -18,6 +18,7 @@ import { getEditable } from "@/content/admin";
 import { getOrganisers, getVenues } from "@/content/repository";
 import { listMedia } from "@/content/media";
 import { ADMIN_SEGMENT_TO_TYPE, type AdminSegment } from "@/lib/routes";
+import { toSiteInputValue } from "@/lib/date";
 import {
   updateBlog,
   updateEvent,
@@ -33,27 +34,15 @@ function isSegment(s: string): s is AdminSegment {
   return s in ADMIN_SEGMENT_TO_TYPE;
 }
 
-// Frontmatter stores datetimes two ways: fixtures use full ISO with an offset
-// (gray-matter parses these to a Date), while the create form stores a bare
-// "YYYY-MM-DDTHH:mm" wall-time string (kept as a string). For a Date we render
-// the wall time in the site timezone; a string is already wall time, so slice.
+// Dates render in the site timezone: a date-only field is prefilled with the
+// Amsterdam calendar day.
 const TZ = "Europe/Amsterdam";
 const wall = new Intl.DateTimeFormat("sv-SE", {
   timeZone: TZ,
   year: "numeric",
   month: "2-digit",
   day: "2-digit",
-  hour: "2-digit",
-  minute: "2-digit",
-  hour12: false,
 });
-
-/** Stored datetime → "YYYY-MM-DDTHH:mm" for <input type="datetime-local">. */
-function toDatetimeLocal(v: unknown): string {
-  if (v instanceof Date) return wall.format(v).replace(" ", "T");
-  if (typeof v === "string") return v.slice(0, 16);
-  return "";
-}
 
 /** Stored date → "YYYY-MM-DD" for <input type="date">. */
 function toDateInput(v: unknown): string {
@@ -105,7 +94,7 @@ export default async function EditPage({
                 name="start"
                 type="datetime-local"
                 required
-                defaultValue={toDatetimeLocal(doc.fm.start)}
+                defaultValue={toSiteInputValue(doc.fm.start)}
               />
             </Field>
             <Field label="Einde" htmlFor="end">
@@ -113,7 +102,7 @@ export default async function EditPage({
                 id="end"
                 name="end"
                 type="datetime-local"
-                defaultValue={toDatetimeLocal(doc.fm.end)}
+                defaultValue={toSiteInputValue(doc.fm.end)}
               />
             </Field>
           </div>

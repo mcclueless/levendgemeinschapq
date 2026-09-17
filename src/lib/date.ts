@@ -78,18 +78,56 @@ export function siteWallTime(
 /** Offset-less "YYYY-MM-DDTHH:mm[:ss]", as `datetime-local` inputs submit it. */
 const WALL_TIME = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/;
 
-/**
- * Read a stored event datetime. The event forms store the wall time the editor
- * typed, with no offset (`'2026-09-25T19:30'`); that means site time, whatever
- * the server's timezone. Anything carrying its own offset or `Z`, and Dates
- * YAML already parsed, are taken as they are.
- */
-export function parseSiteDateTime(value: unknown): unknown {
-  if (typeof value !== "string") return value;
+function wallParts(value: string): number[] | null {
   const m = WALL_TIME.exec(value);
-  if (!m) return new Date(value);
-  const [y, mo, d, h, mi, s] = m.slice(1).map((n) => Number(n ?? 0));
-  return siteWallTime(y, mo, d, h, mi, s);
+  return m ? m.slice(1).map((n) => Number(n ?? 0)) : null;
+}
+
+/**
+ * Read a stored event datetime.
+ *
+ * An offset-less value (`'2026-08-22T17:30'`) is read as **UTC**. That is not
+ * what an editor meant when typing it, but it is what these values mostly are:
+ * the edit form used to prefill an imported `…Z` time by cutting it to its first
+ * 16 characters, so saving an imported event stored its UTC clock time without
+ * the `Z`. Production ran in UTC and read them back correctly, and reading them
+ * as Amsterdam time shifted every such event two hours early. Forms now save
+ * with an explicit `Z` (`siteInputToIso`), so no new offset-less values appear.
+ *
+ * Values with an offset or `Z`, and Dates YAML already parsed, are taken as they
+ * are. The result never depends on the server's timezone.
+ */
+export function parseStoredDateTime(value: unknown): unknown {
+  if (typeof value !== "string") return value;
+  const p = wallParts(value);
+  if (!p) return new Date(value);
+  const [y, mo, d, h, mi, s] = p;
+  return new Date(Date.UTC(y, mo - 1, d, h, mi, s));
+}
+
+/**
+ * A `datetime-local` value typed in a form — Amsterdam wall time — as an
+ * unambiguous UTC ISO string for storage. Anything that is not such a value is
+ * returned unchanged, for validation to deal with.
+ */
+export function siteInputToIso(value: string | undefined): string | undefined {
+  const p = value ? wallParts(value) : null;
+  if (!p) return value;
+  const [y, mo, d, h, mi, s] = p;
+  return siteWallTime(y, mo, d, h, mi, s).toISOString();
+}
+
+/**
+ * A stored event datetime as the Amsterdam wall time a `datetime-local` input
+ * shows, so what an editor sees is what the site shows — and saving unchanged
+ * keeps the same instant.
+ */
+export function toSiteInputValue(value: unknown): string {
+  const d = parseStoredDateTime(value);
+  if (!(d instanceof Date) || Number.isNaN(d.getTime())) return "";
+  const p = siteParts(d);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${p.year}-${pad(p.month)}-${pad(p.day)}T${pad(p.hour)}:${pad(p.minute)}`;
 }
 
 /**

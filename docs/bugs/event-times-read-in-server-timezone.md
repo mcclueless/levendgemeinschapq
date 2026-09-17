@@ -3,7 +3,8 @@
 - **Reported:** 2026-09-16 (Burendag shown at 02:00)
 - **Severity:** Medium — wrong times shown publicly, and a DST shift was five
   weeks away from affecting every recurring event
-- **Status:** **Fixed** 2026-09-17 (code); one stored event needs a manual edit
+- **Status:** **Fixed** 2026-09-17, corrected the same day (see "First fix got the
+  stored data wrong"); some stored events need their time set once
 - **Affects:** event forms, iCal all-day imports, recurring events, the "today"
   boundary
 
@@ -34,32 +35,58 @@ naive wall time was read as UTC.
 
 It never showed locally, because development machines run in Amsterdam time.
 
+## First fix got the stored data wrong
+
+The first fix (`adb0b22`) read offset-less stored times as Amsterdam time,
+assuming they had all been typed into a form. On production, every event moved
+two hours earlier (High Mass 19:30 → 17:30, Kerkdiensten Zuiderkruis
+12:00 → 10:00), including imported ones.
+
+The reason was a second bug in the edit form. It prefilled a stored string by
+cutting it to 16 characters, so an imported `'2026-08-22T17:30:00.000Z'` (19:30
+in Amsterdam) showed as **17:30**. Saving the event for any reason, such as adding
+a cover image, stored `'2026-08-22T17:30'` without the `Z`. Production, running in
+UTC, read that back as UTC, which happened to be correct.
+
+So an offset-less stored time is ambiguous. It is a UTC clock time for an import
+saved through the form, and an Amsterdam clock time for an event typed into a form.
+The value alone cannot say which. It was corrected forward to restore what
+production had shown for months.
+
 ## Fix
 
-`src/lib/date.ts` now converts wall time ↔ instant explicitly in the site timezone
-(`siteWallTime`, `siteParts`), and every affected path uses it:
+`src/lib/date.ts` converts wall time and instants explicitly in the site timezone
+(`siteWallTime`, `siteParts`):
 
-- `parseSiteDateTime` reads an offset-less event `start`/`end` as Amsterdam time
-  (`EventFrontmatter`). Values with an offset or `Z` are unchanged.
-- The iCal import converts all-day entries to Amsterdam midnight. It fixes an
-  entry's fallback UID before converting, so a re-sync does not duplicate it.
-- `addDays` / `addMonths` do calendar arithmetic in site time, and the recurrence
-  expansion uses them, so occurrences keep their local time across DST.
-- `startOfToday` is Amsterdam midnight.
+- **Reading:** `parseStoredDateTime` reads an offset-less `start`/`end` as UTC,
+  exactly as production always did, but now independent of the server's
+  timezone. Values with an offset or `Z` are unchanged.
+- **Writing:** all three event forms store the typed Amsterdam wall time as an ISO
+  `Z` string (`siteInputToIso`), so no new ambiguous values are written.
+- **Editing:** the edit form shows the stored instant as Amsterdam wall time
+  (`toSiteInputValue`). What an editor sees is what the site shows, and saving
+  unchanged keeps the same instant.
+- **All-day imports:** the iCal import converts them to Amsterdam midnight. It
+  fixes an entry's fallback UID before converting, so a re-sync does not duplicate
+  it.
+- **Recurrence:** `addDays` / `addMonths` do calendar arithmetic in site time, so
+  occurrences keep their local time across DST.
+- **Today:** `startOfToday` is Amsterdam midnight.
 
-Tests in `src/lib/date.test.ts` pin each case. The full suite passes with `TZ` set
-to `Europe/Amsterdam`, `UTC`, and `America/New_York`.
+Tests in `src/lib/date.test.ts` pin each case, including the edit-form round trip.
+The full suite passes with `TZ` set to `Europe/Amsterdam`, `UTC`, and
+`America/New_York`.
 
 ## Existing data
 
-- **Form-entered events correct themselves.** They are stored as offset-less wall
-  time, so after deploy they show the time that was typed (Stilteviering: 19:30).
-  If an editor ever *compensated* by typing an earlier time, that event now shows
-  the compensated time and needs the real time entered.
-- **Imported all-day events stay wrong** until edited: they are stored with `Z`
-  (e.g. Burendag, `2026-09-26T00:00:00.000Z`). Open the event in the backend, set
-  the real start time, and save. A re-sync will not correct it, because imports
-  never overwrite an existing event.
+Displayed times return to what production showed before 2026-09-17, except that
+recurring events no longer shift an hour after 25 October.
+
+- **Events typed into a form before this fix show two hours late** (one in winter),
+  as before. Stilteviering (21:30, and 20:30 in winter) may be one. Open the event,
+  set the real time, and save: it is then stored with `Z` and stays correct.
+- **Burendag shows 02:00 again.** It is an all-day import that was saved through the
+  old form. Set its time in the backend once.
 
 Not changed: an all-day event still shows a time ("00:00") rather than none,
 because there is no all-day flag on events.
