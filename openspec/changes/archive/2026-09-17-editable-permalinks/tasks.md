@@ -72,8 +72,14 @@
 
 - [x] 4.1 Sync the `editorial-backend` delta into `openspec/specs/`, and validate
       with `openspec validate --specs`.
-- [ ] 4.2 After deploy, from the production backend: rename `/projecten/asdfasdf`,
+- [x] 4.2 After deploy, from the production backend: rename `/projecten/asdfasdf`,
       and rename `/locaties/thee-resia-samentuin-2`. If `thee-resia-samentuin` is
       refused as taken, report which hidden item holds it rather than choosing
       another slug. Confirm the old URLs 404 and the project and organiser pages
       link to the new Location URL.
+      Done from the production backend and checked on 2026-09-17T08:41Z:
+      `/projecten/asdfasdf` and `/locaties/thee-resia-samentuin-2` both return
+      404; `/projecten/thee-resia-samentuin` and `/locaties/thee-resia-samentuin`
+      render, and the sitemap lists only the new Location URL. The project, the
+      organiser `thee-resia-samentuin`, and the event `burendag` all link to
+      `/locaties/thee-resia-samentuin`.
