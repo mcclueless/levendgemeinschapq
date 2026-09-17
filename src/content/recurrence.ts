@@ -1,4 +1,5 @@
 import type { Recurrence } from "./schema";
+import { addDays, addMonths, siteParts } from "@/lib/date";
 
 /**
  * Recurrence expansion (design D5). v1 supports weekly and monthly intervals
@@ -18,17 +19,10 @@ const MAX_OCCURRENCES = 60; // safety bound on how many occurrences we emit
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+// Calendar arithmetic in the site timezone, so an occurrence keeps its local
+// time across DST whatever the server's timezone.
 function addWeeks(d: Date, n: number): Date {
-  const copy = new Date(d);
-  copy.setDate(copy.getDate() + n * 7);
-  return copy;
-}
-
-function addMonths(d: Date, n: number): Date {
-  const copy = new Date(d);
-  const targetMonth = copy.getMonth() + n;
-  copy.setMonth(targetMonth);
-  return copy;
+  return addDays(d, n * 7);
 }
 
 /** The occurrence at recurrence index `i` (0 = the start itself). */
@@ -61,9 +55,8 @@ function firstIndexFrom(
         Math.floor((from.getTime() - start.getTime()) / (7 * DAY_MS * interval)),
       );
     } else {
-      const months =
-        (from.getFullYear() - start.getFullYear()) * 12 +
-        (from.getMonth() - start.getMonth());
+      const [f, st] = [siteParts(from), siteParts(start)];
+      const months = (f.year - st.year) * 12 + (f.month - st.month);
       n = Math.max(0, Math.floor(months / interval));
     }
     // Correct a possible over/undershoot from the estimate (O(1) iterations).

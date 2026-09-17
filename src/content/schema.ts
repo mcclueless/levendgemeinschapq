@@ -1,4 +1,6 @@
 import { z } from "zod";
+// Relative, not "@/": this module is also loaded by the `reindex` CLI.
+import { parseSiteDateTime } from "../lib/date";
 
 /**
  * Frontmatter schemas for MD/MDX content (design D2).
@@ -82,10 +84,18 @@ export const SocialsSchema = z
   .optional();
 export type Socials = z.infer<typeof SocialsSchema>;
 
+/**
+ * An event datetime. The event forms store the typed wall time without an offset
+ * (`'2026-09-25T19:30'`), which means Amsterdam time. `z.coerce.date()` read it
+ * in the server's timezone instead — UTC in production — so every entered time
+ * showed one or two hours late.
+ */
+const eventDateTime = () => z.preprocess(parseSiteDateTime, z.date());
+
 export const EventFrontmatter = z.object({
   title: z.string().min(1),
-  start: z.coerce.date(),
-  end: z.coerce.date().optional(),
+  start: eventDateTime(),
+  end: eventDateTime().optional(),
   /** Slug references resolved against venue/organiser records. */
   venue: z.string().min(1),
   organiser: z.string().min(1),

@@ -5,7 +5,7 @@ import {
   nextOccurrence,
   occurrencesInRange,
 } from "./recurrence";
-import { startOfToday } from "@/lib/date";
+import { formatDate, startOfToday } from "@/lib/date";
 import type { Recurrence } from "./schema";
 
 /**
@@ -49,7 +49,9 @@ test("weekly recurrence with a years-old start still yields the next occurrence"
   assert.notEqual(next, null);
   assert.ok(next!.getTime() >= from.getTime());
   assert.ok(next!.getTime() - from.getTime() < 7 * DAY); // within one interval
-  assert.equal(next!.getDay(), start.getDay()); // aligned to the weekly grid
+  // Aligned to the weekly grid, on the site's calendar: occurrences keep their
+  // Amsterdam weekday whatever the process timezone.
+  assert.equal(formatDate(next!).split(" ")[0], formatDate(start).split(" ")[0]);
 });
 
 test("monthly recurrence anchored on the 31st rolls to the next real occurrence", () => {

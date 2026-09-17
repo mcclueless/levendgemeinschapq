@@ -4,7 +4,7 @@ import { parseAll } from "./parse";
 import { createDocument, patchFrontmatter, setStatus, slugify } from "./write";
 import { firstOccurrenceFrom } from "./recurrence";
 import { mapRecurrence } from "./ical-recurrence";
-import { startOfToday } from "@/lib/date";
+import { siteWallTime, startOfToday } from "@/lib/date";
 import type { Feed } from "./feeds";
 
 /**
@@ -48,6 +48,18 @@ interface VEventLike {
   start?: Date;
   end?: Date;
   rrule?: { options?: { freq?: unknown; interval?: number; until?: Date } };
+  /** "date" for an all-day entry (`VALUE=DATE`), "date-time" otherwise. */
+  datetype?: string;
+}
+
+/**
+ * An all-day entry's day as site-time midnight. node-ical builds date-only values
+ * with `new Date(y, m, d)`, midnight in the *server's* timezone. Production runs
+ * in UTC, so an all-day event was stored as 00:00 UTC and shown at 02:00. Its
+ * calendar day is read back with the same local getters it was built with.
+ */
+function allDayToSiteTime(d: Date): Date {
+  return siteWallTime(d.getFullYear(), d.getMonth() + 1, d.getDate());
 }
 
 function uidFor(item: VEventLike): string {
@@ -83,7 +95,19 @@ export async function syncFeed(feed: Feed): Promise<SyncResult> {
 
   const entries = Object.values(raw)
     .map((r) => r as VEventLike)
-    .filter((i) => i.type === "VEVENT" && i.start);
+    .filter((i) => i.type === "VEVENT" && i.start)
+    .map((i) =>
+      i.datetype === "date"
+        ? {
+            ...i,
+            // Fix the identity first: the fallback UID is built from the start,
+            // and a changed start would re-import an entry already on the site.
+            uid: uidFor(i),
+            start: allDayToSiteTime(i.start!),
+            end: i.end ? allDayToSiteTime(i.end) : undefined,
+          }
+        : i,
+    );
 
   const store = getStore();
   const [events, venues] = await Promise.all([
