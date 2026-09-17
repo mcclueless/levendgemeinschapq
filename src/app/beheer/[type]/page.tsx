@@ -5,7 +5,7 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { Card, Badge } from "@/components/ui/card";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { requireAdmin } from "@/lib/auth-server";
-import { listContent, findReferences } from "@/content/admin";
+import { listContent, findReferences, type ContentReference } from "@/content/admin";
 import { ADMIN_SEGMENT_TO_TYPE, type AdminSegment } from "@/lib/routes";
 import { hideContent, showContent, deleteContent } from "../actions";
 import type { PublishStatus } from "@/content/schema";
@@ -29,10 +29,13 @@ const NEW_LINK = {
   project: "/beheer/nieuw/project",
 } as const;
 
-const REF_KIND_LABEL = {
+const REF_KIND_LABEL: Record<ContentReference["kind"], string> = {
   event: "evenement",
+  project: "project",
   blog: "blog",
-} as const;
+  organiser: "organisator",
+  feed: "agenda-feed",
+};
 
 function isSegment(s: string): s is AdminSegment {
   return s in ADMIN_SEGMENT_TO_TYPE;
@@ -123,7 +126,8 @@ export default async function ManageListPage({
         >
           <p className="font-medium">
             “{undeletableItem?.title ?? undeletable}” kan niet verwijderd worden:
-            nog gekoppeld aan andere content (ook verborgen items tellen mee).
+            nog gekoppeld aan andere content of een agenda-feed (ook verborgen items
+            tellen mee).
           </p>
           <p className="mt-1">Koppel deze eerst los of verwijder ze:</p>
           <ul className="mt-1 list-disc pl-5">

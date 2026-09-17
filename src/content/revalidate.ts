@@ -85,6 +85,34 @@ export async function revalidateAfterItemChange(
   ]);
 }
 
+/**
+ * Revalidate after a permalink change (editable-permalinks D7): the item's old
+ * and new URLs, the listings, and the detail page of every referrer that was
+ * rewritten — otherwise an event page could keep linking to the old Location
+ * URL until its cache expires. Feeds have no public page.
+ */
+export async function revalidateAfterPermalinkChange(
+  type: ManagedType,
+  from: string,
+  to: string,
+  referrers: Array<{ kind: ManagedType | "feed"; slug: string }>,
+): Promise<void> {
+  const paths = new Set<string>([
+    itemPath(type, from),
+    itemPath(type, to),
+    "/",
+    routes.agenda,
+    routes.projects,
+    routes.venues,
+    routes.organisers,
+    routes.blog,
+  ]);
+  for (const r of referrers) {
+    if (r.kind !== "feed") paths.add(itemPath(r.kind, r.slug));
+  }
+  await revalidateContent([...paths]);
+}
+
 async function invalidateCdn(paths: string[]): Promise<void> {
   const distributionId = process.env.CLOUDFRONT_DISTRIBUTION_ID;
   if (!distributionId || paths.length === 0) return; // no-op without a CDN configured

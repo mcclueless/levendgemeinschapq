@@ -35,8 +35,16 @@ import {
   listFeeds,
   updateFeed,
 } from "@/content/feeds";
-import { revalidatePublic, revalidateAfterItemChange } from "@/content/revalidate";
-import { adminListPath, publicListPath } from "@/lib/routes";
+import {
+  revalidateAfterItemChange,
+  revalidateAfterPermalinkChange,
+  revalidatePublic,
+} from "@/content/revalidate";
+import {
+  changePermalink as changeStoredPermalink,
+  isPermalinkType,
+} from "@/content/permalink";
+import { adminEditPath, adminListPath, publicListPath } from "@/lib/routes";
 
 type ManagedType = "event" | "venue" | "organiser" | "blog" | "project";
 
@@ -611,6 +619,29 @@ export async function deleteContent(formData: FormData) {
     redirect(`${adminListPath(type)}?undeletable=${encodeURIComponent(slug)}`);
   }
   redirect(adminListPath(type));
+}
+
+/**
+ * Change the permalink of a Location, Organiser, or Project (editable-permalinks
+ * D6). A separate form from the content edit, so a rename — which rewrites other
+ * documents and removes a file — never rides along with an everyday save.
+ * Refusals return to the edit page with `?permalink=<reason>`; a missing source
+ * most likely means the same rename already completed, so it lands on the list.
+ */
+export async function changePermalink(formData: FormData) {
+  await assertAdmin();
+  const type = str(formData, "type");
+  const slug = str(formData, "slug");
+  if (!type || !isPermalinkType(type) || !slug) redirect("/beheer");
+  const result = await changeStoredPermalink(type, slug, str(formData, "permalink") ?? "");
+  if (!result.ok) {
+    if (result.reason === "missing") redirect(adminListPath(type));
+    redirect(`${adminEditPath(type, slug)}?permalink=${result.reason}`);
+  }
+  await revalidateAfterPermalinkChange(type, slug, result.slug, result.referrers);
+  revalidatePath(adminListPath(type));
+  if (result.referrers.some((r) => r.kind === "feed")) revalidatePath(FEEDS);
+  redirect(`${adminEditPath(type, result.slug)}?permalink=ok`);
 }
 
 // ── Public-side admin banner actions (admin-presence) ────────────────────────

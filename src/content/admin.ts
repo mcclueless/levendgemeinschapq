@@ -5,6 +5,8 @@ import { parseAll, parseDoc, type ParsedDoc } from "./parse";
 import type { ContentType, PublishStatus, frontmatterByType } from "./schema";
 import { z } from "zod";
 import { routes } from "@/lib/routes";
+import { listFeeds } from "./feeds";
+import { pointsAt, type ReferrerKind } from "./references";
 
 /**
  * Admin-side content access (user-roles-approval spec). Unlike the public
@@ -184,22 +186,27 @@ export async function listContent(type: ContentType): Promise<ContentListItem[]>
 }
 
 export interface ContentReference {
-  kind: "event" | "blog";
+  kind: ReferrerKind;
   slug: string;
   title: string;
+  /** Public page, or the backend edit page for a feed (it has no public page). */
   href: string;
 }
 
 /**
  * Content that links to the given item, so an action that would orphan it can
- * be blocked and the referrers reported (design D3): a Venue/Organiser may be
- * referenced by Events (venue/organiser) and Blog posts (relations). Returns
- * empty for event/blog targets — nothing links to them.
+ * be blocked and the referrers reported (design D3). Which fields count as a
+ * reference is defined once in `references.ts` (editable-permalinks D1): a
+ * Venue may be referenced by Events, Projects, Blog posts, and Organisers'
+ * locations; an Organiser by Events, Projects, and Blog posts. Returns empty
+ * for event/blog/project targets — nothing links to them.
  *
  * By default only **published** referrers count — the right scope for hiding,
  * which protects live public links. Pass `includeHidden: true` for the stricter
  * scope used by permanent deletion: an irreversible delete must also be blocked
- * by hidden/draft referrers, which would otherwise dangle if re-published.
+ * by hidden/draft referrers, which would otherwise dangle if re-published, and
+ * by calendar feeds using the item as a default, whose next sync would create
+ * events pointing at nothing (editable-permalinks D2).
  */
 export async function findReferences(
   type: ContentType,
@@ -209,38 +216,44 @@ export async function findReferences(
   if (type !== "venue" && type !== "organiser") return [];
 
   const store = getStore();
-  const refs: ContentReference[] = [];
-
-  const [events, posts] = await Promise.all([
+  const [events, projects, posts, organisers, feeds] = await Promise.all([
     store.readPrefix(CONTENT_PREFIX.event).then((d) => parseAll("event", d)),
+    store.readPrefix(CONTENT_PREFIX.project).then((d) => parseAll("project", d)),
     store.readPrefix(CONTENT_PREFIX.blog).then((d) => parseAll("blog", d)),
+    store
+      .readPrefix(CONTENT_PREFIX.organiser)
+      .then((d) => parseAll("organiser", d)),
+    includeHidden ? listFeeds() : Promise.resolve([]),
   ]);
 
+  const refs: ContentReference[] = [];
+  const counts = (status: PublishStatus) => includeHidden || status === "published";
+  const hits = (fm: object, kind: ReferrerKind) =>
+    pointsAt(fm as Record<string, unknown>, kind, type, slug);
+
   for (const e of events) {
-    if (!includeHidden && e.data.status !== "published") continue;
-    const hit =
-      type === "venue" ? e.data.venue === slug : e.data.organiser === slug;
-    if (hit) {
-      refs.push({
-        kind: "event",
-        slug: e.slug,
-        title: e.data.title,
-        href: routes.event(e.slug),
-      });
+    if (counts(e.data.status) && hits(e.data, "event")) {
+      refs.push({ kind: "event", slug: e.slug, title: e.data.title, href: routes.event(e.slug) });
     }
   }
-
+  for (const p of projects) {
+    if (counts(p.data.status) && hits(p.data, "project")) {
+      refs.push({ kind: "project", slug: p.slug, title: p.data.title, href: routes.project(p.slug) });
+    }
+  }
   for (const p of posts) {
-    if (!includeHidden && p.data.status !== "published") continue;
-    const list =
-      type === "venue" ? p.data.relatedVenues : p.data.relatedOrganisers;
-    if (list.includes(slug)) {
-      refs.push({
-        kind: "blog",
-        slug: p.slug,
-        title: p.data.title,
-        href: routes.post(p.slug),
-      });
+    if (counts(p.data.status) && hits(p.data, "blog")) {
+      refs.push({ kind: "blog", slug: p.slug, title: p.data.title, href: routes.post(p.slug) });
+    }
+  }
+  for (const o of organisers) {
+    if (counts(o.data.status) && hits(o.data, "organiser")) {
+      refs.push({ kind: "organiser", slug: o.slug, title: o.data.name, href: routes.organiser(o.slug) });
+    }
+  }
+  for (const f of feeds) {
+    if (hits(f, "feed")) {
+      refs.push({ kind: "feed", slug: f.id, title: f.label, href: `/beheer/feeds/${f.id}/bewerken` });
     }
   }
 

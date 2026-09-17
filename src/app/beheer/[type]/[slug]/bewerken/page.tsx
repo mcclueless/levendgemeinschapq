@@ -12,6 +12,7 @@ import {
 import { ImageField } from "@/components/admin/image-field";
 import { SocialFields } from "@/components/admin/social-fields";
 import { AddressAutocomplete } from "@/components/admin/address-autocomplete";
+import { PermalinkForm } from "@/components/admin/permalink-form";
 import { requireAdmin } from "@/lib/auth-server";
 import { getEditable } from "@/content/admin";
 import { getOrganisers, getVenues } from "@/content/repository";
@@ -66,10 +67,10 @@ export default async function EditPage({
   searchParams,
 }: {
   params: Promise<{ type: string; slug: string }>;
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; permalink?: string }>;
 }) {
   await requireAdmin();
-  const { error } = await searchParams;
+  const { error, permalink } = await searchParams;
   const { type: segment, slug } = await params;
   if (!isSegment(segment)) notFound();
   const type = ADMIN_SEGMENT_TO_TYPE[segment];
@@ -220,6 +221,7 @@ export default async function EditPage({
             <SubmitButton>Opslaan</SubmitButton>
           </div>
         </form>
+        <PermalinkForm type="venue" slug={slug} status={permalink} />
       </AdminShell>
     );
   }
@@ -275,6 +277,7 @@ export default async function EditPage({
             <SubmitButton>Opslaan</SubmitButton>
           </div>
         </form>
+        <PermalinkForm type="organiser" slug={slug} status={permalink} />
       </AdminShell>
     );
   }
@@ -338,6 +341,7 @@ export default async function EditPage({
             <SubmitButton>Opslaan</SubmitButton>
           </div>
         </form>
+        <PermalinkForm type="project" slug={slug} status={permalink} />
       </AdminShell>
     );
   }
