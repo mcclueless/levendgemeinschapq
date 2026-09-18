@@ -13,7 +13,7 @@ export function TaglineBand() {
     <section className="bg-brand-strong">
       <Container className="py-12 sm:py-16">
         <p className="text-center font-display text-2xl font-semibold text-balance text-white sm:text-3xl lg:text-4xl">
-          Het levde is een feestje, maar je moet de slingers zelf ophangen
+          Het leven is een feestje, maar je moet de slingers zelf ophangen
         </p>
       </Container>
     </section>

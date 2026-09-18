@@ -79,7 +79,7 @@ appear between the pillars and the projects section.
 
 #### Scenario: Tagline separator is present
 - **WHEN** the homepage renders
-- **THEN** it SHALL display the tagline "Het levde is een feestje, maar je moet de
+- **THEN** it SHALL display the tagline "Het leven is een feestje, maar je moet de
   slingers zelf ophangen" as a full-width separator between the pillars and the
   projects section
 

@@ -19,7 +19,9 @@ export const mainNav = [
   { href: "/", label: "Home" },
   { href: "/agenda", label: "Agenda" },
   { href: "/projecten", label: "Projecten" },
-  { href: "/locaties", label: "Locaties" },
+  // "Locaties" is deliberately absent from both menus (footer included). The
+  // pages themselves stay: /locaties and each location remain reachable from
+  // events and projects, and stay in the sitemap.
   { href: "/organisatoren", label: "Organisatoren" },
   { href: "/blog", label: "Blog" },
 ] as const;
@@ -31,7 +33,6 @@ export const footerNav = [
     links: [
       { href: "/agenda", label: "Agenda" },
       { href: "/projecten", label: "Projecten" },
-      { href: "/locaties", label: "Locaties" },
       { href: "/organisatoren", label: "Organisatoren" },
       { href: "/blog", label: "Blog" },
     ],
