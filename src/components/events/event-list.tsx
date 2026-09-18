@@ -1,12 +1,14 @@
 import { EventCard, EventRow } from "./event-card";
+import { EventTable } from "./event-table";
 import type { EventOccurrence } from "@/content/types";
 
-export type EventListVariant = "image" | "text";
+export type EventListVariant = "image" | "text" | "table";
 
 /**
- * Presentational event listing (events spec). Two variants:
+ * Presentational event listing (events spec). Three variants:
  *  - "image" — responsive card grid with featured images
  *  - "text"  — compact, image-free rows
+ *  - "table" — scannable columns, stacked on phones (event-list-table-view)
  */
 export function EventList({
   occurrences,
@@ -22,6 +24,10 @@ export function EventList({
   }
 
   const key = (o: EventOccurrence) => `${o.event.slug}-${o.start.getTime()}`;
+
+  if (variant === "table") {
+    return <EventTable occurrences={occurrences} />;
+  }
 
   if (variant === "text") {
     return (

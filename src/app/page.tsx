@@ -9,6 +9,7 @@ import { UpcomingEvents } from "@/components/events/upcoming-events";
 import { FeaturedProjects } from "@/components/projects/featured-projects";
 import { JsonLd } from "@/components/seo/json-ld";
 import { siteJsonLd } from "@/lib/structured-data";
+import { parseListingState } from "@/lib/listing-view";
 import church from "../../public/home/sint-theresiakerk.webp";
 
 // Rendered per request (dynamic-content-listings): the upcoming-events preview
@@ -16,7 +17,17 @@ import church from "../../public/home/sint-theresiakerk.webp";
 // no CDN-cache lag — matching the listing pages.
 export const dynamic = "force-dynamic";
 
-export default function HomePage() {
+// Upcoming events: first 6, "Meer laden" adds 6, within the agenda's 90 days so
+// loading more is not flooded by a year of weekly repeats (event-list-table-view D4).
+const EVENTS_INITIAL = 6;
+const EVENTS_HORIZON_DAYS = 90;
+
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const listing = parseListingState(await searchParams, EVENTS_INITIAL);
   return (
     <>
       <JsonLd data={siteJsonLd()} />
@@ -62,8 +73,15 @@ export default function HomePage() {
           <UpcomingEvents
             title="Binnenkort in de buurt"
             subtitle="Vandaag en in de komende weken."
-            limit={6}
+            limit={EVENTS_INITIAL}
             variant="image"
+            horizonDays={EVENTS_HORIZON_DAYS}
+            switchable={{
+              state: listing,
+              basePath: "/",
+              initialCount: EVENTS_INITIAL,
+              batch: EVENTS_INITIAL,
+            }}
           />
         </Container>
       </div>

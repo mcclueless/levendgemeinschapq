@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/card";
 import { EventList } from "@/components/events/event-list";
 import { getUpcomingEvents } from "@/content/events";
 import { AdminListingNotice } from "@/components/admin/admin-listing-notice";
+import { LoadMore, ViewSwitch } from "@/components/events/listing-controls";
+import { LISTING_ANCHOR, parseListingState } from "@/lib/listing-view";
 
 // Rendered per request (dynamic-content-listings): reads S3 live so a
 // publish/edit/hide/delete shows on the next request, with no CDN-cache lag.
@@ -19,9 +21,24 @@ export const metadata: Metadata = {
 // full listing with a year of repeats (events spec: today + upcoming).
 const AGENDA_HORIZON_DAYS = 90;
 
-export default async function AgendaPage() {
+// First 12, "Meer laden" adds 12 within the 90 days (event-list-table-view D3).
+const AGENDA_INITIAL = 12;
+
+export default async function AgendaPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const state = parseListingState(await searchParams, AGENDA_INITIAL);
+  const listing = {
+    state,
+    basePath: "/agenda",
+    initialCount: AGENDA_INITIAL,
+    batch: AGENDA_INITIAL,
+  };
   const { occurrences, total } = await getUpcomingEvents({
     horizonDays: AGENDA_HORIZON_DAYS,
+    limit: state.count,
   });
 
   return (
@@ -35,9 +52,18 @@ export default async function AgendaPage() {
           : "Er staan op dit moment geen evenementen gepland. Kom snel terug!"}
       </p>
 
-      <div className="mt-10">
-        <EventList occurrences={occurrences} variant="image" />
-      </div>
+      <section id={LISTING_ANCHOR} className="mt-10 scroll-mt-24">
+        {total > 0 ? (
+          <div className="mb-5">
+            <ViewSwitch listing={listing} />
+          </div>
+        ) : null}
+        <EventList
+          occurrences={occurrences}
+          variant={state.view === "tabel" ? "table" : "image"}
+        />
+        <LoadMore listing={listing} shown={occurrences.length} total={total} />
+      </section>
     </Container>
   );
 }
