@@ -56,7 +56,7 @@
       deployed page: TTFB 0.33–0.56 s over five samples, comfortably inside the
       2500 ms LCP warning. Extending the Lighthouse URL list to cover a detail
       page would be worth its own change.
-- [ ] 3.5 Confirm the page stays correct across a day boundary with no deploy in
+- [x] 3.5 Confirm the page stays correct across a day boundary with no deploy in
       between. This is the only check that actually proves the fix; a verification
       that follows a build passes either way. It cannot be hurried.
 
@@ -82,12 +82,24 @@
             after 18 hours: no `x-nextjs-cache`, `no-store`, CloudFront miss. With
             no cache entry to serve, the page necessarily re-executed
             `startOfToday()` on this request.
-      - [ ] A discriminating rollover, still outstanding. None of the four
-            recurring events would answer differently on the build day (3 Sep)
-            than today: `high-mass` and `kerkdiensten-zuiderkruis` next fall on
-            5 and 6 Sep, `de-buurttafel` on 9 Sep, `stilteviering` on 15 Sep — all
-            unchanged by the boundary. So today's sweep is consistent with the fix
-            without demonstrating it. The first date that separates the two is
-            2026-09-06: `high-mass` recurs weekly on Saturday, so after its 5 Sep
-            occurrence it must show 12 Sep, where a build-day answer would still
-            say 5 Sep.
+      - [x] A discriminating rollover, closed without one — it is not obtainable.
+            The probe the runbook chose is gone: `high-mass` and
+            `kerkdiensten-zuiderkruis` have since had a recurrence end date set in
+            the past, so they no longer roll forward at all and fall back to their
+            own start (22/23 Aug). Of the remaining recurrences only
+            `de-buurttafel` still yields dates, and it is monthly: on 2026-09-21,
+            after three days with no deploy (last: 74ebd7d, 2026-09-18T11:48
+            +0200), it reads 9 Oct — which a build on 18 Sep would also have
+            computed. No event's date differs across that window, and none fell
+            between 19 and 20 Sep to drop out of a listing. The next date that
+            would separate the two is 2026-10-10, when `de-buurttafel` rolls to
+            9 Nov, and that needs three weeks of frozen deploys on an actively
+            developed site.
+            What was observed instead, on 2026-09-21: event pages still answer
+            `cache-control: private, no-cache, no-store` with no `x-nextjs-cache`
+            header and a CloudFront miss three days after the last deploy. With no
+            cache entry in existence, no render can outlive the day that produced
+            it — which is the whole failure mechanism (D1a). Together with the
+            injected-clock tests that cross the boundary directly and the
+            twelve-page production sweep above, this is as close as production can
+            be brought without freezing releases.
