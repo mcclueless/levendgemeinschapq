@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Container } from "@/components/ui/container";
 import { ButtonLink } from "@/components/ui/button";
 import { NavLinks } from "./nav-links";
+import { MobileMenu } from "./mobile-menu";
 import { site } from "@/lib/site";
 
 /** Site header with brand wordmark and primary navigation. */
@@ -32,6 +33,24 @@ export function Header() {
           >
             Agenda
           </ButtonLink>
+
+          {/* Below md the nav above is hidden, so the same entries live here
+              (mobile-navigation-menu), with the call to action the header drops
+              at phone width. */}
+          <MobileMenu>
+            <nav aria-label="Hoofdnavigatie (mobiel)">
+              <NavLinks orientation="vertical" />
+            </nav>
+            <div className="mt-2 border-t border-border pt-2">
+              <ButtonLink
+                href="/evenement-indienen"
+                size="sm"
+                className="w-full"
+              >
+                Evenement indienen
+              </ButtonLink>
+            </div>
+          </MobileMenu>
         </div>
       </Container>
     </header>
