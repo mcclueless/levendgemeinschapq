@@ -41,11 +41,9 @@ export default async function NewProjectPage() {
           <ImageField pool={pool} />
         </Field>
 
-        <Field label="Locatie" htmlFor="venue" required>
-          <Select id="venue" name="venue" required defaultValue="">
-            <option value="" disabled>
-              Kies een locatie…
-            </option>
+        <Field label="Locatie" htmlFor="venue">
+          <Select id="venue" name="venue" defaultValue="">
+            <option value="">Geen locatie</option>
             {venues.map((v) => (
               <option key={v.slug} value={v.slug}>
                 {v.name}

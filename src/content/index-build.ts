@@ -14,8 +14,8 @@ export interface ContentIndex {
     slug: string;
     title: string;
     start: string;
-    venue: string;
-    organiser: string;
+    venue?: string;
+    organiser?: string;
     status: string;
     uid?: string;
     recurring: boolean;

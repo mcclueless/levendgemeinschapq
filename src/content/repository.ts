@@ -82,8 +82,10 @@ const loadEvents = cache(async (): Promise<CalendarEvent[]> => {
     title: d.data.title,
     start: d.data.start,
     end: d.data.end,
-    venue: venues.get(d.data.venue) ?? null,
-    organiser: organisers.get(d.data.organiser) ?? null,
+    // Absent and unresolvable both become null: to a reader they mean the same
+    // thing, and every public surface omits what is null.
+    venue: d.data.venue ? venues.get(d.data.venue) ?? null : null,
+    organiser: d.data.organiser ? organisers.get(d.data.organiser) ?? null : null,
     featuredImage: d.data.featuredImage,
     excerpt: d.data.excerpt,
     socials: d.data.socials,
@@ -136,7 +138,7 @@ const loadProjects = cache(async (): Promise<Project[]> => {
     slug: d.slug,
     title: d.data.title,
     date: d.data.date,
-    venue: venues.get(d.data.venue) ?? null,
+    venue: d.data.venue ? venues.get(d.data.venue) ?? null : null,
     organisers: resolve(d.data.organisers, organisers),
     featuredImage: d.data.featuredImage,
     excerpt: d.data.excerpt,

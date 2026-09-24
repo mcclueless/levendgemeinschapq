@@ -60,11 +60,9 @@ export default async function NewEventPage({
         </div>
 
         <div className="grid gap-5 sm:grid-cols-2">
-          <Field label="Locatie" htmlFor="venue" required>
-            <Select id="venue" name="venue" required defaultValue="">
-              <option value="" disabled>
-                Kies een locatie…
-              </option>
+          <Field label="Locatie" htmlFor="venue">
+            <Select id="venue" name="venue" defaultValue="">
+              <option value="">Geen locatie</option>
               {venues.map((v) => (
                 <option key={v.slug} value={v.slug}>
                   {v.name}
@@ -72,11 +70,9 @@ export default async function NewEventPage({
               ))}
             </Select>
           </Field>
-          <Field label="Organisator" htmlFor="organiser" required>
-            <Select id="organiser" name="organiser" required defaultValue="">
-              <option value="" disabled>
-                Kies een organisator…
-              </option>
+          <Field label="Organisator" htmlFor="organiser">
+            <Select id="organiser" name="organiser" defaultValue="">
+              <option value="">Geen organisator</option>
               {organisers.map((o) => (
                 <option key={o.slug} value={o.slug}>
                   {o.name}

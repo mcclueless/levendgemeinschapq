@@ -94,9 +94,14 @@ export const EventFrontmatter = z.object({
   title: z.string().min(1),
   start: eventDateTime(),
   end: eventDateTime().optional(),
-  /** Slug references resolved against venue/organiser records. */
-  venue: z.string().min(1),
-  organiser: z.string().min(1),
+  /**
+   * Slug references resolved against venue/organiser records. Optional: plenty
+   * of real entries have no fixed address or no organisation behind them, and
+   * requiring one only got a wrong address typed in. `min(1)` stays inside the
+   * optional, so a reference is a real slug or absent — never an empty string.
+   */
+  venue: z.string().min(1).optional(),
+  organiser: z.string().min(1).optional(),
   featuredImage: z.string().optional(),
   excerpt: z.string().optional(),
   socials: SocialsSchema,
@@ -164,7 +169,7 @@ export type BlogFrontmatter = z.infer<typeof BlogFrontmatter>;
 
 /**
  * Project — a neighbourhood initiative (projects spec). Inherits Location and
- * Organiser *references* (resolved to records at read time): exactly one venue,
+ * Organiser *references* (resolved to records at read time): an optional venue,
  * one or more organisers. `date` is stamped automatically on save and used only
  * for newest-first ordering — it is not an editor-entered field (design D2).
  * Admin-only: no submission/review metadata (design D4).
@@ -172,8 +177,12 @@ export type BlogFrontmatter = z.infer<typeof BlogFrontmatter>;
 export const ProjectFrontmatter = z.object({
   title: z.string().min(1),
   date: z.coerce.date(),
-  /** Slug references resolved against venue/organiser records. */
-  venue: z.string().min(1),
+  /**
+   * Slug references resolved against venue/organiser records. The location is
+   * optional — an initiative can cover the whole neighbourhood — but a project
+   * still names who is behind it.
+   */
+  venue: z.string().min(1).optional(),
   organisers: z.array(z.string().min(1)).min(1),
   featuredImage: z.string().optional(),
   excerpt: z.string().optional(),

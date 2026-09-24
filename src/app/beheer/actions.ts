@@ -199,7 +199,10 @@ export async function createEvent(formData: FormData) {
   const start = str(formData, "start");
   const venue = str(formData, "venue");
   const organiser = str(formData, "organiser");
-  if (!title || !start || !venue || !organiser) {
+  // Venue and organiser are optional here (optional-venue-and-organiser): an
+  // unselected value arrives as undefined and is left out of the document. The
+  // public submission form still requires both.
+  if (!title || !start) {
     redirect("/beheer/nieuw/evenement?error=1");
   }
   const end = str(formData, "end");
@@ -332,8 +335,9 @@ export async function createProject(formData: FormData) {
   const title = str(formData, "title");
   const venue = str(formData, "venue");
   const organisers = organisersFrom(formData);
-  // One location and at least one organiser are required (projects spec).
-  if (!title || !venue || organisers.length === 0) {
+  // The location is optional; a project still names who is behind it
+  // (projects spec).
+  if (!title || organisers.length === 0) {
     redirect("/beheer/nieuw/project?error=1");
   }
   const projectImage = await coverImage(formData, "/beheer/nieuw/project");
@@ -371,7 +375,7 @@ export async function updateEvent(formData: FormData) {
   const start = str(formData, "start");
   const venue = str(formData, "venue");
   const organiser = str(formData, "organiser");
-  if (!title || !start || !venue || !organiser) {
+  if (!title || !start) {
     redirect(`${adminListPath("event")}/${slug}/bewerken?error=1`);
   }
   const back = `${adminListPath("event")}/${slug}/bewerken`;
@@ -521,7 +525,7 @@ export async function updateProject(formData: FormData) {
   const title = str(formData, "title");
   const venue = str(formData, "venue");
   const organisers = organisersFrom(formData);
-  if (!title || !venue || organisers.length === 0) {
+  if (!title || organisers.length === 0) {
     redirect(`${adminListPath("project")}/${slug}/bewerken?error=1`);
   }
   const projectImage = await coverImage(formData, `${adminListPath("project")}/${slug}/bewerken`);

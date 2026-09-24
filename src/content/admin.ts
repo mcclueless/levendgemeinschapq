@@ -20,9 +20,10 @@ export interface PendingEvent {
   title: string;
   start: string;
   end?: string;
-  venueSlug: string;
+  /** Absent when the event names none; see `label()` for what is displayed. */
+  venueSlug?: string;
   venueName: string;
-  organiserSlug: string;
+  organiserSlug?: string;
   organiserName: string;
   /**
    * The proposed series, not just its interval — a submitter can now say
@@ -70,8 +71,11 @@ export async function getPendingSubmissions(): Promise<Submission[]> {
 
   const venueName = new Map(venues.map((v) => [v.slug, v.data.name]));
   const organiserName = new Map(organisers.map((o) => [o.slug, o.data.name]));
-  const label = (map: Map<string, string>, slug: string) =>
-    map.get(slug) ?? `${slug} (onbekend)`;
+  // A reviewer has to tell a deliberate omission from broken data: an event may
+  // name no venue or organiser at all, which is different from naming one that
+  // no longer exists.
+  const label = (map: Map<string, string>, slug: string | undefined, none: string) =>
+    slug === undefined ? none : map.get(slug) ?? `${slug} (onbekend)`;
 
   const submissions: Submission[] = [];
 
@@ -84,9 +88,9 @@ export async function getPendingSubmissions(): Promise<Submission[]> {
       start: e.data.start.toISOString(),
       end: e.data.end?.toISOString(),
       venueSlug: e.data.venue,
-      venueName: label(venueName, e.data.venue),
+      venueName: label(venueName, e.data.venue, "Geen locatie"),
       organiserSlug: e.data.organiser,
-      organiserName: label(organiserName, e.data.organiser),
+      organiserName: label(organiserName, e.data.organiser, "Geen organisator"),
       recurrence: e.data.recurrence
         ? {
             freq: e.data.recurrence.freq,

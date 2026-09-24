@@ -107,8 +107,9 @@ export default async function EditPage({
             </Field>
           </div>
           <div className="grid gap-5 sm:grid-cols-2">
-            <Field label="Locatie" htmlFor="venue" required>
-              <Select id="venue" name="venue" required defaultValue={d.venue}>
+            <Field label="Locatie" htmlFor="venue">
+              <Select id="venue" name="venue" defaultValue={d.venue ?? ""}>
+                <option value="">Geen locatie</option>
                 {venues.map((v) => (
                   <option key={v.slug} value={v.slug}>
                     {v.name}
@@ -116,13 +117,13 @@ export default async function EditPage({
                 ))}
               </Select>
             </Field>
-            <Field label="Organisator" htmlFor="organiser" required>
+            <Field label="Organisator" htmlFor="organiser">
               <Select
                 id="organiser"
                 name="organiser"
-                required
-                defaultValue={d.organiser}
+                defaultValue={d.organiser ?? ""}
               >
+                <option value="">Geen organisator</option>
                 {organisers.map((o) => (
                   <option key={o.slug} value={o.slug}>
                     {o.name}
@@ -290,8 +291,9 @@ export default async function EditPage({
           <Field label="Uitgelichte afbeelding" htmlFor="image">
             <ImageField pool={pool} current={d.featuredImage} />
           </Field>
-          <Field label="Locatie" htmlFor="venue" required>
-            <Select id="venue" name="venue" required defaultValue={d.venue}>
+          <Field label="Locatie" htmlFor="venue">
+            <Select id="venue" name="venue" defaultValue={d.venue ?? ""}>
+              <option value="">Geen locatie</option>
               {venues.map((v) => (
                 <option key={v.slug} value={v.slug}>
                   {v.name}
