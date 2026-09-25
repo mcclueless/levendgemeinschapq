@@ -11,6 +11,7 @@ import {
 } from "@/components/admin/form";
 import { ImageField } from "@/components/admin/image-field";
 import { SocialFields } from "@/components/admin/social-fields";
+import { DateListField } from "@/components/admin/date-list-field";
 import { AddressAutocomplete } from "@/components/admin/address-autocomplete";
 import { PermalinkForm } from "@/components/admin/permalink-form";
 import { requireAdmin } from "@/lib/auth-server";
@@ -19,6 +20,7 @@ import { getOrganisers, getVenues } from "@/content/repository";
 import { listMedia } from "@/content/media";
 import { ADMIN_SEGMENT_TO_TYPE, type AdminSegment } from "@/lib/routes";
 import { toSiteInputValue } from "@/lib/date";
+import { normaliseDates } from "@/content/event-dates";
 import {
   updateBlog,
   updateEvent,
@@ -157,6 +159,7 @@ export default async function EditPage({
               />
             </Field>
           </div>
+          <DateListField defaults={normaliseDates(d.dates, d.start)?.map(toSiteInputValue)} />
           <SocialFields defaults={d.socials} />
           <Field label="Korte omschrijving" htmlFor="excerpt">
             <Input id="excerpt" name="excerpt" defaultValue={d.excerpt} />

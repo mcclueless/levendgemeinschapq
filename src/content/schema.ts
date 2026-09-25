@@ -1,6 +1,7 @@
 import { z } from "zod";
 // Relative, not "@/": this module is also loaded by the `reindex` CLI.
 import { parseStoredDateTime } from "../lib/date";
+import { readStoredDates } from "./event-dates";
 
 /**
  * Frontmatter schemas for MD/MDX content (design D2).
@@ -94,6 +95,14 @@ export const EventFrontmatter = z.object({
   title: z.string().min(1),
   start: eventDateTime(),
   end: eventDateTime().optional(),
+  /**
+   * Further dates of an irregular series (event-multiple-dates D1), each read
+   * as site time like `start`. Optional, and read leniently — an unreadable
+   * entry is dropped rather than failing the document, which `parseAll` would
+   * silently skip. Mutually exclusive with `recurrence` at the form layer only
+   * (D2); expansion prefers the recurrence if both are somehow stored.
+   */
+  dates: z.preprocess(readStoredDates, z.array(z.date()).optional()),
   /**
    * Slug references resolved against venue/organiser records. Optional: plenty
    * of real entries have no fixed address or no organisation behind them, and

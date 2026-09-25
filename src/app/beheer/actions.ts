@@ -25,7 +25,7 @@ import {
   type RecurrenceFormResult,
 } from "@/content/recurrence-form";
 import { socialsFromForm } from "@/content/socials-form";
-import { validateEventRange } from "@/content/event-form";
+import { datesFromForm, validateEventRange } from "@/content/event-form";
 import { geocode, type GeocodeResult } from "@/content/geocode";
 import { syncFeed, type SyncResult } from "@/content/ical-import";
 import {
@@ -212,6 +212,10 @@ export async function createEvent(formData: FormData) {
   if (!recurrence.ok) {
     redirect(`/beheer/nieuw/evenement?error=${recurrence.reason}`);
   }
+  // Further dates of an irregular series; refused alongside a recurrence
+  // (event-multiple-dates D2, D7).
+  const dates = datesFromForm(formData, siteInputToIso(start), Boolean(recurrence.recurrence));
+  if (!dates.ok) redirect(`/beheer/nieuw/evenement?error=${dates.reason}`);
   // Validate before the upload, so a rejected form does not leave a stored file
   // behind for a document that was never created.
   const socials = socialsOrRedirect(formData, "/beheer/nieuw/evenement");
@@ -230,6 +234,7 @@ export async function createEvent(formData: FormData) {
       featuredImage: eventImage,
       socials,
       recurrence: recurrence.recurrence,
+      dates: dates.dates,
       status: formData.get("publish") ? "published" : "draft",
     },
     str(formData, "body") ?? "",
@@ -394,6 +399,12 @@ export async function updateEvent(formData: FormData) {
     stored?.data.recurrence?.interval,
   );
   if (!recurrence.ok) redirect(`${back}?error=${recurrence.reason}`);
+  // The edit form presents the whole list, so what it posts replaces what is
+  // stored — an emptied list removes the field. Paths that do not present the
+  // list (approval, import adoption, permalink change) never mention it, and
+  // the merge keeps it (event-multiple-dates D7).
+  const dates = datesFromForm(formData, siteInputToIso(start), Boolean(recurrence.recurrence));
+  if (!dates.ok) redirect(`${back}?error=${dates.reason}`);
   const socials = socialsOrRedirect(formData, back);
   const eventImage = await coverImage(formData, back);
   await updateDocument(
@@ -409,6 +420,7 @@ export async function updateEvent(formData: FormData) {
       excerpt: str(formData, "excerpt"),
       socials,
       recurrence: recurrence.recurrence,
+      dates: dates.dates,
       ...(eventImage ? { featuredImage: eventImage } : {}),
     },
     str(formData, "body") ?? "",

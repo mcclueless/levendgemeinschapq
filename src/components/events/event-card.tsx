@@ -4,6 +4,7 @@ import { formatWhen, isoDate } from "@/lib/date";
 import { cn } from "@/lib/cn";
 import { eventCover } from "@/lib/images";
 import type { EventOccurrence } from "@/content/types";
+import { occurrenceLink } from "@/content/event-dates";
 
 function Thumb({ src, alt }: { src?: string; alt: string }) {
   return (
@@ -24,7 +25,7 @@ export function EventCard({ occurrence }: { occurrence: EventOccurrence }) {
   const { event, start } = occurrence;
   return (
     <Card as="article" className="group overflow-hidden">
-      <Link href={event.href} className="block">
+      <Link href={occurrenceLink(event, start)} className="block">
         <Thumb src={event.featuredImage} alt={event.title} />
         <div className="p-5">
           <Badge tone="accent">
@@ -54,7 +55,7 @@ export function EventRow({
   return (
     <li className={cn("border-b border-border last:border-0", className)}>
       <Link
-        href={event.href}
+        href={occurrenceLink(event, start)}
         className="flex flex-wrap items-baseline gap-x-3 gap-y-1 py-3.5 transition-colors hover:text-brand-strong"
       >
         <time

@@ -2,6 +2,7 @@ import { cache } from "react";
 import "server-only";
 import { CONTENT_PREFIX, getStore } from "./storage";
 import { parseAll } from "./parse";
+import { normaliseDates } from "./event-dates";
 import { routes } from "@/lib/routes";
 import type {
   BlogPost,
@@ -90,6 +91,7 @@ const loadEvents = cache(async (): Promise<CalendarEvent[]> => {
     excerpt: d.data.excerpt,
     socials: d.data.socials,
     recurrence: d.data.recurrence,
+    dates: normaliseDates(d.data.dates, d.data.start),
     uid: d.data.uid,
     status: d.data.status,
     body: d.body,

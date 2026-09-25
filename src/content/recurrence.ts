@@ -69,15 +69,30 @@ function firstIndexFrom(
 }
 
 /**
+ * An event's own dates when it does not recur: its start plus any further dates
+ * (event-multiple-dates D3), sorted and without duplicates.
+ */
+function listedDates(start: Date, dates: readonly Date[] | undefined): Date[] {
+  if (!dates?.length) return [start];
+  const byTime = new Map<number, Date>([[start.getTime(), start]]);
+  for (const d of dates) byTime.set(d.getTime(), d);
+  return [...byTime.values()].sort((a, b) => a.getTime() - b.getTime());
+}
+
+/**
  * The next occurrence at or after `from`, or null if the event/recurrence has
- * fully elapsed. A non-recurring event yields its start if it is in range.
+ * fully elapsed. A non-recurring event yields the first of its start and its
+ * further `dates` that is in range. With a recurrence, `dates` is ignored: an
+ * event repeats on a rule or names its dates, never both (event-multiple-dates
+ * D2), so behaviour is defined rather than merged if both are stored.
  */
 export function firstOccurrenceFrom(
   start: Date,
   recurrence: Recurrence | undefined,
   from: Date,
+  dates?: readonly Date[],
 ): Date | null {
-  if (!recurrence) return start >= from ? start : null;
+  if (!recurrence) return listedDates(start, dates).find((d) => d >= from) ?? null;
   const n = firstIndexFrom(start, recurrence, from);
   return n === null ? null : occurrenceAt(start, recurrence, n);
 }
@@ -86,17 +101,19 @@ export function firstOccurrenceFrom(
 export const nextOccurrence = firstOccurrenceFrom;
 
 /**
- * Return occurrence start dates for an event between `from` and `horizon`.
- * A non-recurring event yields its single start if it falls in range.
+ * Return occurrence start dates for an event between `from` and `horizon`,
+ * soonest first. A non-recurring event yields each of its start and its further
+ * `dates` that falls in range; with a recurrence, `dates` is ignored (D2).
  */
 export function occurrencesInRange(
   start: Date,
   recurrence: Recurrence | undefined,
   from: Date,
   horizon: Date,
+  dates?: readonly Date[],
 ): Date[] {
   if (!recurrence) {
-    return start >= from && start <= horizon ? [start] : [];
+    return listedDates(start, dates).filter((d) => d >= from && d <= horizon);
   }
 
   const { until } = recurrence;

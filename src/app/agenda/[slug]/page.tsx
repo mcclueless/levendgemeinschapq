@@ -5,8 +5,9 @@ import { Container } from "@/components/ui/container";
 import { Badge } from "@/components/ui/card";
 import { Mdx } from "@/components/mdx/mdx";
 import { getEvent } from "@/content/repository";
-import { nextOccurrence } from "@/content/recurrence";
-import { formatDateLong, formatTime, isoDate, startOfToday } from "@/lib/date";
+import { presentOccurrence } from "@/content/event-presentation";
+import { DATE_PARAM, occurrenceHref } from "@/content/event-dates";
+import { formatDateLong, formatTime, formatWhen, isoDate, startOfToday } from "@/lib/date";
 import { pageMetadata } from "@/lib/metadata";
 import { shareDescription, shareTitle } from "@/lib/share-preview";
 import { recurrenceLabel } from "@/lib/recurrence-label";
@@ -36,21 +37,32 @@ import { adminEditPath } from "@/lib/routes";
  * The date must stay server-rendered: preview crawlers run no JavaScript, so
  * computing it in the browser would fix the page and leave every share card
  * wrong (D2).
+ *
+ * `?datum=YYYY-MM-DD` presents one date of the event (event-multiple-dates D5).
+ * The canonical URL stays the bare path, so dated links do not compete with it
+ * in search results.
  */
 export const dynamic = "force-dynamic";
 
+type PageProps = {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
 export async function generateMetadata({
   params,
-}: {
-  params: Promise<{ slug: string }>;
-}): Promise<Metadata> {
+  searchParams,
+}: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const event = await getEvent(slug);
   if (!event) return {};
   // The same occurrence the page body renders, so a shared card never
   // advertises a date that differs from the page it opens (D3).
-  const when =
-    nextOccurrence(event.start, event.recurrence, startOfToday()) ?? event.start;
+  const { start: when } = presentOccurrence(
+    event,
+    startOfToday(),
+    (await searchParams)[DATE_PARAM],
+  );
   return pageMetadata({
     title: event.title,
     description: event.excerpt,
@@ -66,16 +78,17 @@ export async function generateMetadata({
   });
 }
 
-export default async function EventPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
+export default async function EventPage({ params, searchParams }: PageProps) {
   const { slug } = await params;
   const event = await getEvent(slug);
   if (!event) notFound();
 
-  const when = nextOccurrence(event.start, event.recurrence, startOfToday()) ?? event.start;
+  const shown = presentOccurrence(
+    event,
+    startOfToday(),
+    (await searchParams)[DATE_PARAM],
+  );
+  const when = shown.start;
 
   return (
     <>
@@ -86,7 +99,7 @@ export default async function EventPage({
         editHref={adminEditPath("event", event.slug)}
       />
       <Container className="py-14">
-        <JsonLd data={eventJsonLd(event, when)} />
+        <JsonLd data={eventJsonLd(event, shown)} />
 
         <div className="max-w-3xl">
           {/* Cover image — uploaded featured image, or the branded default. */}
@@ -103,12 +116,42 @@ export default async function EventPage({
                 {formatDateLong(when)} · {formatTime(when)}
               </time>
             </Badge>
+            {/* Marked only where there is a choice of dates, so a single-date
+                event renders exactly as before (event-multiple-dates). */}
+            {shown.past && (shown.others.length > 0 || shown.requested) ? (
+              <Badge tone="neutral">Geweest</Badge>
+            ) : null}
             {event.recurrence ? (
               <Badge tone="success">
                 {recurrenceLabel(event.recurrence)}
               </Badge>
             ) : null}
           </div>
+
+          {shown.others.length > 0 ? (
+            <div className="mt-4">
+              <h2 id="other-dates" className="text-sm font-medium text-muted">
+                Ook op
+              </h2>
+              <ul aria-labelledby="other-dates" className="mt-1 flex flex-wrap gap-x-4 gap-y-1">
+                {shown.others.map((o) => (
+                  <li key={o.start.getTime()}>
+                    <Link
+                      href={occurrenceHref(event.href, o.start)}
+                      className={
+                        o.past
+                          ? "text-muted hover:underline"
+                          : "font-medium text-brand-strong hover:underline"
+                      }
+                    >
+                      <time dateTime={isoDate(o.start)}>{formatWhen(o.start)}</time>
+                    </Link>
+                    {o.past ? <span className="ml-1 text-xs text-muted">(geweest)</span> : null}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
 
           <h1 className="mt-4 text-4xl sm:text-5xl">{event.title}</h1>
 

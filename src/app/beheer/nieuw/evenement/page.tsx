@@ -11,6 +11,7 @@ import {
 } from "@/components/admin/form";
 import { ImageField } from "@/components/admin/image-field";
 import { SocialFields } from "@/components/admin/social-fields";
+import { DateListField } from "@/components/admin/date-list-field";
 import { requireAdmin } from "@/lib/auth-server";
 import { getOrganisers, getVenues } from "@/content/repository";
 import { listMedia } from "@/content/media";
@@ -98,6 +99,8 @@ export default async function NewEventPage({
             <Input id="recurrenceUntil" name="recurrenceUntil" type="date" />
           </Field>
         </div>
+
+        <DateListField />
 
         <SocialFields />
 

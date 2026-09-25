@@ -47,16 +47,23 @@ export interface CalendarEvent {
   excerpt?: string;
   socials?: Socials;
   recurrence?: Recurrence;
+  /** Further dates beyond `start`, normalised; absent when there are none. */
+  dates?: Date[];
   uid?: string;
   status: PublishStatus;
   body: string;
   href: string;
 }
 
-/** A single dated occurrence of an event (recurring events yield several). */
+/**
+ * A single dated occurrence of an event (recurring events and date series yield
+ * several). `end` is this occurrence's own end — its start plus the event's
+ * duration — so no surface pairs a later start with the first occurrence's end.
+ */
 export interface EventOccurrence {
   event: CalendarEvent;
   start: Date;
+  end?: Date;
 }
 
 export interface BlogPost {

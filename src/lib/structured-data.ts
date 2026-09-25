@@ -4,13 +4,21 @@ import type { BlogPost, CalendarEvent, Organiser, Venue } from "@/content/types"
 /** Absolute URL for a site-relative path. */
 export const absolute = (path: string) => `${site.url}${path}`;
 
-export function eventJsonLd(event: CalendarEvent, when: Date) {
+/**
+ * Structured data for the occurrence an event page presents: its own start and
+ * its own end (event-multiple-dates D4). Emitting `event.end` here paired a later
+ * occurrence's start with the first occurrence's end.
+ */
+export function eventJsonLd(
+  event: CalendarEvent,
+  occurrence: { start: Date; end?: Date },
+) {
   return {
     "@context": "https://schema.org",
     "@type": "Event",
     name: event.title,
-    startDate: when.toISOString(),
-    ...(event.end ? { endDate: event.end.toISOString() } : {}),
+    startDate: occurrence.start.toISOString(),
+    ...(occurrence.end ? { endDate: occurrence.end.toISOString() } : {}),
     eventStatus: "https://schema.org/EventScheduled",
     description: event.excerpt,
     ...(event.featuredImage ? { image: [event.featuredImage] } : {}),

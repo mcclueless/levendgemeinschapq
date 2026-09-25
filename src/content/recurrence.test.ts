@@ -5,7 +5,7 @@ import {
   nextOccurrence,
   occurrencesInRange,
 } from "./recurrence";
-import { formatDate, startOfToday } from "@/lib/date";
+import { formatDate, siteWallTime, startOfToday } from "@/lib/date";
 import type { Recurrence } from "./schema";
 
 /**
@@ -131,4 +131,76 @@ test("on the day of an occurrence it is still shown, not skipped", () => {
   // event, not next week's.
   const onTheDay = nextOccurrence(start, weekly(), startOfToday(new Date(2026, 8, 9, 12, 0)));
   assert.deepEqual(onTheDay, new Date(2026, 8, 9));
+});
+
+// ── Further dates (event-multiple-dates D3) ─────────────────────────────────
+// Built in Amsterdam wall time so the expectations hold under `TZ=UTC` too.
+
+const oct = (d: number, h = 20) => siteWallTime(2026, 10, d, h, 0);
+const series = { start: oct(3), dates: [oct(17), siteWallTime(2026, 11, 8, 20, 0)] };
+
+test("an event without further dates behaves exactly as before", () => {
+  const from = oct(1);
+  const horizon = oct(31);
+  assert.deepEqual(occurrencesInRange(oct(3), undefined, from, horizon, undefined), [oct(3)]);
+  assert.deepEqual(occurrencesInRange(oct(3), undefined, from, horizon, []), [oct(3)]);
+  assert.deepEqual(firstOccurrenceFrom(oct(3), undefined, from, []), oct(3));
+  assert.equal(firstOccurrenceFrom(oct(3), undefined, oct(4), undefined), null);
+});
+
+test("listed dates inside the range are each an occurrence, and those outside are not", () => {
+  assert.deepEqual(
+    occurrencesInRange(series.start, undefined, oct(1), oct(31), series.dates),
+    [oct(3), oct(17)], // 8 November is past the horizon
+  );
+  assert.deepEqual(
+    occurrencesInRange(series.start, undefined, oct(10), siteWallTime(2026, 12, 1), series.dates),
+    [oct(17), siteWallTime(2026, 11, 8, 20, 0)], // 3 October has passed
+  );
+});
+
+test("listed dates are returned in order even when stored out of order", () => {
+  // The start need not be the earliest date: an editor may add one before it.
+  assert.deepEqual(
+    occurrencesInRange(oct(17), undefined, oct(1), oct(31), [oct(24), oct(3)]),
+    [oct(3), oct(17), oct(24)],
+  );
+});
+
+test("a listed date equal to the start is one occurrence, not two", () => {
+  assert.deepEqual(
+    occurrencesInRange(oct(3), undefined, oct(1), oct(31), [new Date(oct(3).getTime())]),
+    [oct(3)],
+  );
+});
+
+test("the first occurrence is the next listed date once the start has passed", () => {
+  assert.deepEqual(firstOccurrenceFrom(series.start, undefined, oct(4), series.dates), oct(17));
+  // On the day itself the date is still the one to show.
+  assert.deepEqual(
+    firstOccurrenceFrom(series.start, undefined, startOfToday(oct(17, 23)), series.dates),
+    oct(17),
+  );
+});
+
+test("when every listed date has passed there is no next occurrence", () => {
+  assert.equal(firstOccurrenceFrom(series.start, undefined, siteWallTime(2026, 12, 1), series.dates), null);
+  assert.deepEqual(
+    occurrencesInRange(series.start, undefined, siteWallTime(2026, 12, 1), siteWallTime(2027, 12, 1), series.dates),
+    [],
+  );
+});
+
+test("a recurrence wins over listed dates if both are somehow stored", () => {
+  const withRule = occurrencesInRange(oct(3), weekly(1, oct(17)), oct(1), oct(31), [oct(5)]);
+  assert.deepEqual(withRule, [oct(3), oct(10), oct(17)]);
+  assert.deepEqual(firstOccurrenceFrom(oct(3), weekly(1, oct(17)), oct(4), [oct(5)]), oct(10));
+});
+
+test("listed dates sort among other events' occurrences by their own date", () => {
+  // What getUpcomingEvents does: flatten every event's occurrences, then sort.
+  const other = occurrencesInRange(oct(10), undefined, oct(1), oct(31));
+  const mine = occurrencesInRange(series.start, undefined, oct(1), oct(31), series.dates);
+  const merged = [...mine, ...other].sort((a, b) => a.getTime() - b.getTime());
+  assert.deepEqual(merged, [oct(3), oct(10), oct(17)]);
 });

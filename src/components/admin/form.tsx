@@ -1,4 +1,5 @@
 import { cn } from "@/lib/cn";
+import { MAX_EVENT_DATES } from "@/content/event-dates";
 
 /** Shared, accessible form primitives for the editorial backend. */
 
@@ -30,7 +31,7 @@ export function Field({
 const control =
   "w-full rounded-md border border-border bg-surface px-3 py-2 text-base text-ink focus-visible:outline-3 focus-visible:outline-offset-1";
 
-export function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
+export function Input(props: React.ComponentProps<"input">) {
   return <input {...props} className={cn(control, props.className)} />;
 }
 
@@ -95,6 +96,11 @@ export const FORM_ERRORS: Record<string, string> = {
     "Kies een einddatum voor de herhaling — een herhalend evenement moet een einddatum hebben.",
   "recurrence-range":
     "De einddatum van de herhaling ligt vóór de startdatum van het evenement.",
+  "recurrence-and-dates":
+    "Een evenement herhaalt zich óf heeft losse extra data, niet allebei. Kies bij Herhaling ‘Eenmalig’ of verwijder de extra data.",
+  "dates-invalid":
+    "Een van de extra data is geen geldige datum en tijd. Controleer de extra data.",
+  "dates-too-many": `Een evenement kan hoogstens ${MAX_EVENT_DATES} extra data hebben.`,
   "range-end-before-start":
     "Het einde van het evenement ligt vóór de start. Controleer de start- en einddatum.",
   "upload-type":

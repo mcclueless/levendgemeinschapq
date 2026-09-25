@@ -2,19 +2,20 @@ import Link from "next/link";
 import { formatDate, formatTime, isoDate } from "@/lib/date";
 import { recurrenceLabel } from "@/lib/recurrence-label";
 import type { EventOccurrence } from "@/content/types";
+import { occurrenceLink } from "@/content/event-dates";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 /**
- * "19:30" or "19:30–21:00". The end comes from the event's own duration applied
- * to this occurrence, so a weekly event's later dates get the right end. A
+ * "19:30" or "19:30–21:00". The end is the occurrence's own (the event's
+ * duration applied to this date), so a series' later dates get the right end. A
  * duration of a day or more (an all-day or multi-day event) shows the start only;
  * "00:00–00:00" would say nothing.
  */
-function timeRange({ event, start }: EventOccurrence): string {
-  const duration = event.end ? event.end.getTime() - event.start.getTime() : 0;
+function timeRange({ start, end }: EventOccurrence): string {
+  const duration = end ? end.getTime() - start.getTime() : 0;
   if (duration <= 0 || duration >= DAY_MS) return formatTime(start);
-  return `${formatTime(start)}–${formatTime(new Date(start.getTime() + duration))}`;
+  return `${formatTime(start)}–${formatTime(end!)}`;
 }
 
 const COLUMNS = ["Datum", "Tijd", "Evenement", "Locatie", "Organisator", "Herhaling"] as const;
@@ -88,7 +89,7 @@ export function EventTable({ occurrences }: { occurrences: EventOccurrence[] }) 
                 {timeRange(o)}
               </Cell>
               <Cell label="Evenement">
-                <Link href={event.href} className={link}>
+                <Link href={occurrenceLink(event, start)} className={link}>
                   {event.title}
                 </Link>
               </Cell>

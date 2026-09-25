@@ -1,6 +1,7 @@
 import "server-only";
 import { getAllEvents } from "./repository";
 import { occurrencesInRange } from "./recurrence";
+import { occurrenceEnd } from "./event-dates";
 import { addDays, startOfToday } from "@/lib/date";
 import type { EventOccurrence } from "./types";
 
@@ -25,8 +26,9 @@ export interface UpcomingResult {
 
 /**
  * Upcoming-events query (events spec): occurrences today or in the future,
- * ordered soonest first, with an optional cap. Recurring events contribute one
- * occurrence per future date within the horizon.
+ * ordered soonest first, with an optional cap. Recurring events and date series
+ * contribute one occurrence per future date within the horizon, each carrying
+ * its own end (event-multiple-dates D4).
  */
 export async function getUpcomingEvents(
   query: UpcomingQuery = {},
@@ -46,8 +48,9 @@ export async function getUpcomingEvents(
       event.recurrence,
       from,
       horizon,
+      event.dates,
     )) {
-      occurrences.push({ event, start });
+      occurrences.push({ event, start, end: occurrenceEnd(event, start) });
     }
   }
 
