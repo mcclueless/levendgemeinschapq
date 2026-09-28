@@ -191,3 +191,18 @@ export const isoDate = (d: Date) => d.toISOString();
 export function formatWhen(start: Date): string {
   return `${formatDate(start)} · ${formatTime(start)}`;
 }
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * "19:30" or "19:30–21:00" for one occurrence (event-date-end-times D1). The end
+ * shows only when the occurrence lasts more than nothing and less than a day: a
+ * zero duration says nothing, and "00:00–00:00" on an all-day or multi-day event
+ * would mislead. Shared by the table view and the event page so they cannot
+ * disagree.
+ */
+export function formatTimeRange(start: Date, end?: Date): string {
+  const duration = end ? end.getTime() - start.getTime() : 0;
+  if (duration <= 0 || duration >= DAY_MS) return formatTime(start);
+  return `${formatTime(start)}–${formatTime(end!)}`;
+}

@@ -8,6 +8,7 @@ import {
   occurrenceHref,
   occurrenceLink,
   parseDayParam,
+  previewDateEnd,
   readStoredDates,
   siteDayKey,
 } from "./event-dates";
@@ -97,4 +98,21 @@ test("a listing row links to its own date only when the event has several", () =
     occurrenceLink({ href, recurrence: { freq: "weekly" } }, at(17)),
     `${href}?datum=2026-10-17`,
   );
+});
+
+test("the admin preview shows the end a further date will receive", () => {
+  assert.equal(previewDateEnd("2026-10-17T20:00", "2026-10-03T20:00", "2026-10-03T22:00"), "22:00");
+  // Across the change to winter time the wall-clock end stays the same.
+  assert.equal(previewDateEnd("2026-11-08T19:30", "2026-09-25T19:30", "2026-09-25T20:30"), "20:30");
+});
+
+test("the admin preview shows nothing it cannot derive", () => {
+  assert.equal(previewDateEnd("", "2026-10-03T20:00", "2026-10-03T22:00"), undefined);
+  assert.equal(previewDateEnd("2026-10-17T20:00", "2026-10-03T20:00", ""), undefined);
+  assert.equal(previewDateEnd("2026-10-17T20:00", "", "2026-10-03T22:00"), undefined);
+  assert.equal(previewDateEnd("morgen", "2026-10-03T20:00", "2026-10-03T22:00"), undefined);
+  // End before start, zero duration, and a day or more.
+  assert.equal(previewDateEnd("2026-10-17T20:00", "2026-10-03T20:00", "2026-10-03T19:00"), undefined);
+  assert.equal(previewDateEnd("2026-10-17T20:00", "2026-10-03T20:00", "2026-10-03T20:00"), undefined);
+  assert.equal(previewDateEnd("2026-10-17T20:00", "2026-10-03T20:00", "2026-10-04T20:00"), undefined);
 });

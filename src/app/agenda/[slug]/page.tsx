@@ -7,7 +7,13 @@ import { Mdx } from "@/components/mdx/mdx";
 import { getEvent } from "@/content/repository";
 import { presentOccurrence } from "@/content/event-presentation";
 import { DATE_PARAM, occurrenceHref } from "@/content/event-dates";
-import { formatDateLong, formatTime, formatWhen, isoDate, startOfToday } from "@/lib/date";
+import {
+  formatDate,
+  formatDateLong,
+  formatTimeRange,
+  isoDate,
+  startOfToday,
+} from "@/lib/date";
 import { pageMetadata } from "@/lib/metadata";
 import { shareDescription, shareTitle } from "@/lib/share-preview";
 import { recurrenceLabel } from "@/lib/recurrence-label";
@@ -113,7 +119,7 @@ export default async function EventPage({ params, searchParams }: PageProps) {
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone="accent">
               <time dateTime={isoDate(when)}>
-                {formatDateLong(when)} · {formatTime(when)}
+                {formatDateLong(when)} · {formatTimeRange(when, shown.end)}
               </time>
             </Badge>
             {/* Marked only where there is a choice of dates, so a single-date
@@ -144,7 +150,9 @@ export default async function EventPage({ params, searchParams }: PageProps) {
                           : "font-medium text-brand-strong hover:underline"
                       }
                     >
-                      <time dateTime={isoDate(o.start)}>{formatWhen(o.start)}</time>
+                      <time dateTime={isoDate(o.start)}>
+                        {formatDate(o.start)} · {formatTimeRange(o.start, o.end)}
+                      </time>
                     </Link>
                     {o.past ? <span className="ml-1 text-xs text-muted">(geweest)</span> : null}
                   </li>

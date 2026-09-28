@@ -4,6 +4,7 @@ import {
   addDays,
   addMonths,
   formatTime,
+  formatTimeRange,
   parseStoredDateTime,
   siteInputToIso,
   siteWallTime,
@@ -97,4 +98,42 @@ test("adding months keeps the local time and overflows like setMonth", () => {
   assert.equal(formatTime(addMonths(new Date("2026-09-09T17:30:00Z"), 2)), "19:30");
   const jan31 = siteWallTime(2026, 1, 31, 10);
   assert.equal(addMonths(jan31, 1).toISOString(), siteWallTime(2026, 3, 3, 10).toISOString());
+});
+
+// ── Time ranges (event-date-end-times D1) ───────────────────────────────────
+// Built in Amsterdam wall time, so these hold under `TZ=UTC` too.
+
+test("a same-evening occurrence shows its start and end", () => {
+  assert.equal(
+    formatTimeRange(siteWallTime(2026, 10, 3, 19, 30), siteWallTime(2026, 10, 3, 20, 30)),
+    "19:30–20:30",
+  );
+});
+
+test("an occurrence without an end, or with a zero duration, shows its start alone", () => {
+  const start = siteWallTime(2026, 10, 3, 19, 30);
+  assert.equal(formatTimeRange(start), "19:30");
+  assert.equal(formatTimeRange(start, undefined), "19:30");
+  assert.equal(formatTimeRange(start, start), "19:30");
+});
+
+test("an occurrence of a day or more shows its start alone", () => {
+  const start = siteWallTime(2026, 10, 3, 0, 0);
+  assert.equal(formatTimeRange(start, siteWallTime(2026, 10, 4, 0, 0)), "00:00");
+  assert.equal(formatTimeRange(start, siteWallTime(2026, 10, 5, 17, 0)), "00:00");
+});
+
+test("an occurrence running past midnight still shows its range", () => {
+  assert.equal(
+    formatTimeRange(siteWallTime(2026, 10, 3, 22, 0), siteWallTime(2026, 10, 4, 1, 0)),
+    "22:00–01:00",
+  );
+});
+
+test("a range across the change to winter time reads in wall time", () => {
+  // Clocks go back at 03:00 on 25 Oct 2026: 01:30–04:30 wall time is four real hours.
+  assert.equal(
+    formatTimeRange(siteWallTime(2026, 10, 25, 1, 30), siteWallTime(2026, 10, 25, 4, 30)),
+    "01:30–04:30",
+  );
 });

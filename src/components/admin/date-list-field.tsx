@@ -1,9 +1,9 @@
 "use client";
 
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Input } from "@/components/admin/form";
 import { DATES_FIELD } from "@/content/event-form";
-import { MAX_EVENT_DATES } from "@/content/event-dates";
+import { MAX_EVENT_DATES, previewDateEnd } from "@/content/event-dates";
 
 /**
  * An event's further dates (event-multiple-dates D7): one `datetime-local` row
@@ -16,6 +16,12 @@ import { MAX_EVENT_DATES } from "@/content/event-dates";
  * Focus follows the change: a new row's input receives focus, and removing a row
  * moves focus to the next row, or to the add button when none is left, so a
  * keyboard user is never dropped at the top of the page.
+ *
+ * Each row shows the end its date will receive ("tot 22:00"), derived from the
+ * form's own start and end fields by the rule the server applies
+ * (event-date-end-times D3). It follows edits to those fields and to the row.
+ * It is described text on the row's input, not a live region, so it is read
+ * with the field rather than announced on every keystroke.
  */
 export function DateListField({ defaults = [] }: { defaults?: string[] }) {
   const baseId = useId();
@@ -26,6 +32,28 @@ export function DateListField({ defaults = [] }: { defaults?: string[] }) {
   const inputs = useRef(new Map<number, HTMLInputElement>());
   const addButton = useRef<HTMLButtonElement>(null);
   const focusKey = useRef<number | "add" | null>(null);
+
+  // The event's own start and end, read from the form's fields by id.
+  const [eventTimes, setEventTimes] = useState<{ start?: string; end?: string }>({});
+  useEffect(() => {
+    const start = document.getElementById("start") as HTMLInputElement | null;
+    const end = document.getElementById("end") as HTMLInputElement | null;
+    const read = () => setEventTimes({ start: start?.value, end: end?.value });
+    read();
+    for (const el of [start, end]) {
+      el?.addEventListener("input", read);
+      el?.addEventListener("change", read);
+    }
+    return () => {
+      for (const el of [start, end]) {
+        el?.removeEventListener("input", read);
+        el?.removeEventListener("change", read);
+      }
+    };
+  }, []);
+
+  const setValue = (key: number, value: string) =>
+    setRows((r) => r.map((row) => (row.key === key ? { ...row, value } : row)));
 
   const setInput = (key: number) => (el: HTMLInputElement | null) => {
     if (el) inputs.current.set(key, el);
@@ -64,26 +92,37 @@ export function DateListField({ defaults = [] }: { defaults?: string[] }) {
         <ul className="grid gap-2">
           {rows.map((row, i) => {
             const id = `${baseId}-date-${row.key}`;
+            const endId = `${id}-end`;
+            const end = previewDateEnd(row.value, eventTimes.start, eventTimes.end);
             return (
-              <li key={row.key} className="flex items-center gap-2">
-                <label htmlFor={id} className="sr-only">
-                  Extra datum {i + 1}
-                </label>
-                <Input
-                  ref={setInput(row.key)}
-                  id={id}
-                  name={DATES_FIELD}
-                  type="datetime-local"
-                  defaultValue={row.value}
-                  className="flex-1"
-                />
-                <button
-                  type="button"
-                  onClick={() => remove(row.key)}
-                  className="h-10 shrink-0 rounded-md border border-border px-3 text-sm text-ink hover:bg-surface-2"
-                >
-                  Verwijderen<span className="sr-only"> extra datum {i + 1}</span>
-                </button>
+              <li key={row.key} className="grid gap-1">
+                <div className="flex items-center gap-2">
+                  <label htmlFor={id} className="sr-only">
+                    Extra datum {i + 1}
+                  </label>
+                  <Input
+                    ref={setInput(row.key)}
+                    id={id}
+                    name={DATES_FIELD}
+                    type="datetime-local"
+                    defaultValue={row.value}
+                    onChange={(e) => setValue(row.key, e.currentTarget.value)}
+                    aria-describedby={end ? endId : undefined}
+                    className="flex-1"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => remove(row.key)}
+                    className="h-10 shrink-0 rounded-md border border-border px-3 text-sm text-ink hover:bg-surface-2"
+                  >
+                    Verwijderen<span className="sr-only"> extra datum {i + 1}</span>
+                  </button>
+                </div>
+                {end ? (
+                  <p id={endId} className="text-xs text-muted">
+                    tot {end}
+                  </p>
+                ) : null}
               </li>
             );
           })}

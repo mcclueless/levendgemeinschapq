@@ -1,6 +1,13 @@
 // Relative, not "@/": the schema imports this, and the schema is also loaded by
 // the `reindex` CLI.
-import { addDays, parseStoredDateTime, siteParts, siteWallTime } from "../lib/date";
+import {
+  addDays,
+  formatTime,
+  parseStoredDateTime,
+  siteInputToIso,
+  siteParts,
+  siteWallTime,
+} from "../lib/date";
 
 /**
  * An event's further dates (event-multiple-dates D1). `start` stays the anchor;
@@ -114,4 +121,39 @@ export function occurrenceLink(
   return event.recurrence || event.dates?.length
     ? occurrenceHref(event.href, start)
     : event.href;
+}
+
+// ── Admin preview (event-date-end-times D3) ─────────────────────────────────
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** A `datetime-local` value (Amsterdam wall time) as an instant, or undefined. */
+function fromInput(value: string | undefined): Date | undefined {
+  const iso = value ? siteInputToIso(value) : undefined;
+  if (!iso || iso === value) return undefined;
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? undefined : d;
+}
+
+/**
+ * The end time a further date will receive, as the admin form shows it beside
+ * the row ("22:00"). Takes the raw `datetime-local` values of the row and of the
+ * event's start and end, and applies the rule the server applies —
+ * {@link occurrenceEnd} — so the preview cannot disagree with what is saved.
+ * Undefined when there is nothing meaningful to show: an input is empty or
+ * unreadable, or the duration is zero or a day or more (`formatTimeRange`).
+ */
+export function previewDateEnd(
+  dateValue: string | undefined,
+  startValue: string | undefined,
+  endValue: string | undefined,
+): string | undefined {
+  const date = fromInput(dateValue);
+  const start = fromInput(startValue);
+  const end = fromInput(endValue);
+  if (!date || !start || !end) return undefined;
+  const occEnd = occurrenceEnd({ start, end }, date);
+  const duration = occEnd ? occEnd.getTime() - date.getTime() : 0;
+  if (duration <= 0 || duration >= DAY_MS) return undefined;
+  return formatTime(occEnd!);
 }
