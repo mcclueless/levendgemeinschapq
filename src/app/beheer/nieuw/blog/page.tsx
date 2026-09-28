@@ -6,12 +6,12 @@ import {
   Input,
   Select,
   SubmitButton,
-  Textarea,
 } from "@/components/admin/form";
 import { ImageField } from "@/components/admin/image-field";
 import { requireAdmin } from "@/lib/auth-server";
 import { getOrganisers, getVenues } from "@/content/repository";
 import { listMedia } from "@/content/media";
+import { BodyEditor } from "@/components/admin/body-editor";
 import { createBlog } from "../../actions";
 
 export const metadata: Metadata = {
@@ -55,7 +55,7 @@ export default async function NewBlogPage() {
         </Field>
 
         <Field label="Inhoud" htmlFor="body" hint="Markdown/MDX ondersteund.">
-          <Textarea id="body" name="body" className="min-h-64" />
+          <BodyEditor pool={pool} className="min-h-64" />
         </Field>
 
         <div className="grid gap-5 sm:grid-cols-2">

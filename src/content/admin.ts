@@ -7,6 +7,7 @@ import { z } from "zod";
 import { routes } from "@/lib/routes";
 import { listFeeds } from "./feeds";
 import { pointsAt, type ReferrerKind } from "./references";
+import { imageReferencesIn, type ImageReference, type ImageUser } from "./image-references";
 
 /**
  * Admin-side content access (user-roles-approval spec). Unlike the public
@@ -264,55 +265,72 @@ export async function findReferences(
   return refs;
 }
 
-export interface ImageReference {
-  kind: ContentType;
-  slug: string;
-  title: string;
-  href: string;
-}
+export type { ImageReference } from "./image-references";
 
 /**
- * Content that uses the given image URL — as a cover image (any type) or in a
- * Venue gallery — so deleting an in-use library image can be blocked and the
- * users reported (editorial-enrichments). Checks every status, so an image used
- * only by a draft is still protected. Compares on the stored URL form, which is
- * the same representation `media.ts` produces for both S3 and local backends.
+ * Content that uses the given image URL — as a cover image (any type), in a
+ * Venue gallery, or within the body text of any item — so deleting an in-use
+ * library image can be blocked and the users reported (editorial-enrichments,
+ * body-editor-toolbar D6). Checks every status, so an image used only by a
+ * draft is still protected. Compares on the stored URL form, which is the same
+ * representation `media.ts` produces for both S3 and local backends.
  */
-export async function findImageReferences(
-  url: string,
-): Promise<ImageReference[]> {
+export async function findImageReferences(url: string): Promise<ImageReference[]> {
   const store = getStore();
-  const [events, venues, organisers, posts] = await Promise.all([
-    store.readPrefix(CONTENT_PREFIX.event).then((d) => parseAll("event", d)),
-    store.readPrefix(CONTENT_PREFIX.venue).then((d) => parseAll("venue", d)),
-    store
-      .readPrefix(CONTENT_PREFIX.organiser)
-      .then((d) => parseAll("organiser", d)),
-    store.readPrefix(CONTENT_PREFIX.blog).then((d) => parseAll("blog", d)),
+  const read = <K extends ContentType>(type: K) =>
+    store.readPrefix(CONTENT_PREFIX[type]).then((d) => parseAll(type, d));
+  const [events, venues, organisers, posts, projects] = await Promise.all([
+    read("event"),
+    read("venue"),
+    read("organiser"),
+    read("blog"),
+    read("project"),
   ]);
 
-  const refs: ImageReference[] = [];
-  for (const e of events) {
-    if (e.data.featuredImage === url) {
-      refs.push({ kind: "event", slug: e.slug, title: e.data.title, href: routes.event(e.slug) });
-    }
-  }
-  for (const v of venues) {
-    if (v.data.featuredImage === url || v.data.images.includes(url)) {
-      refs.push({ kind: "venue", slug: v.slug, title: v.data.name, href: routes.venue(v.slug) });
-    }
-  }
-  for (const o of organisers) {
-    if (o.data.featuredImage === url) {
-      refs.push({ kind: "organiser", slug: o.slug, title: o.data.name, href: routes.organiser(o.slug) });
-    }
-  }
-  for (const p of posts) {
-    if (p.data.featuredImage === url) {
-      refs.push({ kind: "blog", slug: p.slug, title: p.data.title, href: routes.post(p.slug) });
-    }
-  }
-  return refs;
+  const users: ImageUser[] = [
+    ...events.map((e) => ({
+      kind: "event" as const,
+      slug: e.slug,
+      title: e.data.title,
+      href: routes.event(e.slug),
+      cover: e.data.featuredImage,
+      body: e.body,
+    })),
+    ...venues.map((v) => ({
+      kind: "venue" as const,
+      slug: v.slug,
+      title: v.data.name,
+      href: routes.venue(v.slug),
+      cover: v.data.featuredImage,
+      gallery: v.data.images,
+      body: v.body,
+    })),
+    ...organisers.map((o) => ({
+      kind: "organiser" as const,
+      slug: o.slug,
+      title: o.data.name,
+      href: routes.organiser(o.slug),
+      cover: o.data.featuredImage,
+      body: o.body,
+    })),
+    ...posts.map((p) => ({
+      kind: "blog" as const,
+      slug: p.slug,
+      title: p.data.title,
+      href: routes.post(p.slug),
+      cover: p.data.featuredImage,
+      body: p.body,
+    })),
+    ...projects.map((p) => ({
+      kind: "project" as const,
+      slug: p.slug,
+      title: p.data.title,
+      href: routes.project(p.slug),
+      cover: p.data.featuredImage,
+      body: p.body,
+    })),
+  ];
+  return imageReferencesIn(url, users);
 }
 
 type FrontmatterOf<K extends ContentType> = z.infer<

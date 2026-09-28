@@ -113,16 +113,27 @@ export function ImageField({
   );
 }
 
-function MediaPicker({
+/**
+ * The gallery dialog. Shared by the cover field and the body editor's image
+ * control (body-editor-toolbar D3), which adds its own upload and description
+ * controls below the grid through `children`.
+ */
+export function MediaPicker({
   pool,
   selected,
   onPick,
   onClose,
+  title = "Galerij",
+  label = "Kies een afbeelding uit de galerij",
+  children,
 }: {
   pool: MediaItem[];
   selected?: string;
   onPick: (url: string) => void;
   onClose: () => void;
+  title?: string;
+  label?: string;
+  children?: React.ReactNode;
 }) {
   const closeRef = useRef<HTMLButtonElement>(null);
 
@@ -143,12 +154,12 @@ function MediaPicker({
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Kies een afbeelding uit de galerij"
+        aria-label={label}
         className="flex max-h-[80vh] w-full max-w-3xl flex-col rounded-lg border border-border bg-surface shadow-card"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-border px-5 py-3">
-          <h2 className="text-lg">Galerij</h2>
+          <h2 className="text-lg">{title}</h2>
           <button
             ref={closeRef}
             type="button"
@@ -171,6 +182,8 @@ function MediaPicker({
                   <button
                     type="button"
                     onClick={() => onPick(m.url)}
+                    aria-pressed={selected === m.url}
+                    aria-label={`Afbeelding ${m.key.split("/").pop()}`}
                     className={`block w-full overflow-hidden rounded-md border-2 ${
                       selected === m.url ? "border-brand-strong" : "border-border"
                     } hover:border-brand-strong`}
@@ -188,6 +201,7 @@ function MediaPicker({
             </ul>
           )}
         </div>
+        {children ? <div className="border-t border-border px-5 py-4">{children}</div> : null}
       </div>
     </div>
   );

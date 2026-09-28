@@ -7,10 +7,10 @@ import {
   Input,
   Select,
   SubmitButton,
-  Textarea,
 } from "@/components/admin/form";
 import { ImageField } from "@/components/admin/image-field";
 import { SocialFields } from "@/components/admin/social-fields";
+import { BodyEditor } from "@/components/admin/body-editor";
 import { DateListField } from "@/components/admin/date-list-field";
 import { requireAdmin } from "@/lib/auth-server";
 import { getOrganisers, getVenues } from "@/content/repository";
@@ -109,7 +109,7 @@ export default async function NewEventPage({
         </Field>
 
         <Field label="Inhoud" htmlFor="body" hint="Markdown/MDX ondersteund.">
-          <Textarea id="body" name="body" />
+          <BodyEditor pool={pool} />
         </Field>
 
         <CheckboxField name="publish" label="Direct publiceren" defaultChecked />

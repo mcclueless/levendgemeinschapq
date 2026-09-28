@@ -709,8 +709,8 @@ export async function deleteMediaAction(formData: FormData) {
   const key = str(formData, "key");
   const url = str(formData, "url");
   if (!key || !url) return;
-  // Reference-safe: never delete an image still used as a cover or in a venue
-  // gallery. The page re-runs the scan for ?inuse to name the using items.
+  // Reference-safe: never delete an image still used as a cover, in a venue
+  // gallery, or within any item's text. The page re-runs the scan for ?inuse to name the using items.
   if ((await findImageReferences(url)).length) {
     redirect(`/beheer/galerij?inuse=${encodeURIComponent(key)}`);
   }
