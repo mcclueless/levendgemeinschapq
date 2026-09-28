@@ -32,5 +32,5 @@
         edits to the event's start and end.
       - An event without an end looks exactly as before.
       - The badge wraps cleanly at phone width.
-- [ ] 4.3 After deploy, check that Stilteviering's page shows 19:30–20:30 on each
+- [x] 4.3 After deploy, check that Stilteviering's page shows 19:30–20:30 on each
       of its dates.

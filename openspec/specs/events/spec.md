@@ -174,6 +174,8 @@ executes no scripts sees the same occurrence a visitor does.
 
 An event page SHALL NOT present as upcoming an occurrence that has already passed.
 
+Where an occurrence has an end, the page SHALL show its end time alongside its start, both for the occurrence it presents and for each of the other dates it lists. An occurrence without an end SHALL show its start alone, with no placeholder.
+
 The structured data an event page publishes SHALL describe the occurrence the page presents, with that occurrence's own start and end.
 
 #### Scenario: Viewing one event
@@ -218,6 +220,18 @@ The structured data an event page publishes SHALL describe the occurrence the pa
 #### Scenario: Structured data matches the occurrence shown
 - **WHEN** an event page presents an occurrence
 - **THEN** the structured data it publishes SHALL carry that occurrence's start and its own end, not those of a different occurrence
+
+#### Scenario: The page shows when an occurrence ends
+- **WHEN** a visitor opens the page of an event whose presented occurrence has an end
+- **THEN** the page SHALL show that occurrence's start and end time
+
+#### Scenario: The other dates show when they end
+- **WHEN** a visitor opens the page of a series whose event has an end
+- **THEN** each listed date SHALL show its start and its end time
+
+#### Scenario: An occurrence without an end
+- **WHEN** the presented occurrence has no end
+- **THEN** the page SHALL show its start time alone, as it does today
 
 ### Requirement: Event social media links
 An Event MAY have social media profile URLs for a curated set of platforms. The Event's public page SHALL render the platforms that are set as a row of icon links; platforms without a URL SHALL be omitted, and an Event with none SHALL show no social row.
