@@ -172,3 +172,10 @@ and the gallery's deletion guard. Rollback is a revert.
   because it shares the pipeline. Fixing it means either string props
   (`limit="3"`) accepted by the component, or relaxing `blockJS` — a separate
   change.
+- **Tester feedback, 2026-09-29: black bars around an inserted image.** Adding
+  an image works. The bars on `/agenda/celebrations-koor-20-jaar-jubileumsconcert`
+  are in the uploaded file: a 739×1600 phone screenshot with 277 px of solid
+  black above and below the poster. The site renders it as stored. Possible
+  follow-ups, not in this change: a hint in the image dialog to prefer the
+  original file, trimming uniform borders on upload, and a maximum height for
+  inline images so tall portrait posters fit one screen.
