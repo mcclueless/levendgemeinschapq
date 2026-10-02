@@ -1,7 +1,6 @@
 import { Container } from "@/components/ui/container";
 import { MobileMenu } from "@/components/layout/mobile-menu";
 import { logout } from "@/app/beheer/actions";
-import { Suspense } from "react";
 import { AdminNav } from "./admin-nav";
 import { PendingContent } from "./pending-content";
 
@@ -56,11 +55,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
       <div className="min-w-0 flex-1">
         <Container className="py-10">
-          {/* Reads the search parameters, which suspends where a page is
-              rendered ahead of time; until then the page shows as it is. */}
-          <Suspense fallback={children}>
-            <PendingContent>{children}</PendingContent>
-          </Suspense>
+          <PendingContent>{children}</PendingContent>
         </Container>
       </div>
     </div>

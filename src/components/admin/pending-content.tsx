@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { ADMIN_SEGMENT_TO_TYPE } from "@/lib/routes";
 import { LoadingPlaceholder } from "./loading-placeholder";
@@ -8,6 +8,19 @@ import { LoadingPlaceholder } from "./loading-placeholder";
 /** Whether `pathname` is a management list, which loads as a table. */
 const isList = (pathname: string) =>
   Object.keys(ADMIN_SEGMENT_TO_TYPE).some((segment) => pathname === `/beheer/${segment}`);
+
+/**
+ * Reports every change of address. Renders nothing, and sits in its own
+ * `Suspense`: `useSearchParams()` makes the server send whatever its boundary
+ * wraps a second time, as a fallback — wrapped around the page itself, every
+ * backend page doubled in size.
+ */
+function AddressWatcher({ onChange }: { onChange: () => void }) {
+  const pathname = usePathname();
+  const search = useSearchParams().toString();
+  useEffect(onChange, [pathname, search, onChange]);
+  return null;
+}
 
 /**
  * The backend's content area, showing a placeholder from the moment a link to
@@ -20,13 +33,11 @@ const isList = (pathname: string) =>
  * placeholder is something JavaScript adds while it navigates.
  */
 export function PendingContent({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const search = useSearchParams().toString();
   const ref = useRef<HTMLDivElement>(null);
   const [pending, setPending] = useState<"page" | "table" | null>(null);
 
   // The address changed: the page that was loading is here.
-  useEffect(() => setPending(null), [pathname, search]);
+  const [arrived] = useState(() => () => setPending(null));
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -49,6 +60,9 @@ export function PendingContent({ children }: { children: React.ReactNode }) {
 
   return (
     <div ref={ref}>
+      <Suspense fallback={null}>
+        <AddressWatcher onChange={arrived} />
+      </Suspense>
       {pending ? <LoadingPlaceholder shape={pending} /> : null}
       <div hidden={pending !== null}>{children}</div>
     </div>
