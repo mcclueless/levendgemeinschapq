@@ -116,6 +116,12 @@ One DOM order serves both layouts, so reading and tab order follow the phone
 order everywhere. "Binnenkort van …" stays below the grid. The badge is
 removed.
 
+The side column is a fixed `20rem`, narrower than a long email or web address,
+which has no spaces to wrap at. `ContactInfo` therefore lets a value break
+anywhere (`min-w-0` and `overflow-wrap: anywhere` on the value) and offers soft
+break points after "@" and "/", so it wraps at a natural place first. The
+component is shared, so venue pages get the same behaviour.
+
 ### D6. References and structured data
 
 The organiser's image user in `admin.ts` gets `gallery: [...moreImages, logo]`.

@@ -41,6 +41,9 @@
       image for one slide, nothing for none.
 - [x] 4.2 Rebuild the organiser page layout as in D5 (grid placement, logo,
       contact spanning, badge removed).
+- [x] 4.2a Keep a long email or web address inside the contact card: let the
+      value wrap anywhere, with soft break points after "@" and "/"
+      (`ContactInfo`, shared with venue pages).
 - [x] 4.3 Add the logo and slides to the organiser's image references in
       `admin.ts`, and `logo` and `image` to `organiserJsonLd`. Test the
       references with a logo-only and a slide-only image, and the JSON-LD with

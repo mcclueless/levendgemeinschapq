@@ -40,3 +40,7 @@ On a wide screen, an Organiser's page SHALL present two columns from the top: th
 #### Scenario: Narrow screen
 - **WHEN** a visitor views an Organiser page on a phone-width screen
 - **THEN** the content SHALL appear in one column in the order name, logo, images, description, contact information, upcoming events, without horizontal scrolling
+
+#### Scenario: A long email or web address
+- **WHEN** an Organiser's email or web address is wider than its contact information
+- **THEN** the address SHALL wrap onto further lines inside the contact information, without running past its edge or being cut off
