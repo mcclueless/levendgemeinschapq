@@ -1,3 +1,5 @@
+import { DescribedImage } from "./described-image";
+
 /**
  * Image gallery for Venue pages (venues spec). Renders nothing when there are
  * no images, so the page degrades gracefully.
@@ -10,8 +12,7 @@ export function Gallery({ images, alt }: { images: string[]; alt: string }) {
       {images.map((src, i) => (
         <li key={src} className="overflow-hidden rounded-md border border-border">
           {/* next/image optimization wired with the media CDN in Group 10. */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <DescribedImage
             src={src}
             alt={`${alt} — foto ${i + 1}`}
             loading="lazy"

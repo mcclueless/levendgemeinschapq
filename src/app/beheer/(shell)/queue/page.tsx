@@ -7,6 +7,7 @@ import { getPendingSubmissions, type Submission } from "@/content/admin";
 import { formatDateLong, formatTime } from "@/lib/date";
 import { recurrenceDetail } from "@/lib/recurrence-label";
 import { approveSubmission, rejectSubmission } from "@/app/beheer/actions";
+import { DescribedImage } from "@/components/content/described-image";
 
 export const metadata: Metadata = {
   title: "Wachtrij",
@@ -70,8 +71,7 @@ function SubmissionCard({ submission: s }: { submission: Submission }) {
         ) : null}
 
         {s.featuredImage ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <DescribedImage
             src={s.featuredImage}
             alt={s.title}
             className="max-h-56 w-full rounded-md object-cover"

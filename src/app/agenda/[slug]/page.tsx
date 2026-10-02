@@ -23,6 +23,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { eventCover } from "@/lib/images";
 import { SocialLinks } from "@/components/content/social-links";
 import { AdminBarMount } from "@/components/admin/admin-bar-mount";
+import { DescribedImage } from "@/components/content/described-image";
 import { adminEditPath } from "@/lib/routes";
 
 /**
@@ -110,9 +111,9 @@ export default async function EventPage({ params, searchParams }: PageProps) {
 
         <div className="max-w-3xl">
           {/* Cover image — uploaded featured image, or the branded default. */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <DescribedImage
             src={eventCover(event.featuredImage)}
+            detailsOf={event.featuredImage}
             alt={event.title}
             className="mb-8 aspect-[2/1] w-full rounded-xl object-cover"
           />

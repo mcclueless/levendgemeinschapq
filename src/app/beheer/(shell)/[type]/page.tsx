@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ContentTable } from "@/components/admin/content-table";
+import { Pagination } from "@/components/admin/pagination";
 import { Input, Select } from "@/components/admin/form";
 import { requireAdmin } from "@/lib/auth-server";
 import { listContent, findReferences, type ContentReference } from "@/content/admin";
@@ -57,22 +58,8 @@ const STATUS_TABS: Array<{ status?: PublishStatus; label: string }> = [
   { status: "pending", label: "In wachtrij" },
 ];
 
-const pageLink =
-  "inline-flex h-9 min-w-9 items-center justify-center rounded-md border border-border bg-surface px-3 font-medium hover:bg-surface-2";
-
 const byName = (a: { title: string }, b: { title: string }) =>
   a.title.localeCompare(b.title, "nl");
-
-/** The page numbers to offer: all of a short list, else the ends and the neighbours. */
-function pageNumbers(page: number, pageCount: number): Array<number | "gap"> {
-  const keep = new Set([1, pageCount, page - 1, page, page + 1]);
-  const out: Array<number | "gap"> = [];
-  for (let n = 1; n <= pageCount; n++) {
-    if (pageCount <= 7 || keep.has(n)) out.push(n);
-    else if (out[out.length - 1] !== "gap") out.push("gap");
-  }
-  return out;
-}
 
 export default async function ManageListPage({
   params,
@@ -331,47 +318,11 @@ export default async function ManageListPage({
                   organiserNames={organiserNames}
                 />
               </div>
-              {result.pageCount > 1 ? (
-                <nav aria-label="Pagina's" className="mt-6">
-                  <ul className="flex flex-wrap items-center gap-1 text-sm">
-                    {result.page > 1 ? (
-                      <li>
-                        <Link href={view({ pagina: result.page - 1 })} className={pageLink}>
-                          Vorige
-                        </Link>
-                      </li>
-                    ) : null}
-                    {pageNumbers(result.page, result.pageCount).map((n, i) =>
-                      n === "gap" ? (
-                        <li key={`gap-${i}`} aria-hidden="true" className="px-1 text-muted">
-                          …
-                        </li>
-                      ) : (
-                        <li key={n}>
-                          <Link
-                            href={view({ pagina: n })}
-                            aria-current={n === result.page ? "page" : undefined}
-                            aria-label={`Pagina ${n}`}
-                            className={cn(
-                              pageLink,
-                              n === result.page && "border-brand bg-surface-2 font-semibold",
-                            )}
-                          >
-                            {n}
-                          </Link>
-                        </li>
-                      ),
-                    )}
-                    {result.page < result.pageCount ? (
-                      <li>
-                        <Link href={view({ pagina: result.page + 1 })} className={pageLink}>
-                          Volgende
-                        </Link>
-                      </li>
-                    ) : null}
-                  </ul>
-                </nav>
-              ) : null}
+              <Pagination
+                page={result.page}
+                pageCount={result.pageCount}
+                hrefs={Array.from({ length: result.pageCount }, (_, i) => view({ pagina: i + 1 }))}
+              />
             </>
           )}
         </>

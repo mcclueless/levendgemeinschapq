@@ -34,3 +34,15 @@ export function imageReferencesIn(url: string, users: readonly ImageUser[]): Ima
     .filter((u) => u.cover === url || u.gallery?.includes(url) || u.body.includes(url))
     .map(({ kind, slug, title, href }) => ({ kind, slug, title, href }));
 }
+
+/**
+ * The items using each of `urls`, in one pass over the content
+ * (gallery-find-and-describe D2). Every URL has an entry; an unused image has
+ * an empty list.
+ */
+export function imageUsage(
+  urls: readonly string[],
+  users: readonly ImageUser[],
+): Map<string, ImageReference[]> {
+  return new Map(urls.map((url) => [url, imageReferencesIn(url, users)]));
+}

@@ -1,5 +1,6 @@
 import type { ContentType, PublishStatus } from "./schema";
 import type { ContentSummary } from "./summaries";
+import { fold } from "@/lib/text";
 
 /**
  * The view of a backend management list (admin-content-table D4): which items
@@ -139,10 +140,6 @@ export function eventIsUpcoming(
   const until = event.recurrence.until;
   return !until || until.getTime() >= from;
 }
-
-/** Lower case and without accents, so "cafe" finds "Café". */
-const fold = (value: string) =>
-  value.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
 
 const byTitle = (a: ContentSummary, b: ContentSummary) =>
   a.title.localeCompare(b.title, "nl", { sensitivity: "base" });

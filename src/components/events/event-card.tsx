@@ -5,14 +5,15 @@ import { cn } from "@/lib/cn";
 import { eventCover } from "@/lib/images";
 import type { EventOccurrence } from "@/content/types";
 import { occurrenceLink } from "@/content/event-dates";
+import { DescribedImage } from "@/components/content/described-image";
 
 function Thumb({ src, alt }: { src?: string; alt: string }) {
   return (
     // Falls back to the branded default cover when no image was uploaded.
     // Optimization via next/image is wired in Group 10 once the media CDN exists.
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
+    <DescribedImage
       src={eventCover(src)}
+      detailsOf={src}
       alt={alt}
       loading="lazy"
       className="h-44 w-full object-cover"
@@ -31,8 +32,7 @@ function MarkerCard({ occurrence }: { occurrence: EventOccurrence }) {
   const { event, start } = occurrence;
   return (
     <Card as="article" className="overflow-hidden">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={eventCover(event.featuredImage)} alt={event.title} loading="lazy" className="h-44 w-full bg-surface-2 object-contain" />
+      <DescribedImage src={eventCover(event.featuredImage)} detailsOf={event.featuredImage} alt={event.title} loading="lazy" className="h-44 w-full bg-surface-2 object-contain" />
       <div className="p-5">
         <Badge tone="accent">
           <time dateTime={isoDate(start)}>{formatDate(start)}</time>

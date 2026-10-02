@@ -15,11 +15,18 @@ const control =
 export function Slideshow({
   images,
   alt,
+  alts,
   className,
 }: {
   images: string[];
   /** Base alternative text; each slide adds "— afbeelding n". */
   alt: string;
+  /**
+   * The text alternative per slide, resolved on the server from each image's
+   * own description (gallery-find-and-describe D9); this component runs in the
+   * browser and cannot look it up. Absent, the base text is used.
+   */
+  alts?: string[];
   className?: string;
 }) {
   const track = useRef<HTMLUListElement>(null);
@@ -40,7 +47,7 @@ export function Slideshow({
       // eslint-disable-next-line @next/next/no-img-element
       <img
         src={images[0]}
-        alt={alt}
+        alt={alts?.[0] ?? alt}
         className={cn("aspect-[2/1] w-full rounded-xl object-cover", className)}
       />
     );
@@ -71,7 +78,7 @@ export function Slideshow({
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={src}
-                alt={`${alt} — afbeelding ${i + 1}`}
+                alt={alts?.[i] ?? `${alt} — afbeelding ${i + 1}`}
                 loading={i === 0 ? undefined : "lazy"}
                 className="aspect-[2/1] w-full object-cover"
               />

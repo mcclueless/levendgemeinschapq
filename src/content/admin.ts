@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import matter from "gray-matter";
 import { CONTENT_PREFIX, getStore } from "./storage";
 import { parseAll, parseDoc, type ParsedDoc } from "./parse";
@@ -218,6 +219,18 @@ export type { ImageReference } from "./image-references";
  * representation `media.ts` produces for both S3 and local backends.
  */
 export async function findImageReferences(url: string): Promise<ImageReference[]> {
+  return imageReferencesIn(url, await loadImageUsers());
+}
+
+/**
+ * Every content item with the images it uses: cover, gallery and body. Bodies
+ * are needed for the match, so summaries cannot serve this — it is the one
+ * backend read of all content in full, hence the timing line. Wrapped in
+ * `cache()` so the gallery asks once for all its images
+ * (gallery-find-and-describe D2).
+ */
+export const loadImageUsers = cache(async (): Promise<ImageUser[]> => {
+  const started = performance.now();
   const store = getStore();
   const read = <K extends ContentType>(type: K) =>
     store.readPrefix(CONTENT_PREFIX[type]).then((d) => parseAll(type, d));
@@ -273,8 +286,11 @@ export async function findImageReferences(url: string): Promise<ImageReference[]
       body: p.body,
     })),
   ];
-  return imageReferencesIn(url, users);
-}
+  console.info(
+    `[content] read ${users.length} documents in full for image use in ${Math.round(performance.now() - started)} ms`,
+  );
+  return users;
+});
 
 type FrontmatterOf<K extends ContentType> = z.infer<
   (typeof frontmatterByType)[K]

@@ -111,6 +111,9 @@ export const FORM_ERRORS: Record<string, string> = {
     "De afbeelding is te groot. Maximaal 10 MB — verklein de foto en probeer het opnieuw.",
   "upload-corrupt":
     "Het bestand lijkt geen geldige afbeelding te zijn. Controleer of je de juiste foto hebt gekozen.",
+  "replace-missing": "Kies eerst een bestand om de afbeelding mee te vervangen.",
+  "replace-format":
+    "Het nieuwe bestand moet hetzelfde type zijn als de afbeelding die het vervangt (bijvoorbeeld een JPG voor een JPG).",
 };
 
 /** Platform labels for the `socials-<platform>` error codes. */

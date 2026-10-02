@@ -232,6 +232,19 @@ function ImageDialog({
   const [uploading, startUpload] = useTransition();
   const fileRef = useRef<HTMLInputElement>(null);
   const descriptionRef = useRef<HTMLInputElement>(null);
+  // The description this dialog filled in from the chosen image's stored one
+  // (gallery-find-and-describe D9), so that choosing another image can replace
+  // it without ever overwriting what the editor typed.
+  const filled = useRef("");
+
+  function pick(url: string) {
+    setSelected(url);
+    setMessage(undefined);
+    if (description.trim() !== "" && description !== filled.current) return;
+    const stored = pool.find((m) => m.url === url)?.alt ?? "";
+    filled.current = stored;
+    setDescription(stored);
+  }
 
   function onFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -275,10 +288,7 @@ function ImageDialog({
     <MediaPicker
       pool={pool}
       selected={selected}
-      onPick={(url) => {
-        setSelected(url);
-        setMessage(undefined);
-      }}
+      onPick={pick}
       onClose={onClose}
       title="Afbeelding invoegen"
       label="Afbeelding invoegen in de tekst"

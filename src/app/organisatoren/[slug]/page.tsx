@@ -4,6 +4,7 @@ import { Container } from "@/components/ui/container";
 import { Mdx } from "@/components/mdx/mdx";
 import { ContactInfo } from "@/components/content/contact-info";
 import { Slideshow } from "@/components/content/slideshow";
+import { imageAlt } from "@/content/media-details";
 import { cn } from "@/lib/cn";
 import { SocialLinks } from "@/components/content/social-links";
 import { UpcomingEvents } from "@/components/events/upcoming-events";
@@ -48,6 +49,16 @@ export default async function OrganiserPage({
   const { slug } = await params;
   const organiser = await getOrganiser(slug);
   if (!organiser) notFound();
+  // Each slide's text alternative: the image's own description when it has
+  // one, else what the slideshow would say (gallery-find-and-describe D9).
+  const slideAlts = await Promise.all(
+    organiser.images.map((src, i) =>
+      imageAlt(
+        src,
+        organiser.images.length === 1 ? organiser.name : `${organiser.name} — afbeelding ${i + 1}`,
+      ),
+    ),
+  );
 
   // Resolve the optional linked location; omit gracefully if it no longer
   // resolves (e.g. the venue was hidden — link-only, no hide guard).
@@ -90,6 +101,7 @@ export default async function OrganiserPage({
             <Slideshow
               images={organiser.images}
               alt={organiser.name}
+              alts={slideAlts}
               className="lg:col-start-1 lg:row-start-2"
             />
           ) : null}

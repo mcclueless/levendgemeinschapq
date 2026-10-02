@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { MediaItem } from "@/content/media";
+import { mediaLabel, mediaMatches } from "@/content/media-query";
 
 /**
  * Cover-image field (cover-image-bank): set a cover by uploading a new file
@@ -147,6 +148,9 @@ export function ImageField({
  * The gallery dialog. Shared by the cover field and the body editor's image
  * control (body-editor-toolbar D3), which adds its own upload and description
  * controls below the grid through `children`.
+ *
+ * The search narrows the pool in the browser — it is already in the page — on
+ * file name, title and description (gallery-find-and-describe D6).
  */
 export function MediaPicker({
   pool,
@@ -166,6 +170,8 @@ export function MediaPicker({
   children?: React.ReactNode;
 }) {
   const closeRef = useRef<HTMLButtonElement>(null);
+  const [search, setSearch] = useState("");
+  const shown = pool.filter((m) => mediaMatches(m, search));
 
   useEffect(() => {
     closeRef.current?.focus();
@@ -200,20 +206,51 @@ export function MediaPicker({
           </button>
         </div>
 
+        {pool.length > 0 ? (
+          <div className="border-b border-border px-5 py-3">
+            <label htmlFor="media-picker-search" className="sr-only">
+              Zoeken in de galerij
+            </label>
+            <input
+              id="media-picker-search"
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => {
+                // Enter here must not submit the content form behind the dialog.
+                if (e.key === "Enter") e.preventDefault();
+              }}
+              placeholder="Zoek op naam, titel of beschrijving"
+              className="w-full rounded-md border border-border bg-surface px-3 py-2 text-base text-ink focus-visible:outline-3 focus-visible:outline-offset-1"
+            />
+          </div>
+        ) : null}
+
         <div className="overflow-y-auto p-5">
           {pool.length === 0 ? (
             <p className="text-muted">
               Nog geen afbeeldingen geüpload. Upload er een via “Nieuwe afbeelding”.
             </p>
+          ) : shown.length === 0 ? (
+            <p className="text-muted" role="status">
+              Niets gevonden voor “{search}”.{" "}
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                className="font-medium text-brand-strong underline underline-offset-4"
+              >
+                Toon alles
+              </button>
+            </p>
           ) : (
             <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-              {pool.map((m) => (
+              {shown.map((m) => (
                 <li key={m.key}>
                   <button
                     type="button"
                     onClick={() => onPick(m.url)}
                     aria-pressed={selected === m.url}
-                    aria-label={`Afbeelding ${m.key.split("/").pop()}`}
+                    aria-label={`Afbeelding ${mediaLabel(m)}`}
                     className={`block w-full overflow-hidden rounded-md border-2 ${
                       selected === m.url ? "border-brand-strong" : "border-border"
                     } hover:border-brand-strong`}
@@ -225,6 +262,13 @@ export function MediaPicker({
                       loading="lazy"
                       className="aspect-[4/3] w-full object-cover"
                     />
+                    <span
+                      aria-hidden="true"
+                      className="block truncate px-2 py-1 text-left text-xs text-muted"
+                      title={mediaLabel(m)}
+                    >
+                      {mediaLabel(m)}
+                    </span>
                   </button>
                 </li>
               ))}

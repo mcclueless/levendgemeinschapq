@@ -1,4 +1,5 @@
 import { cn } from "@/lib/cn";
+import { DescribedImage } from "./described-image";
 
 /**
  * Cover/featured image for content (venues, organisers, blog posts). Renders
@@ -16,8 +17,7 @@ export function CoverImage({
 }) {
   if (!src) return null;
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
+    <DescribedImage
       src={src}
       alt={alt}
       loading="lazy"

@@ -17,8 +17,15 @@ import {
   setStatus,
   updateDocument,
 } from "@/content/write";
-import { findImageReferences, findReferences, getEditable } from "@/content/admin";
-import { deleteMedia, saveUploadChecked } from "@/content/media";
+import {
+  findImageReferences,
+  findReferences,
+  getEditable,
+  loadImageUsers,
+} from "@/content/admin";
+import { deleteMedia, listMedia, replaceMedia, saveUploadChecked } from "@/content/media";
+import { mediaName, removeMediaDetails, saveMediaDetails } from "@/content/media-details";
+import { imageUsage } from "@/content/image-references";
 import {
   ADMIN_FREQUENCIES,
   recurrenceFromForm,
@@ -45,6 +52,7 @@ import {
 import {
   revalidateAfterItemChange,
   revalidateAfterPermalinkChange,
+  revalidateContent,
   revalidatePublic,
 } from "@/content/revalidate";
 import {
@@ -780,27 +788,117 @@ export async function deleteFromPublic(formData: FormData) {
 
 // ── Media library (editorial-enrichments) ────────────────────────────────────
 
-export async function uploadMedia(formData: FormData) {
-  await assertAdmin();
-  const result = await saveUploadChecked(formData.get("image"));
-  if (!result.ok) redirect(`/beheer/galerij?error=${result.reason}`);
-  revalidatePath("/beheer/galerij");
-  redirect("/beheer/galerij?media=geupload");
+const GALLERY = "/beheer/galerij";
+
+/** The gallery view an action was started from, or the gallery (D1). */
+function galleryBack(form: FormData): string {
+  return returnPath(form.get("terug"), GALLERY);
 }
 
+/** An image's own page in the gallery. */
+const imagePage = (name: string) => `${GALLERY}/${encodeURIComponent(name)}`;
+
+export async function uploadMedia(formData: FormData) {
+  await assertAdmin();
+  const back = galleryBack(formData);
+  const result = await saveUploadChecked(formData.get("image"));
+  if (!result.ok) redirect(withParam(back, "error", result.reason));
+  revalidatePath(GALLERY);
+  redirect(withParam(back, "media", "geupload"));
+}
+
+/**
+ * Delete one image, from its own page. Reference-safe: never delete an image
+ * still used as a cover, in a gallery, or within any item's text — the image's
+ * page names the items. Its details go with it.
+ */
 export async function deleteMediaAction(formData: FormData) {
   await assertAdmin();
   const key = str(formData, "key");
-  const url = str(formData, "url");
-  if (!key || !url) return;
-  // Reference-safe: never delete an image still used as a cover, in a venue
-  // gallery, or within any item's text. The page re-runs the scan for ?inuse to name the using items.
-  if ((await findImageReferences(url)).length) {
-    redirect(`/beheer/galerij?inuse=${encodeURIComponent(key)}`);
+  if (!key) return;
+  const item = (await listMedia()).find((m) => m.key === key);
+  const back = galleryBack(formData);
+  if (!item) redirect(back);
+  if ((await findImageReferences(item.url)).length) {
+    redirect(withParam(imagePage(mediaName(key)), "inuse", "1"));
   }
   await deleteMedia(key);
-  revalidatePath("/beheer/galerij");
-  redirect("/beheer/galerij?media=verwijderd");
+  await removeMediaDetails(mediaName(key));
+  revalidatePath(GALLERY);
+  redirect(withParam(back, "media", "verwijderd"));
+}
+
+/**
+ * Delete the ticked images (gallery-find-and-describe D5). Each is checked on
+ * its own: the unused ones go, the ones in use stay, and the gallery is told how
+ * many were deleted and which were kept. The addresses come from the store, not
+ * from the form.
+ */
+export async function deleteMediaBulk(formData: FormData) {
+  await assertAdmin();
+  const back = galleryBack(formData);
+  const keys = new Set(formData.getAll("keys").filter((v): v is string => typeof v === "string"));
+  if (keys.size === 0) redirect(withParam(back, "media", "niets-gekozen"));
+  const chosen = (await listMedia()).filter((m) => keys.has(m.key));
+  const usage = imageUsage(
+    chosen.map((m) => m.url),
+    await loadImageUsers(),
+  );
+  const kept: string[] = [];
+  let deleted = 0;
+  for (const item of chosen) {
+    if (usage.get(item.url)?.length) {
+      kept.push(mediaName(item.key));
+      continue;
+    }
+    await deleteMedia(item.key);
+    await removeMediaDetails(mediaName(item.key));
+    deleted += 1;
+  }
+  revalidatePath(GALLERY);
+  let to = withParam(back, "verwijderd", String(deleted));
+  for (const name of kept) to = `${to}&behouden=${encodeURIComponent(name)}`;
+  redirect(to);
+}
+
+/**
+ * Save an image's title and alternative text (D7). A changed alternative text
+ * changes the public pages that show the image, so they are revalidated like
+ * after any content write (D9).
+ */
+export async function saveMediaDetailsAction(formData: FormData) {
+  await assertAdmin();
+  const key = str(formData, "key");
+  if (!key) return;
+  const item = (await listMedia()).find((m) => m.key === key);
+  if (!item) redirect(GALLERY);
+  const name = mediaName(key);
+  await saveMediaDetails(name, { title: str(formData, "title"), alt: str(formData, "alt") });
+  const users = await findImageReferences(item.url);
+  await revalidateContent(users.map((u) => u.href));
+  await revalidatePublic();
+  revalidatePath(GALLERY);
+  const terug = str(formData, "terug");
+  const page = withParam(imagePage(name), "media", "opgeslagen");
+  redirect(terug ? withParam(page, "terug", terug) : page);
+}
+
+/**
+ * Put a new file in place of an image, keeping its address (D10). The pages
+ * that use it do not change, so nothing is revalidated.
+ */
+export async function replaceMediaAction(formData: FormData) {
+  await assertAdmin();
+  const key = str(formData, "key");
+  if (!key) return;
+  const exists = (await listMedia()).some((m) => m.key === key);
+  if (!exists) redirect(GALLERY);
+  const terug = str(formData, "terug");
+  const page = terug ? withParam(imagePage(mediaName(key)), "terug", terug) : imagePage(mediaName(key));
+  const result = await replaceMedia(key, formData.get("image"));
+  if (!result.ok) redirect(withParam(page, "error", result.reason));
+  revalidatePath(GALLERY);
+  redirect(withParam(page, "media", "vervangen"));
 }
 
 // ── Calendar feeds (add-managed-calendar-feeds) ──────────────────────────────

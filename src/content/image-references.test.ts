@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { imageReferencesIn, type ImageUser } from "./image-references";
+import { imageReferencesIn, imageUsage, type ImageUser } from "./image-references";
 
 /** An image in use cannot be deleted (media-library; body-editor-toolbar D6). */
 
@@ -59,4 +59,20 @@ test("an unrelated image is still deletable", () => {
     ]),
     [],
   );
+});
+
+// ── Use for all images at once (gallery-find-and-describe D2) ────────────────
+
+const usageUsers: ImageUser[] = [
+  { kind: "event", slug: "borrel", title: "Borrel", href: "/agenda/borrel", cover: "/uploads/a.jpg", body: "" },
+  { kind: "venue", slug: "brink", title: "De Brink", href: "/locaties/brink", gallery: ["/uploads/b.jpg"], body: "" },
+  { kind: "blog", slug: "welkom", title: "Welkom", href: "/blog/welkom", cover: "/uploads/a.jpg", body: "Kijk: ![tuin](/uploads/c.jpg)" },
+];
+
+test("imageUsage names the users of every image in one pass", () => {
+  const usage = imageUsage(["/uploads/a.jpg", "/uploads/b.jpg", "/uploads/c.jpg", "/uploads/d.jpg"], usageUsers);
+  assert.deepEqual(usage.get("/uploads/a.jpg")?.map((r) => r.slug), ["borrel", "welkom"]);
+  assert.deepEqual(usage.get("/uploads/b.jpg")?.map((r) => r.slug), ["brink"]);
+  assert.deepEqual(usage.get("/uploads/c.jpg")?.map((r) => r.slug), ["welkom"]);
+  assert.deepEqual(usage.get("/uploads/d.jpg"), []);
 });
