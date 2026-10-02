@@ -26,6 +26,19 @@ test("an image used within an event's text counts as in use", () => {
   assert.deepEqual(refs.map((r) => [r.kind, r.slug]), [["event", "borrel"]]);
 });
 
+test("an image used within a venue's, organiser's or project's text counts as in use", () => {
+  const refs = imageReferencesIn(URL, [
+    user({ kind: "venue", slug: "buurthuis", body: `![Zaal](${URL})` }),
+    user({ kind: "organiser", slug: "koor", body: `![Koor](${URL})` }),
+    user({ kind: "project", slug: "tuin", body: `![Tuin](${URL})` }),
+  ]);
+  assert.deepEqual(refs.map((r) => [r.kind, r.slug]), [
+    ["venue", "buurthuis"],
+    ["organiser", "koor"],
+    ["project", "tuin"],
+  ]);
+});
+
 test("a project's cover counts as in use", () => {
   const refs = imageReferencesIn(URL, [user({ kind: "project", slug: "tuin", cover: URL })]);
   assert.deepEqual(refs.map((r) => [r.kind, r.slug]), [["project", "tuin"]]);

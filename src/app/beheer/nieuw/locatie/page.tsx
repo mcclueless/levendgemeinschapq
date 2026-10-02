@@ -5,9 +5,9 @@ import {
   Field,
   Input,
   SubmitButton,
-  Textarea,
 } from "@/components/admin/form";
 import { ImageField } from "@/components/admin/image-field";
+import { BodyEditor } from "@/components/admin/body-editor";
 import { AddressAutocomplete } from "@/components/admin/address-autocomplete";
 import { requireAdmin } from "@/lib/auth-server";
 import { listMedia } from "@/content/media";
@@ -58,7 +58,7 @@ export default async function NewVenuePage() {
         </Field>
 
         <Field label="Beschrijving" htmlFor="body" hint="Markdown/MDX ondersteund.">
-          <Textarea id="body" name="body" />
+          <BodyEditor pool={pool} />
         </Field>
 
         <CheckboxField name="publish" label="Direct publiceren" defaultChecked />

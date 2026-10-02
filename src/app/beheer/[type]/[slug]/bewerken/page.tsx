@@ -7,7 +7,6 @@ import {
   Input,
   Select,
   SubmitButton,
-  Textarea,
 } from "@/components/admin/form";
 import { ImageField } from "@/components/admin/image-field";
 import { SocialFields } from "@/components/admin/social-fields";
@@ -209,7 +208,7 @@ export default async function EditPage({
             <Input id="excerpt" name="excerpt" defaultValue={d.excerpt} />
           </Field>
           <Field label="Beschrijving" htmlFor="body" hint="Markdown/MDX ondersteund.">
-            <Textarea id="body" name="body" defaultValue={doc.body.trim()} />
+            <BodyEditor pool={pool} defaultValue={doc.body.trim()} />
           </Field>
           <div>
             <SubmitButton>Opslaan</SubmitButton>
@@ -265,7 +264,7 @@ export default async function EditPage({
             <Input id="excerpt" name="excerpt" defaultValue={d.excerpt} />
           </Field>
           <Field label="Beschrijving" htmlFor="body" hint="Markdown/MDX ondersteund.">
-            <Textarea id="body" name="body" defaultValue={doc.body.trim()} />
+            <BodyEditor pool={pool} defaultValue={doc.body.trim()} />
           </Field>
           <div>
             <SubmitButton>Opslaan</SubmitButton>
@@ -330,7 +329,7 @@ export default async function EditPage({
             <Input id="excerpt" name="excerpt" defaultValue={d.excerpt} />
           </Field>
           <Field label="Beschrijving" htmlFor="body" hint="Markdown/MDX ondersteund.">
-            <Textarea id="body" name="body" className="min-h-64" defaultValue={doc.body.trim()} />
+            <BodyEditor pool={pool} className="min-h-64" defaultValue={doc.body.trim()} />
           </Field>
           <div>
             <SubmitButton>Opslaan</SubmitButton>

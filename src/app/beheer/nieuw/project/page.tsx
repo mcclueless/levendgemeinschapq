@@ -6,9 +6,9 @@ import {
   Input,
   Select,
   SubmitButton,
-  Textarea,
 } from "@/components/admin/form";
 import { ImageField } from "@/components/admin/image-field";
+import { BodyEditor } from "@/components/admin/body-editor";
 import { requireAdmin } from "@/lib/auth-server";
 import { getOrganisers, getVenues } from "@/content/repository";
 import { listMedia } from "@/content/media";
@@ -78,7 +78,7 @@ export default async function NewProjectPage() {
         </Field>
 
         <Field label="Beschrijving" htmlFor="body" hint="Markdown/MDX ondersteund.">
-          <Textarea id="body" name="body" className="min-h-64" />
+          <BodyEditor pool={pool} className="min-h-64" />
         </Field>
 
         <CheckboxField name="publish" label="Direct publiceren" defaultChecked />

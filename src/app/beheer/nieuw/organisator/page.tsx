@@ -7,9 +7,9 @@ import {
   Input,
   Select,
   SubmitButton,
-  Textarea,
 } from "@/components/admin/form";
 import { ImageField } from "@/components/admin/image-field";
+import { BodyEditor } from "@/components/admin/body-editor";
 import { SocialFields } from "@/components/admin/social-fields";
 import { requireAdmin } from "@/lib/auth-server";
 import { getVenues } from "@/content/repository";
@@ -80,7 +80,7 @@ export default async function NewOrganiserPage({
         </Field>
 
         <Field label="Beschrijving" htmlFor="body" hint="Markdown/MDX ondersteund.">
-          <Textarea id="body" name="body" />
+          <BodyEditor pool={pool} />
         </Field>
 
         <CheckboxField name="publish" label="Direct publiceren" defaultChecked />

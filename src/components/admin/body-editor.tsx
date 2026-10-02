@@ -17,8 +17,8 @@ import { previewBody, uploadInlineImage } from "@/app/beheer/body-actions";
 import type { MediaItem } from "@/content/media";
 
 /**
- * The body field of the event and blog forms, with a Markdown toolbar, an image
- * control and a preview (body-editor-toolbar D1–D5).
+ * The body field of every backend content form, with a Markdown toolbar, an
+ * image control and a preview (body-editor-toolbar D1–D5).
  *
  * It enhances a plain `<textarea name="body">`, rendered on the server with its
  * value: without JavaScript it is exactly the field it replaces. The textarea

@@ -6,7 +6,7 @@ import { compileBody } from "@/components/mdx/mdx";
 import { saveUploadChecked } from "@/content/media";
 
 /**
- * Server actions behind the body editor on the event and blog forms
+ * Server actions behind the body editor on the backend content forms
  * (body-editor-toolbar D4, D5). Both return data rather than redirecting, so
  * the editor stays on the form with its unsaved text.
  */
