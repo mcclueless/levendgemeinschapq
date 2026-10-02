@@ -21,7 +21,7 @@ export function eventPaths(event: CalendarEvent): string[] {
     "/", // homepage shows an upcoming preview
   ]);
   if (event.venue) paths.add(routes.venue(event.venue.slug));
-  if (event.organiser) paths.add(routes.organiser(event.organiser.slug));
+  for (const organiser of event.organisers) paths.add(routes.organiser(organiser.slug));
   return [...paths];
 }
 

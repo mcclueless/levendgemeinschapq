@@ -1,6 +1,7 @@
 // Reused by the `reindex` CLI as well as the app, so no `server-only` guard here.
 import { CONTENT_PREFIX, getStore } from "./storage";
 import { parseAll } from "./parse";
+import { eventOrganiserSlugs } from "./event-organisers";
 
 /**
  * Derived content index (design D3). A rebuildable cache over the S3/FS source
@@ -15,7 +16,8 @@ export interface ContentIndex {
     title: string;
     start: string;
     venue?: string;
-    organiser?: string;
+    /** Every organiser slug the event names (event-multiple-organisers). */
+    organisers: string[];
     status: string;
     uid?: string;
     recurring: boolean;
@@ -56,7 +58,7 @@ export async function buildIndex(): Promise<ContentIndex> {
       title: e.data.title,
       start: e.data.start.toISOString(),
       venue: e.data.venue,
-      organiser: e.data.organiser,
+      organisers: eventOrganiserSlugs(e.data),
       status: e.data.status,
       uid: e.data.uid,
       recurring: Boolean(e.data.recurrence),

@@ -31,17 +31,22 @@ export function eventJsonLd(
           },
         }
       : {}),
-    ...(event.organiser
+    // One organiser as an object, several as a list; schema.org accepts both
+    // (event-multiple-organisers D5).
+    ...(event.organisers.length > 0
       ? {
-          organizer: {
-            "@type": "Organization",
-            name: event.organiser.name,
-            url: absolute(event.organiser.href),
-          },
+          organizer:
+            event.organisers.length === 1
+              ? organization(event.organisers[0])
+              : event.organisers.map(organization),
         }
       : {}),
     url: absolute(event.href),
   };
+}
+
+function organization(organiser: Organiser) {
+  return { "@type": "Organization", name: organiser.name, url: absolute(organiser.href) };
 }
 
 export function venueJsonLd(venue: Venue) {

@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -175,15 +176,20 @@ export default async function EventPage({ params, searchParams }: PageProps) {
                 </Link>
               </>
             ) : null}
-            {event.organiser ? (
+            {event.organisers.length > 0 ? (
               <>
                 {"  ·  "}georganiseerd door{" "}
-                <Link
-                  href={event.organiser.href}
-                  className="font-medium text-brand-strong hover:underline"
-                >
-                  {event.organiser.name}
-                </Link>
+                {event.organisers.map((organiser, i) => (
+                  <Fragment key={organiser.slug}>
+                    {i === 0 ? null : i === event.organisers.length - 1 ? " en " : ", "}
+                    <Link
+                      href={organiser.href}
+                      className="font-medium text-brand-strong hover:underline"
+                    >
+                      {organiser.name}
+                    </Link>
+                  </Fragment>
+                ))}
               </>
             ) : null}
           </p>

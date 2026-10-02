@@ -86,3 +86,17 @@ test("pointsAt and referrerKindsOf agree with the table", () => {
   assert.deepEqual(referrerKindsOf("venue"), ["event", "project", "blog", "organiser", "feed"]);
   assert.deepEqual(referrerKindsOf("organiser"), ["event", "project", "blog", "feed"]);
 });
+
+test("an event naming an organiser only among its further organisers points at it", () => {
+  const fm = { title: "Concert", organiser: "anker", moreOrganisers: ["koor", "tuin"] };
+  assert.equal(pointsAt(fm, "event", "organiser", "koor"), true);
+  assert.equal(pointsAt(fm, "event", "organiser", "elders"), false);
+});
+
+test("an organiser rename rewrites further organisers in place, keeping order", () => {
+  const fm = { title: "Concert", organiser: "anker", moreOrganisers: ["koor", "tuin"] };
+  const out = rewriteReferences(fm, "event", "organiser", "koor", "koor-maastricht");
+  assert.ok(out, "expected a rewrite");
+  assert.equal(out.organiser, "anker");
+  assert.deepEqual(out.moreOrganisers, ["koor-maastricht", "tuin"]);
+});

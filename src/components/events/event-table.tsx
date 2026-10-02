@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import Link from "next/link";
 import { formatDate, formatTimeRange, isoDate } from "@/lib/date";
 import { recurrenceLabel } from "@/lib/recurrence-label";
@@ -89,13 +90,16 @@ export function EventTable({ occurrences }: { occurrences: EventOccurrence[] }) 
                 )}
               </Cell>
               <Cell label="Organisator">
-                {event.organiser ? (
-                  <Link href={event.organiser.href} className={link}>
-                    {event.organiser.name}
-                  </Link>
-                ) : (
-                  "—"
-                )}
+                {event.organisers.length > 0
+                  ? event.organisers.map((organiser, i) => (
+                      <Fragment key={organiser.slug}>
+                        {i > 0 ? ", " : null}
+                        <Link href={organiser.href} className={link}>
+                          {organiser.name}
+                        </Link>
+                      </Fragment>
+                    ))
+                  : "—"}
               </Cell>
               <Cell label="Herhaling" className="whitespace-nowrap text-muted">
                 {recurrenceLabel(event.recurrence) ?? "—"}

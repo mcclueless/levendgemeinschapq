@@ -2,6 +2,7 @@ import "server-only";
 import { getAllEvents } from "./repository";
 import { occurrencesInRange } from "./recurrence";
 import { occurrenceEnd } from "./event-dates";
+import { isOrganisedBy } from "./event-organisers";
 import { addDays, startOfToday } from "@/lib/date";
 import type { EventOccurrence } from "./types";
 
@@ -42,7 +43,7 @@ export async function getUpcomingEvents(
 
   for (const event of events) {
     if (venueSlug && event.venue?.slug !== venueSlug) continue;
-    if (organiserSlug && event.organiser?.slug !== organiserSlug) continue;
+    if (organiserSlug && !isOrganisedBy(event, organiserSlug)) continue;
     for (const start of occurrencesInRange(
       event.start,
       event.recurrence,

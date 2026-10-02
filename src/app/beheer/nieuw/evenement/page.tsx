@@ -71,9 +71,8 @@ export default async function NewEventPage({
               ))}
             </Select>
           </Field>
-          <Field label="Organisator" htmlFor="organiser">
-            <Select id="organiser" name="organiser" defaultValue="">
-              <option value="">Geen organisator</option>
+          <Field label="Organisatoren" htmlFor="organisers" hint="Geen, één of meer. Houd Ctrl/⌘ ingedrukt voor meerdere.">
+            <Select id="organisers" name="organisers" multiple className="min-h-32">
               {organisers.map((o) => (
                 <option key={o.slug} value={o.slug}>
                   {o.name}

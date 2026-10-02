@@ -7,6 +7,7 @@ import { z } from "zod";
 import { routes } from "@/lib/routes";
 import { listFeeds } from "./feeds";
 import { pointsAt, type ReferrerKind } from "./references";
+import { eventOrganiserSlugs, organisersLabel } from "./event-organisers";
 import { imageReferencesIn, type ImageReference, type ImageUser } from "./image-references";
 
 /**
@@ -24,7 +25,8 @@ export interface PendingEvent {
   /** Absent when the event names none; see `label()` for what is displayed. */
   venueSlug?: string;
   venueName: string;
-  organiserSlug?: string;
+  /** Every organiser slug the event names; empty when it names none. */
+  organiserSlugs: string[];
   organiserName: string;
   /**
    * The proposed series, not just its interval — a submitter can now say
@@ -90,8 +92,8 @@ export async function getPendingSubmissions(): Promise<Submission[]> {
       end: e.data.end?.toISOString(),
       venueSlug: e.data.venue,
       venueName: label(venueName, e.data.venue, "Geen locatie"),
-      organiserSlug: e.data.organiser,
-      organiserName: label(organiserName, e.data.organiser, "Geen organisator"),
+      organiserSlugs: eventOrganiserSlugs(e.data),
+      organiserName: organisersLabel(e.data, organiserName),
       recurrence: e.data.recurrence
         ? {
             freq: e.data.recurrence.freq,

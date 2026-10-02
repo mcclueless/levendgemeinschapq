@@ -16,6 +16,7 @@ import { AddressAutocomplete } from "@/components/admin/address-autocomplete";
 import { PermalinkForm } from "@/components/admin/permalink-form";
 import { requireAdmin } from "@/lib/auth-server";
 import { getEditable } from "@/content/admin";
+import { eventOrganiserSlugs } from "@/content/event-organisers";
 import { getOrganisers, getVenues } from "@/content/repository";
 import { listMedia } from "@/content/media";
 import { ADMIN_SEGMENT_TO_TYPE, type AdminSegment } from "@/lib/routes";
@@ -119,13 +120,14 @@ export default async function EditPage({
                 ))}
               </Select>
             </Field>
-            <Field label="Organisator" htmlFor="organiser">
+            <Field label="Organisatoren" htmlFor="organisers" hint="Geen, één of meer. Houd Ctrl/⌘ ingedrukt voor meerdere.">
               <Select
-                id="organiser"
-                name="organiser"
-                defaultValue={d.organiser ?? ""}
+                id="organisers"
+                name="organisers"
+                multiple
+                className="min-h-32"
+                defaultValue={eventOrganiserSlugs(d)}
               >
-                <option value="">Geen organisator</option>
                 {organisers.map((o) => (
                   <option key={o.slug} value={o.slug}>
                     {o.name}

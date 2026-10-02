@@ -3,6 +3,7 @@ import "server-only";
 import { CONTENT_PREFIX, getStore } from "./storage";
 import { parseAll } from "./parse";
 import { normaliseDates } from "./event-dates";
+import { resolveOrganisers } from "./event-organisers";
 import { routes } from "@/lib/routes";
 import type {
   BlogPost,
@@ -86,7 +87,7 @@ const loadEvents = cache(async (): Promise<CalendarEvent[]> => {
     // Absent and unresolvable both become null: to a reader they mean the same
     // thing, and every public surface omits what is null.
     venue: d.data.venue ? venues.get(d.data.venue) ?? null : null,
-    organiser: d.data.organiser ? organisers.get(d.data.organiser) ?? null : null,
+    organisers: resolveOrganisers(d.data, organisers),
     featuredImage: d.data.featuredImage,
     excerpt: d.data.excerpt,
     socials: d.data.socials,

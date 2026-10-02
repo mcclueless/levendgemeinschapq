@@ -111,6 +111,14 @@ export const EventFrontmatter = z.object({
    */
   venue: z.string().min(1).optional(),
   organiser: z.string().min(1).optional(),
+  /**
+   * The event's further organisers, all equal to `organiser`
+   * (event-multiple-organisers D1). `organiser` keeps its shape so that files
+   * stay valid for code that predates this field: that code strips the unknown
+   * key and still shows the event, where a reshaped `organiser` would make
+   * `parseAll` skip it.
+   */
+  moreOrganisers: z.array(z.string().min(1)).optional(),
   featuredImage: z.string().optional(),
   excerpt: z.string().optional(),
   socials: SocialsSchema,

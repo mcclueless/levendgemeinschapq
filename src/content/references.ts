@@ -27,7 +27,7 @@ type FieldsByTarget = Partial<Record<ReferencedType, string[]>>;
  * same.
  */
 export const REFERENCE_FIELDS: Record<ReferrerKind, FieldsByTarget> = {
-  event: { venue: ["venue"], organiser: ["organiser"] },
+  event: { venue: ["venue"], organiser: ["organiser", "moreOrganisers"] },
   project: { venue: ["venue"], organiser: ["organisers"] },
   blog: { venue: ["relatedVenues"], organiser: ["relatedOrganisers"] },
   organiser: { venue: ["location"] },

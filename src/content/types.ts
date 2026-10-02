@@ -42,7 +42,8 @@ export interface CalendarEvent {
   start: Date;
   end?: Date;
   venue: Venue | null;
-  organiser: Organiser | null;
+  /** Every organiser, sorted by name; empty when the event names none. */
+  organisers: Organiser[];
   featuredImage?: string;
   excerpt?: string;
   socials?: Socials;

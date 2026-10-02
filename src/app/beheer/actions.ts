@@ -26,6 +26,7 @@ import {
 } from "@/content/recurrence-form";
 import { socialsFromForm } from "@/content/socials-form";
 import { datesFromForm, validateEventRange } from "@/content/event-form";
+import { organiserFields } from "@/content/event-organisers";
 import { geocode, type GeocodeResult } from "@/content/geocode";
 import { syncFeed, type SyncResult } from "@/content/ical-import";
 import {
@@ -198,10 +199,12 @@ export async function createEvent(formData: FormData) {
   const title = str(formData, "title");
   const start = str(formData, "start");
   const venue = str(formData, "venue");
-  const organiser = str(formData, "organiser");
-  // Venue and organiser are optional here (optional-venue-and-organiser): an
+  // Venue and organisers are optional here (optional-venue-and-organiser): an
   // unselected value arrives as undefined and is left out of the document. The
-  // public submission form still requires both.
+  // public submission form still requires both. An event may name several
+  // organisers, stored as `organiser` + `moreOrganisers`
+  // (event-multiple-organisers D3).
+  const organisers = organiserFields(organisersFrom(formData));
   if (!title || !start) {
     redirect("/beheer/nieuw/evenement?error=1");
   }
@@ -229,7 +232,7 @@ export async function createEvent(formData: FormData) {
       start: siteInputToIso(start),
       end: siteInputToIso(end),
       venue,
-      organiser,
+      ...organisers,
       excerpt: str(formData, "excerpt"),
       featuredImage: eventImage,
       socials,
@@ -328,7 +331,10 @@ export async function createBlog(formData: FormData) {
   redirect("/beheer?created=blog");
 }
 
-/** Selected organiser slugs from a project form (projects spec: ≥1 required). */
+/**
+ * Selected organiser slugs from a project or event form. A project requires at
+ * least one (projects spec); an event may have none.
+ */
 function organisersFrom(form: FormData): string[] {
   return form
     .getAll("organisers")
@@ -379,7 +385,9 @@ export async function updateEvent(formData: FormData) {
   const title = str(formData, "title");
   const start = str(formData, "start");
   const venue = str(formData, "venue");
-  const organiser = str(formData, "organiser");
+  // Both organiser fields are always in the patch, so the merge clears the ones
+  // the editor removed (event-multiple-organisers D3).
+  const organisers = organiserFields(organisersFrom(formData));
   if (!title || !start) {
     redirect(`${adminListPath("event")}/${slug}/bewerken?error=1`);
   }
@@ -416,7 +424,7 @@ export async function updateEvent(formData: FormData) {
       start: siteInputToIso(start),
       end: siteInputToIso(end),
       venue,
-      organiser,
+      ...organisers,
       excerpt: str(formData, "excerpt"),
       socials,
       recurrence: recurrence.recurrence,
