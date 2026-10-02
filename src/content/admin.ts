@@ -2,13 +2,14 @@ import "server-only";
 import matter from "gray-matter";
 import { CONTENT_PREFIX, getStore } from "./storage";
 import { parseAll, parseDoc, type ParsedDoc } from "./parse";
-import type { ContentType, PublishStatus, frontmatterByType } from "./schema";
+import type { ContentType, frontmatterByType } from "./schema";
 import { z } from "zod";
 import { routes } from "@/lib/routes";
 import { listFeeds } from "./feeds";
 import { pointsAt, type ReferrerKind } from "./references";
 import { eventOrganiserSlugs, organisersLabel } from "./event-organisers";
 import { organiserGallery } from "./organiser-images";
+import { listSummaries } from "./summaries";
 import { imageReferencesIn, type ImageReference, type ImageUser } from "./image-references";
 
 /**
@@ -137,61 +138,13 @@ export async function getPendingSubmissions(): Promise<Submission[]> {
 
 // ── Manage existing content (manage-existing-content change) ─────────────────
 
-const PUBLIC_PATH = {
-  event: routes.event,
-  venue: routes.venue,
-  organiser: routes.organiser,
-  blog: routes.post,
-  project: routes.project,
-} as const;
-
-export interface ContentListItem {
-  type: ContentType;
-  slug: string;
-  /** Title for events/blog, name for venues/organisers. */
-  title: string;
-  status: PublishStatus;
-  /** Public URL of the item. */
-  href: string;
-}
-
 /**
  * All items of a content type, regardless of publication status, for the
- * backend management list. Sorted newest-first for dated types (events by
- * start, blog by date) and alphabetically for venues/organisers.
+ * backend management list — as summaries (admin-content-table D2). The list
+ * page orders them; see `applyListQuery`.
  */
-export async function listContent(type: ContentType): Promise<ContentListItem[]> {
-  const docs = parseAll(type, await getStore().readPrefix(CONTENT_PREFIX[type]));
-  const items = docs.map((d) => {
-    const data = d.data as Record<string, unknown>;
-    const title = (data.title ?? data.name ?? d.slug) as string;
-    const sortKey =
-      type === "event"
-        ? (data.start as Date)?.toISOString?.() ?? ""
-        : type === "blog" || type === "project"
-          ? (data.date as Date)?.toISOString?.() ?? ""
-          : title.toLowerCase();
-    return {
-      type,
-      slug: d.slug,
-      title,
-      status: data.status as PublishStatus,
-      href: PUBLIC_PATH[type](d.slug),
-      sortKey,
-    };
-  });
-  const dated = type === "event" || type === "blog" || type === "project";
-  items.sort((a, b) =>
-    dated ? b.sortKey.localeCompare(a.sortKey) : a.sortKey.localeCompare(b.sortKey),
-  );
-  return items.map((i) => ({
-    type: i.type,
-    slug: i.slug,
-    title: i.title,
-    status: i.status,
-    href: i.href,
-  }));
-}
+export const listContent = listSummaries;
+export type { ContentSummary } from "./summaries";
 
 export interface ContentReference {
   kind: ReferrerKind;
@@ -223,44 +176,30 @@ export async function findReferences(
 ): Promise<ContentReference[]> {
   if (type !== "venue" && type !== "organiser") return [];
 
-  const store = getStore();
+  // Summaries carry the slugs each item points at, taken from the one table
+  // in `references.ts`, so this needs no bodies and no second definition.
   const [events, projects, posts, organisers, feeds] = await Promise.all([
-    store.readPrefix(CONTENT_PREFIX.event).then((d) => parseAll("event", d)),
-    store.readPrefix(CONTENT_PREFIX.project).then((d) => parseAll("project", d)),
-    store.readPrefix(CONTENT_PREFIX.blog).then((d) => parseAll("blog", d)),
-    store
-      .readPrefix(CONTENT_PREFIX.organiser)
-      .then((d) => parseAll("organiser", d)),
+    listSummaries("event"),
+    listSummaries("project"),
+    listSummaries("blog"),
+    listSummaries("organiser"),
     includeHidden ? listFeeds() : Promise.resolve([]),
   ]);
 
   const refs: ContentReference[] = [];
-  const counts = (status: PublishStatus) => includeHidden || status === "published";
-  const hits = (fm: object, kind: ReferrerKind) =>
-    pointsAt(fm as Record<string, unknown>, kind, type, slug);
-
-  for (const e of events) {
-    if (counts(e.data.status) && hits(e.data, "event")) {
-      refs.push({ kind: "event", slug: e.slug, title: e.data.title, href: routes.event(e.slug) });
-    }
-  }
-  for (const p of projects) {
-    if (counts(p.data.status) && hits(p.data, "project")) {
-      refs.push({ kind: "project", slug: p.slug, title: p.data.title, href: routes.project(p.slug) });
-    }
-  }
-  for (const p of posts) {
-    if (counts(p.data.status) && hits(p.data, "blog")) {
-      refs.push({ kind: "blog", slug: p.slug, title: p.data.title, href: routes.post(p.slug) });
-    }
-  }
-  for (const o of organisers) {
-    if (counts(o.data.status) && hits(o.data, "organiser")) {
-      refs.push({ kind: "organiser", slug: o.slug, title: o.data.name, href: routes.organiser(o.slug) });
-    }
+  const pointing = type === "venue" ? "venues" : "organisers";
+  for (const item of [...events, ...projects, ...posts, ...organisers]) {
+    if (!includeHidden && item.status !== "published") continue;
+    if (!item[pointing].includes(slug)) continue;
+    refs.push({
+      kind: item.type as ReferrerKind,
+      slug: item.slug,
+      title: item.title,
+      href: item.href,
+    });
   }
   for (const f of feeds) {
-    if (hits(f, "feed")) {
+    if (pointsAt(f as unknown as Record<string, unknown>, "feed", type, slug)) {
       refs.push({ kind: "feed", slug: f.id, title: f.label, href: `/beheer/feeds/${f.id}/bewerken` });
     }
   }
@@ -368,17 +307,14 @@ export async function getEditable<K extends ContentType>(
 
 /** Counts for the dashboard. */
 export async function getContentCounts() {
-  const store = getStore();
   const [events, venues, organisers, posts, projects] = await Promise.all([
-    store.readPrefix(CONTENT_PREFIX.event).then((d) => parseAll("event", d)),
-    store.readPrefix(CONTENT_PREFIX.venue).then((d) => parseAll("venue", d)),
-    store.readPrefix(CONTENT_PREFIX.organiser).then((d) => parseAll("organiser", d)),
-    store.readPrefix(CONTENT_PREFIX.blog).then((d) => parseAll("blog", d)),
-    store.readPrefix(CONTENT_PREFIX.project).then((d) => parseAll("project", d)),
+    listSummaries("event"),
+    listSummaries("venue"),
+    listSummaries("organiser"),
+    listSummaries("blog"),
+    listSummaries("project"),
   ]);
-  const pending =
-    events.filter((e) => e.data.status === "pending").length +
-    posts.filter((p) => p.data.status === "pending").length;
+  const pending = [...events, ...posts].filter((i) => i.status === "pending").length;
   return {
     events: events.length,
     venues: venues.length,

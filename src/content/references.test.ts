@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   pointsAt,
+  referencedSlugs,
   referrerKindsOf,
   rewriteReferences,
   type ReferrerKind,
@@ -100,3 +101,19 @@ test("an organiser rename rewrites further organisers in place, keeping order", 
   assert.equal(out.organiser, "anker");
   assert.deepEqual(out.moreOrganisers, ["koor-maastricht", "tuin"]);
 });
+
+const slugCases: Array<[ReferrerKind, Record<string, unknown>, string[], string[]]> = [
+  ["event", { venue: "plein", organiser: "a", moreOrganisers: ["b", "a"] }, ["plein"], ["a", "b"]],
+  ["event", { title: "Zonder" }, [], []],
+  ["project", { venue: "plein", organisers: ["a", "b"] }, ["plein"], ["a", "b"]],
+  ["blog", { relatedVenues: ["x", "y"], relatedOrganisers: [] }, ["x", "y"], []],
+  ["organiser", { name: "Club", location: "plein" }, ["plein"], []],
+  ["feed", { defaultVenue: "plein", defaultOrganiser: "a" }, ["plein"], ["a"]],
+];
+
+for (const [kind, fm, venues, organisers] of slugCases) {
+  test(`referencedSlugs lists what a ${kind} points at`, () => {
+    assert.deepEqual(referencedSlugs(fm, kind, "venue"), venues);
+    assert.deepEqual(referencedSlugs(fm, kind, "organiser"), organisers);
+  });
+}

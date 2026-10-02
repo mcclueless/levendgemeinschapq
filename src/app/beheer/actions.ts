@@ -53,6 +53,7 @@ import {
 } from "@/content/permalink";
 import { adminEditPath, adminListPath, publicListPath } from "@/lib/routes";
 import { siteInputToIso } from "@/lib/date";
+import { returnPath, withParam } from "@/lib/return-path";
 
 type ManagedType = "event" | "venue" | "organiser" | "blog" | "project";
 
@@ -65,6 +66,21 @@ function managedType(form: FormData): ManagedType | undefined {
     t === "project"
     ? t
     : undefined;
+}
+
+/**
+ * Where a backend action lands when it is done: the list view it was started
+ * from, sent along as `terug`, or else the type's list (admin-content-table D6).
+ */
+function listBack(type: ManagedType, form: FormData): string {
+  return returnPath(form.get("terug"), adminListPath(type));
+}
+
+/** An item's edit form, still carrying the list view to return to after saving. */
+function editBack(type: ManagedType, slug: string | undefined, form: FormData): string {
+  const path = adminEditPath(type, slug ?? "");
+  const terug = str(form, "terug");
+  return terug ? withParam(path, "terug", terug) : path;
 }
 
 function str(form: FormData, key: string): string | undefined {
@@ -86,7 +102,7 @@ async function coverImage(
   const picked = str(form, fields.url);
   if (picked) return picked;
   const result = await saveUploadChecked(form.get(fields.file));
-  if (!result.ok) redirect(`${back}?error=${result.reason}`);
+  if (!result.ok) redirect(withParam(back, "error", result.reason));
   return result.url;
 }
 
@@ -181,7 +197,7 @@ export async function rejectSubmission(formData: FormData) {
  */
 function socialsOrRedirect(form: FormData, back: string) {
   const result = socialsFromForm(form);
-  if (!result.ok) redirect(`${back}?error=socials-${result.platform}`);
+  if (!result.ok) redirect(withParam(back, "error", `socials-${result.platform}`));
   return result.socials;
 }
 
@@ -441,14 +457,12 @@ export async function updateEvent(formData: FormData) {
   // Both organiser fields are always in the patch, so the merge clears the ones
   // the editor removed (event-multiple-organisers D3).
   const organisers = organiserFields(organisersFrom(formData));
-  if (!title || !start) {
-    redirect(`${adminListPath("event")}/${slug}/bewerken?error=1`);
-  }
-  const back = `${adminListPath("event")}/${slug}/bewerken`;
+  const back = editBack("event", slug, formData);
+  if (!title || !start) redirect(withParam(back, "error", "1"));
   const end = str(formData, "end");
   // As in createEvent: a marker's hidden end is kept, not checked (event-no-page D4).
   const range = noPage ? { ok: true as const } : validateEventRange(start, end);
-  if (!range.ok) redirect(`${back}?error=${range.reason}`);
+  if (!range.ok) redirect(withParam(back, "error", range.reason));
   // No form exposes `interval`, so carry the stored one through rather than
   // rebuilding the recurrence from the form alone — otherwise an imported
   // "every 2 weeks" silently became every week on any save, including one that
@@ -460,17 +474,17 @@ export async function updateEvent(formData: FormData) {
     ADMIN_FREQUENCIES,
     stored?.data.recurrence?.interval,
   );
-  if (!recurrence.ok) redirect(`${back}?error=${recurrence.reason}`);
+  if (!recurrence.ok) redirect(withParam(back, "error", recurrence.reason));
   // The edit form presents the whole list, so what it posts replaces what is
   // stored — an emptied list removes the field. Paths that do not present the
   // list (approval, import adoption, permalink change) never mention it, and
   // the merge keeps it (event-multiple-dates D7).
   const dates = datesFromForm(formData, siteInputToIso(start), Boolean(recurrence.recurrence));
-  if (!dates.ok) redirect(`${back}?error=${dates.reason}`);
+  if (!dates.ok) redirect(withParam(back, "error", dates.reason));
   const socials = socialsOrRedirect(formData, back);
   const eventImage = await coverImage(formData, back);
   if (noPage && !eventImage && !stored?.data.featuredImage) {
-    redirect(`${back}?error=image-required`);
+    redirect(withParam(back, "error", "image-required"));
   }
   await updateDocument(
     "event",
@@ -494,7 +508,7 @@ export async function updateEvent(formData: FormData) {
   );
   await revalidatePublic();
   revalidatePath(adminListPath("event"));
-  redirect(adminListPath("event"));
+  redirect(listBack("event", formData));
 }
 
 export async function updateVenue(formData: FormData) {
@@ -502,9 +516,10 @@ export async function updateVenue(formData: FormData) {
   const slug = str(formData, "slug");
   if (!slug) redirect(adminListPath("venue"));
   const name = str(formData, "name");
-  if (!name) redirect(`${adminListPath("venue")}/${slug}/bewerken?error=1`);
+  const back = editBack("venue", slug, formData);
+  if (!name) redirect(withParam(back, "error", "1"));
   const address = str(formData, "address");
-  const venueImage = await coverImage(formData, `${adminListPath("venue")}/${slug}/bewerken`);
+  const venueImage = await coverImage(formData, back);
   // Prefer an autocomplete selection; else re-geocode the address. On no
   // result, omit lat/lng so the merge keeps existing coordinates.
   const picked = pickedCoords(formData);
@@ -528,7 +543,8 @@ export async function updateVenue(formData: FormData) {
   await revalidatePublic();
   revalidatePath(adminListPath("venue"));
   const flag = picked ? undefined : geoFlag(address, geo);
-  redirect(`${adminListPath("venue")}${flag ? `?geo=${flag}` : ""}`);
+  const list = listBack("venue", formData);
+  redirect(flag ? withParam(list, "geo", flag) : list);
 }
 
 export async function updateOrganiser(formData: FormData) {
@@ -536,8 +552,9 @@ export async function updateOrganiser(formData: FormData) {
   const slug = str(formData, "slug");
   if (!slug) redirect(adminListPath("organiser"));
   const name = str(formData, "name");
-  if (!name) redirect(`${adminListPath("organiser")}/${slug}/bewerken?error=1`);
-  const logo = await organiserLogo(formData, `${adminListPath("organiser")}/${slug}/bewerken`);
+  const back = editBack("organiser", slug, formData);
+  if (!name) redirect(withParam(back, "error", "1"));
+  const logo = await organiserLogo(formData, back);
   await updateDocument(
     "organiser",
     slug!,
@@ -548,10 +565,7 @@ export async function updateOrganiser(formData: FormData) {
       website: str(formData, "website"),
       location: str(formData, "location"),
       excerpt: str(formData, "excerpt"),
-      socials: socialsOrRedirect(
-        formData,
-        `${adminListPath("organiser")}/${slug}/bewerken`,
-      ),
+      socials: socialsOrRedirect(formData, back),
       // The form posts the whole ordered list, so it replaces what is stored —
       // removing every image clears the cover too (organiser-page-layout D2).
       ...organiserImagesFrom(formData),
@@ -561,7 +575,7 @@ export async function updateOrganiser(formData: FormData) {
   );
   await revalidatePublic();
   revalidatePath(adminListPath("organiser"));
-  redirect(adminListPath("organiser"));
+  redirect(listBack("organiser", formData));
 }
 
 export async function updateBlog(formData: FormData) {
@@ -571,10 +585,9 @@ export async function updateBlog(formData: FormData) {
   const title = str(formData, "title");
   const author = str(formData, "author");
   const date = str(formData, "date");
-  if (!title || !author || !date) {
-    redirect(`${adminListPath("blog")}/${slug}/bewerken?error=1`);
-  }
-  const blogImage = await coverImage(formData, `${adminListPath("blog")}/${slug}/bewerken`);
+  const back = editBack("blog", slug, formData);
+  if (!title || !author || !date) redirect(withParam(back, "error", "1"));
+  const blogImage = await coverImage(formData, back);
   const relatedVenues = formData
     .getAll("relatedVenues")
     .filter((v): v is string => typeof v === "string" && v !== "");
@@ -597,7 +610,7 @@ export async function updateBlog(formData: FormData) {
   );
   await revalidatePublic();
   revalidatePath(adminListPath("blog"));
-  redirect(adminListPath("blog"));
+  redirect(listBack("blog", formData));
 }
 
 export async function updateProject(formData: FormData) {
@@ -607,10 +620,9 @@ export async function updateProject(formData: FormData) {
   const title = str(formData, "title");
   const venue = str(formData, "venue");
   const organisers = organisersFrom(formData);
-  if (!title || organisers.length === 0) {
-    redirect(`${adminListPath("project")}/${slug}/bewerken?error=1`);
-  }
-  const projectImage = await coverImage(formData, `${adminListPath("project")}/${slug}/bewerken`);
+  const back = editBack("project", slug, formData);
+  if (!title || organisers.length === 0) redirect(withParam(back, "error", "1"));
+  const projectImage = await coverImage(formData, back);
   // `date` is omitted from the patch so the original ordering date is preserved.
   await updateDocument(
     "project",
@@ -626,7 +638,7 @@ export async function updateProject(formData: FormData) {
   );
   await revalidatePublic();
   revalidatePath(adminListPath("project"));
-  redirect(adminListPath("project"));
+  redirect(listBack("project", formData));
 }
 
 // ── Hide / show existing content ─────────────────────────────────────────────
@@ -678,10 +690,11 @@ export async function hideContent(formData: FormData) {
   const type = managedType(formData);
   const slug = str(formData, "slug");
   if (!type || !slug) return;
+  const back = listBack(type, formData);
   if ((await performHide(type, slug)).blocked) {
-    redirect(`${adminListPath(type)}?blocked=${encodeURIComponent(slug)}`);
+    redirect(withParam(back, "blocked", slug));
   }
-  redirect(adminListPath(type));
+  redirect(back);
 }
 
 export async function showContent(formData: FormData) {
@@ -692,7 +705,7 @@ export async function showContent(formData: FormData) {
   await setStatus(type, slug, "published");
   await revalidateAfterItemChange(type, slug);
   revalidatePath(adminListPath(type));
-  redirect(adminListPath(type));
+  redirect(listBack(type, formData));
 }
 
 // Permanent, irreversible removal for any content type. A venue/organiser still
@@ -704,10 +717,11 @@ export async function deleteContent(formData: FormData) {
   const type = managedType(formData);
   const slug = str(formData, "slug");
   if (!type || !slug) return;
+  const back = listBack(type, formData);
   if ((await performDelete(type, slug)).blocked) {
-    redirect(`${adminListPath(type)}?undeletable=${encodeURIComponent(slug)}`);
+    redirect(withParam(back, "undeletable", slug));
   }
-  redirect(adminListPath(type));
+  redirect(back);
 }
 
 /**

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
+import { cn } from "@/lib/cn";
 
 /**
  * Small-screen primary navigation (mobile-navigation-menu D1).
@@ -23,8 +24,24 @@ import { usePathname } from "next/navigation";
  * not announce the control or whether it is open. `aria-expanded` is kept in
  * sync from the element's own `toggle` event, so it stays right however the
  * disclosure was operated.
+ *
+ * The backend navigation uses the same control on its dark chrome
+ * (admin-content-table D7); the class props restyle it and move the width at
+ * which it gives way to the full navigation.
  */
-export function MobileMenu({ children }: { children: React.ReactNode }) {
+export function MobileMenu({
+  children,
+  label = "Menu",
+  className = "md:hidden",
+  summaryClassName = "border border-border bg-surface text-ink hover:bg-surface-2",
+  panelClassName = "border border-border bg-surface",
+}: {
+  children: React.ReactNode;
+  label?: string;
+  className?: string;
+  summaryClassName?: string;
+  panelClassName?: string;
+}) {
   const ref = useRef<HTMLDetailsElement>(null);
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -67,12 +84,15 @@ export function MobileMenu({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <details ref={ref} className="relative md:hidden">
+    <details ref={ref} className={cn("relative", className)}>
       <summary
         role="button"
-        aria-label="Menu"
+        aria-label={label}
         aria-expanded={open}
-        className="flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-md border border-border bg-surface text-ink transition-colors hover:bg-surface-2 focus-visible:outline-3 focus-visible:outline-offset-2 [&::-webkit-details-marker]:hidden"
+        className={cn(
+          "flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-md transition-colors focus-visible:outline-3 focus-visible:outline-offset-2 [&::-webkit-details-marker]:hidden",
+          summaryClassName,
+        )}
       >
         <svg
           aria-hidden="true"
@@ -89,7 +109,10 @@ export function MobileMenu({ children }: { children: React.ReactNode }) {
       {/* Anchored to the header's right edge, under the sticky bar. */}
       <div
         onClick={close}
-        className="absolute right-0 z-50 mt-2 w-60 rounded-lg border border-border bg-surface p-2 shadow-lg"
+        className={cn(
+          "absolute right-0 z-50 mt-2 w-60 rounded-lg p-2 shadow-lg",
+          panelClassName,
+        )}
       >
         {children}
       </div>

@@ -41,6 +41,24 @@ export function referrerKindsOf(type: ReferencedType): ReferrerKind[] {
   );
 }
 
+/**
+ * Every `type` slug that `frontmatter` of `kind` points at, in field order and
+ * without duplicates (admin-content-table D2).
+ */
+export function referencedSlugs(
+  frontmatter: Record<string, unknown>,
+  kind: ReferrerKind,
+  type: ReferencedType,
+): string[] {
+  const slugs = (REFERENCE_FIELDS[kind][type] ?? []).flatMap((field) => {
+    const value = frontmatter[field];
+    return Array.isArray(value) ? value : [value];
+  });
+  return [...new Set(slugs)].filter(
+    (slug): slug is string => typeof slug === "string" && slug !== "",
+  );
+}
+
 /** Whether `frontmatter` of `kind` points at the `type` item with `slug`. */
 export function pointsAt(
   frontmatter: Record<string, unknown>,
@@ -48,10 +66,7 @@ export function pointsAt(
   type: ReferencedType,
   slug: string,
 ): boolean {
-  return (REFERENCE_FIELDS[kind][type] ?? []).some((field) => {
-    const value = frontmatter[field];
-    return Array.isArray(value) ? value.includes(slug) : value === slug;
-  });
+  return referencedSlugs(frontmatter, kind, type).includes(slug);
 }
 
 /**

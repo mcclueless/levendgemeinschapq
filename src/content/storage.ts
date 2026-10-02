@@ -23,6 +23,11 @@ export interface StoredDoc {
   slug: string;
   /** Raw file contents (frontmatter + body). */
   raw: string;
+  /**
+   * When the store last wrote this document (admin-content-table D3). Not part
+   * of the document: any write moves it, including a hide or a feed sync.
+   */
+  modified?: Date;
 }
 
 export interface ContentStore {
@@ -72,9 +77,14 @@ class LocalFsStore implements ContentStore {
   async readPrefix(prefix: string): Promise<StoredDoc[]> {
     const keys = await this.list(prefix);
     const docs = await Promise.all(
-      keys.map(async (key) => {
+      keys.map(async (key): Promise<StoredDoc | null> => {
         const raw = await this.read(key);
-        return raw == null ? null : { key, slug: slugFromKey(key), raw };
+        if (raw == null) return null;
+        const modified = await fs
+          .stat(this.abs(key))
+          .then((s) => s.mtime)
+          .catch(() => undefined);
+        return { key, slug: slugFromKey(key), raw, modified };
       }),
     );
     return docs.filter((d): d is StoredDoc => d !== null);
@@ -116,9 +126,16 @@ class S3Store implements ContentStore {
   }
 
   async list(prefix: string): Promise<string[]> {
+    return (await this.entries(prefix)).map((e) => e.key);
+  }
+
+  /** The listing with each object's `LastModified`, which it returns anyway. */
+  private async entries(
+    prefix: string,
+  ): Promise<Array<{ key: string; modified?: Date }>> {
     const { ListObjectsV2Command } = await import("@aws-sdk/client-s3");
     const client = await this.client();
-    const keys: string[] = [];
+    const keys: Array<{ key: string; modified?: Date }> = [];
     let token: string | undefined;
     do {
       const out = await client.send(
@@ -129,7 +146,9 @@ class S3Store implements ContentStore {
         }),
       );
       for (const obj of out.Contents ?? []) {
-        if (obj.Key && CONTENT_EXT.test(obj.Key)) keys.push(obj.Key);
+        if (obj.Key && CONTENT_EXT.test(obj.Key)) {
+          keys.push({ key: obj.Key, modified: obj.LastModified });
+        }
       }
       token = out.IsTruncated ? out.NextContinuationToken : undefined;
     } while (token);
@@ -151,11 +170,11 @@ class S3Store implements ContentStore {
   }
 
   async readPrefix(prefix: string): Promise<StoredDoc[]> {
-    const keys = await this.list(prefix);
+    const entries = await this.entries(prefix);
     const docs = await Promise.all(
-      keys.map(async (key) => {
+      entries.map(async ({ key, modified }): Promise<StoredDoc | null> => {
         const raw = await this.read(key);
-        return raw == null ? null : { key, slug: slugFromKey(key), raw };
+        return raw == null ? null : { key, slug: slugFromKey(key), raw, modified };
       }),
     );
     return docs.filter((d): d is StoredDoc => d !== null);
