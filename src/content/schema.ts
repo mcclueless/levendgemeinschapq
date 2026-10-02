@@ -119,6 +119,12 @@ export const EventFrontmatter = z.object({
    * `parseAll` skip it.
    */
   moreOrganisers: z.array(z.string().min(1)).optional(),
+  /**
+   * An agenda marker (event-no-page D1): shown in listings by its date, with
+   * its image, but without a page, a link, or a time. Absent means an ordinary
+   * event, so files that predate the flag are unchanged.
+   */
+  noPage: z.boolean().optional(),
   featuredImage: z.string().optional(),
   excerpt: z.string().optional(),
   socials: SocialsSchema,

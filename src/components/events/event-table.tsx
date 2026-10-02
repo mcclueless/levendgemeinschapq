@@ -73,12 +73,17 @@ export function EventTable({ occurrences }: { occurrences: EventOccurrence[] }) 
                 <time dateTime={isoDate(start)}>{formatDate(start)}</time>
               </Cell>
               <Cell label="Tijd" className="whitespace-nowrap tabular-nums">
-                {formatTimeRange(start, o.end)}
+                {/* A marker is about a day, not a time (event-no-page D3). */}
+                {event.noPage ? "—" : formatTimeRange(start, o.end)}
               </Cell>
               <Cell label="Evenement">
-                <Link href={occurrenceLink(event, start)} className={link}>
-                  {event.title}
-                </Link>
+                {event.noPage ? (
+                  event.title
+                ) : (
+                  <Link href={occurrenceLink(event, start)} className={link}>
+                    {event.title}
+                  </Link>
+                )}
               </Cell>
               <Cell label="Locatie">
                 {event.venue ? (

@@ -11,6 +11,7 @@ import {
 import { ImageField } from "@/components/admin/image-field";
 import { SocialFields } from "@/components/admin/social-fields";
 import { BodyEditor } from "@/components/admin/body-editor";
+import { EventStartInput, NoPageField } from "@/components/admin/no-page-field";
 import { DateListField } from "@/components/admin/date-list-field";
 import { requireAdmin } from "@/lib/auth-server";
 import { getOrganisers, getVenues } from "@/content/repository";
@@ -47,20 +48,24 @@ export default async function NewEventPage({
           <Input id="title" name="title" required />
         </Field>
 
-        <Field label="Uitgelichte afbeelding" htmlFor="image" hint="Optioneel — upload nieuw of kies uit de galerij.">
+        <NoPageField />
+
+        <Field label="Uitgelichte afbeelding" htmlFor="image" hint="Upload nieuw of kies uit de galerij. Optioneel, behalve bij Geen pagina.">
           <ImageField pool={pool} />
         </Field>
 
         <div className="grid gap-5 sm:grid-cols-2">
           <Field label="Start" htmlFor="start" required>
-            <Input id="start" name="start" type="datetime-local" required />
+            <EventStartInput />
           </Field>
-          <Field label="Einde" htmlFor="end">
-            <Input id="end" name="end" type="datetime-local" />
-          </Field>
+          <div data-page-only>
+            <Field label="Einde" htmlFor="end">
+              <Input id="end" name="end" type="datetime-local" />
+            </Field>
+          </div>
         </div>
 
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div data-page-only className="grid gap-5 sm:grid-cols-2">
           <Field label="Locatie" htmlFor="venue">
             <Select id="venue" name="venue" defaultValue="">
               <option value="">Geen locatie</option>
@@ -101,15 +106,17 @@ export default async function NewEventPage({
 
         <DateListField />
 
-        <SocialFields />
+        <div data-page-only className="grid gap-5">
+          <SocialFields />
 
-        <Field label="Korte omschrijving" htmlFor="excerpt" hint="Voor lijsten en previews.">
-          <Input id="excerpt" name="excerpt" />
-        </Field>
+          <Field label="Korte omschrijving" htmlFor="excerpt" hint="Voor lijsten en previews.">
+            <Input id="excerpt" name="excerpt" />
+          </Field>
 
-        <Field label="Inhoud" htmlFor="body" hint="Markdown/MDX ondersteund.">
-          <BodyEditor pool={pool} />
-        </Field>
+          <Field label="Inhoud" htmlFor="body" hint="Markdown/MDX ondersteund.">
+            <BodyEditor pool={pool} />
+          </Field>
+        </div>
 
         <CheckboxField name="publish" label="Direct publiceren" defaultChecked />
         <div>

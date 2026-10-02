@@ -25,7 +25,12 @@ import {
   type RecurrenceFormResult,
 } from "@/content/recurrence-form";
 import { socialsFromForm } from "@/content/socials-form";
-import { datesFromForm, validateEventRange } from "@/content/event-form";
+import {
+  DATES_FIELD,
+  datesFromForm,
+  markerDayInput,
+  validateEventRange,
+} from "@/content/event-form";
 import { organiserFields } from "@/content/event-organisers";
 import { geocode, type GeocodeResult } from "@/content/geocode";
 import { syncFeed, type SyncResult } from "@/content/ical-import";
@@ -194,8 +199,30 @@ function adminRecurrence(form: FormData, start: string | undefined): RecurrenceF
   );
 }
 
+/**
+ * Whether the event form asks for an agenda marker (event-no-page D4). For a
+ * marker, the start and every further date are rewritten to the start of their
+ * day before any parsing, so a typed time is ignored and a date-only value
+ * parses like any other.
+ */
+function readMarker(formData: FormData): boolean {
+  const marker = Boolean(formData.get("noPage"));
+  // A marker drops any time. An ordinary event keeps its time, but a bare date
+  // (an input still in marker mode when the box was just cleared) reads as the
+  // start of that day rather than being refused.
+  const day = (value: string | undefined) =>
+    marker || (value && /^\d{4}-\d{2}-\d{2}$/.test(value.trim())) ? markerDayInput(value) : value;
+  const start = day(str(formData, "start"));
+  if (start) formData.set("start", start);
+  const dates = formData.getAll(DATES_FIELD).map((v) => (typeof v === "string" ? v : ""));
+  formData.delete(DATES_FIELD);
+  for (const value of dates) formData.append(DATES_FIELD, day(value) ?? "");
+  return marker;
+}
+
 export async function createEvent(formData: FormData) {
   await assertAdmin();
+  const noPage = readMarker(formData);
   const title = str(formData, "title");
   const start = str(formData, "start");
   const venue = str(formData, "venue");
@@ -209,7 +236,9 @@ export async function createEvent(formData: FormData) {
     redirect("/beheer/nieuw/evenement?error=1");
   }
   const end = str(formData, "end");
-  const range = validateEventRange(start, end);
+  // A marker shows no end, so its hidden end is kept as posted but not checked
+  // against the day-start it was moved to (event-no-page D4, D5).
+  const range = noPage ? { ok: true as const } : validateEventRange(start, end);
   if (!range.ok) redirect(`/beheer/nieuw/evenement?error=${range.reason}`);
   const recurrence = adminRecurrence(formData, start);
   if (!recurrence.ok) {
@@ -223,6 +252,8 @@ export async function createEvent(formData: FormData) {
   // behind for a document that was never created.
   const socials = socialsOrRedirect(formData, "/beheer/nieuw/evenement");
   const eventImage = await coverImage(formData, "/beheer/nieuw/evenement");
+  // A marker is its image; without one there is nothing to show (event-no-page D5).
+  if (noPage && !eventImage) redirect("/beheer/nieuw/evenement?error=image-required");
   await createDocument(
     "event",
     title!,
@@ -238,6 +269,7 @@ export async function createEvent(formData: FormData) {
       socials,
       recurrence: recurrence.recurrence,
       dates: dates.dates,
+      noPage: noPage || undefined,
       status: formData.get("publish") ? "published" : "draft",
     },
     str(formData, "body") ?? "",
@@ -382,6 +414,7 @@ export async function updateEvent(formData: FormData) {
   await assertAdmin();
   const slug = str(formData, "slug");
   if (!slug) redirect(adminListPath("event"));
+  const noPage = readMarker(formData);
   const title = str(formData, "title");
   const start = str(formData, "start");
   const venue = str(formData, "venue");
@@ -393,7 +426,8 @@ export async function updateEvent(formData: FormData) {
   }
   const back = `${adminListPath("event")}/${slug}/bewerken`;
   const end = str(formData, "end");
-  const range = validateEventRange(start, end);
+  // As in createEvent: a marker's hidden end is kept, not checked (event-no-page D4).
+  const range = noPage ? { ok: true as const } : validateEventRange(start, end);
   if (!range.ok) redirect(`${back}?error=${range.reason}`);
   // No form exposes `interval`, so carry the stored one through rather than
   // rebuilding the recurrence from the form alone — otherwise an imported
@@ -415,6 +449,9 @@ export async function updateEvent(formData: FormData) {
   if (!dates.ok) redirect(`${back}?error=${dates.reason}`);
   const socials = socialsOrRedirect(formData, back);
   const eventImage = await coverImage(formData, back);
+  if (noPage && !eventImage && !stored?.data.featuredImage) {
+    redirect(`${back}?error=image-required`);
+  }
   await updateDocument(
     "event",
     slug!,
@@ -429,6 +466,8 @@ export async function updateEvent(formData: FormData) {
       socials,
       recurrence: recurrence.recurrence,
       dates: dates.dates,
+      // Always in the patch, so unchecking removes the key (event-no-page D1).
+      noPage: noPage || undefined,
       ...(eventImage ? { featuredImage: eventImage } : {}),
     },
     str(formData, "body") ?? "",

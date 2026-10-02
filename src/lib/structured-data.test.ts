@@ -20,6 +20,7 @@ const event = (over: Partial<CalendarEvent>): CalendarEvent => ({
   end: oct(3, 22),
   venue: null,
   organisers: [],
+  noPage: false,
   status: "published",
   body: "",
   href: "/agenda/concertserie",

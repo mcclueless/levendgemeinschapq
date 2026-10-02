@@ -11,6 +11,7 @@ import {
 import { ImageField } from "@/components/admin/image-field";
 import { SocialFields } from "@/components/admin/social-fields";
 import { BodyEditor } from "@/components/admin/body-editor";
+import { EventStartInput, NoPageField } from "@/components/admin/no-page-field";
 import { DateListField } from "@/components/admin/date-list-field";
 import { AddressAutocomplete } from "@/components/admin/address-autocomplete";
 import { PermalinkForm } from "@/components/admin/permalink-form";
@@ -87,29 +88,29 @@ export default async function EditPage({
           <Field label="Titel" htmlFor="title" required>
             <Input id="title" name="title" required defaultValue={d.title} />
           </Field>
+          <NoPageField defaultChecked={d.noPage === true} />
           <Field label="Uitgelichte afbeelding" htmlFor="image">
             <ImageField pool={pool} current={d.featuredImage} />
           </Field>
           <div className="grid gap-5 sm:grid-cols-2">
             <Field label="Start" htmlFor="start" required>
-              <Input
-                id="start"
-                name="start"
-                type="datetime-local"
-                required
+              <EventStartInput
                 defaultValue={toSiteInputValue(doc.fm.start)}
+                marker={d.noPage === true}
               />
             </Field>
-            <Field label="Einde" htmlFor="end">
-              <Input
-                id="end"
-                name="end"
-                type="datetime-local"
-                defaultValue={toSiteInputValue(doc.fm.end)}
-              />
-            </Field>
+            <div data-page-only>
+              <Field label="Einde" htmlFor="end">
+                <Input
+                  id="end"
+                  name="end"
+                  type="datetime-local"
+                  defaultValue={toSiteInputValue(doc.fm.end)}
+                />
+              </Field>
+            </div>
           </div>
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div data-page-only className="grid gap-5 sm:grid-cols-2">
             <Field label="Locatie" htmlFor="venue">
               <Select id="venue" name="venue" defaultValue={d.venue ?? ""}>
                 <option value="">Geen locatie</option>
@@ -161,14 +162,19 @@ export default async function EditPage({
               />
             </Field>
           </div>
-          <DateListField defaults={normaliseDates(d.dates, d.start)?.map(toSiteInputValue)} />
-          <SocialFields defaults={d.socials} />
-          <Field label="Korte omschrijving" htmlFor="excerpt">
-            <Input id="excerpt" name="excerpt" defaultValue={d.excerpt} />
-          </Field>
-          <Field label="Inhoud" htmlFor="body" hint="Markdown/MDX ondersteund.">
-            <BodyEditor pool={pool} defaultValue={doc.body.trim()} />
-          </Field>
+          <DateListField
+            defaults={normaliseDates(d.dates, d.start)?.map(toSiteInputValue)}
+            marker={d.noPage === true}
+          />
+          <div data-page-only className="grid gap-5">
+            <SocialFields defaults={d.socials} />
+            <Field label="Korte omschrijving" htmlFor="excerpt">
+              <Input id="excerpt" name="excerpt" defaultValue={d.excerpt} />
+            </Field>
+            <Field label="Inhoud" htmlFor="body" hint="Markdown/MDX ondersteund.">
+              <BodyEditor pool={pool} defaultValue={doc.body.trim()} />
+            </Field>
+          </div>
           <div>
             <SubmitButton>Opslaan</SubmitButton>
           </div>

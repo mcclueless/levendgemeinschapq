@@ -2,12 +2,13 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { Input } from "@/components/admin/form";
+import { useMarkerMode, valueForMode } from "@/components/admin/no-page-field";
 import { DATES_FIELD } from "@/content/event-form";
 import { MAX_EVENT_DATES, previewDateEnd } from "@/content/event-dates";
 
 /**
  * An event's further dates (event-multiple-dates D7): one `datetime-local` row
- * per date, with add and remove. Each row posts as `dates`, read by
+ * per date (a `date` row for an agenda marker, event-no-page D5), with add and remove. Each row posts as `dates`, read by
  * `datesFromForm`, which also sorts and de-duplicates — so rows need no order.
  *
  * Rendered on the server with its rows, so without JavaScript the dates already
@@ -23,8 +24,16 @@ import { MAX_EVENT_DATES, previewDateEnd } from "@/content/event-dates";
  * It is described text on the row's input, not a live region, so it is read
  * with the field rather than announced on every keystroke.
  */
-export function DateListField({ defaults = [] }: { defaults?: string[] }) {
+export function DateListField({
+  defaults = [],
+  marker: initialMarker = false,
+}: {
+  defaults?: string[];
+  marker?: boolean;
+}) {
   const baseId = useId();
+  // An agenda marker's dates have no time (event-no-page D5).
+  const marker = useMarkerMode(initialMarker);
   const nextKey = useRef(defaults.length);
   const [rows, setRows] = useState(() =>
     defaults.map((value, key) => ({ key, value })),
@@ -104,8 +113,8 @@ export function DateListField({ defaults = [] }: { defaults?: string[] }) {
                     ref={setInput(row.key)}
                     id={id}
                     name={DATES_FIELD}
-                    type="datetime-local"
-                    defaultValue={row.value}
+                    type={marker ? "date" : "datetime-local"}
+                    value={valueForMode(row.value, marker)}
                     onChange={(e) => setValue(row.key, e.currentTarget.value)}
                     aria-describedby={end ? endId : undefined}
                     className="flex-1"

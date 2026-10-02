@@ -44,6 +44,8 @@ export interface CalendarEvent {
   venue: Venue | null;
   /** Every organiser, sorted by name; empty when the event names none. */
   organisers: Organiser[];
+  /** An agenda marker: listed by date, but no page, link or time. */
+  noPage: boolean;
   featuredImage?: string;
   excerpt?: string;
   socials?: Socials;

@@ -42,7 +42,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ].map((path) => ({ url: absolute(path), changeFrequency: "weekly" as const }));
 
   const content = [
-    ...events.map((e) => e.href),
+    // An agenda marker has no page to list (event-no-page D2).
+    ...events.filter((e) => !e.noPage).map((e) => e.href),
     ...venues.map((v) => v.href),
     ...organisers.map((o) => o.href),
     ...posts.map((p) => p.href),

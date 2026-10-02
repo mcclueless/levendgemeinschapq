@@ -92,3 +92,15 @@ export function datesFromForm(
 
   return { ok: true, dates: normaliseDates(parsed, start)?.map((d) => d.toISOString()) };
 }
+
+/**
+ * An agenda marker's date input as the start of that day, `YYYY-MM-DDT00:00`
+ * (event-no-page D4). Accepts a date (`type="date"`) or a date and time
+ * (`datetime-local`, without scripts) and drops the time, so the existing
+ * wall-time parsing applies unchanged. Anything else passes through for that
+ * parsing to reject.
+ */
+export function markerDayInput(value: string | undefined): string | undefined {
+  const day = value?.trim().match(/^(\d{4}-\d{2}-\d{2})(?:T\d{2}:\d{2}(?::\d{2})?)?$/)?.[1];
+  return day ? `${day}T00:00` : value;
+}

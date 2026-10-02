@@ -190,3 +190,10 @@ a {
 .skip-link:focus {
   top: 0.75rem;
 }
+
+/* Event form: an agenda marker hides the fields it never shows (event-no-page
+   D5). CSS only, so it works without scripts; the hidden inputs still post,
+   which keeps their stored values. */
+form:has(input[name="noPage"]:checked) [data-page-only] {
+  display: none;
+}
