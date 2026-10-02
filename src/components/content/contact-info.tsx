@@ -1,3 +1,18 @@
+import { Fragment } from "react";
+
+/**
+ * A value with soft break points after "@" and "/", so an email or web address
+ * wraps at a natural place before it would break mid-word.
+ */
+function breakable(value: string) {
+  return value.split(/(?<=[@/])/).map((part, i) => (
+    <Fragment key={i}>
+      {i > 0 ? <wbr /> : null}
+      {part}
+    </Fragment>
+  ));
+}
+
 /**
  * Contact details block shared by Venue and Organiser pages. Renders only the
  * fields that are present (venues/organisers specs: optional contact fields).
@@ -36,7 +51,9 @@ export function ContactInfo({
       {items.map((item) => (
         <div key={item.label} className="flex gap-3 text-sm">
           <dt className="w-24 shrink-0 font-medium text-muted">{item.label}</dt>
-          <dd>
+          {/* An email or web address has no spaces to wrap at; let it shrink
+              and break anywhere rather than run past the card's edge. */}
+          <dd className="min-w-0 [overflow-wrap:anywhere]">
             {item.href ? (
               <a
                 href={item.href}
@@ -45,7 +62,7 @@ export function ContactInfo({
                   ? { target: "_blank", rel: "noopener noreferrer" }
                   : {})}
               >
-                {item.value}
+                {breakable(item.value)}
               </a>
             ) : (
               item.value
