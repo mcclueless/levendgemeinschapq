@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { absolute, eventJsonLd } from "./structured-data";
+import { absolute, eventJsonLd, organiserJsonLd } from "./structured-data";
 import { presentOccurrence } from "@/content/event-presentation";
 import { siteWallTime, startOfToday } from "./date";
 import type { CalendarEvent } from "@/content/types";
@@ -50,6 +50,7 @@ test("an event without an end publishes no end", () => {
 const organiser = (slug: string, name: string) => ({
   slug,
   name,
+  images: [],
   status: "published" as const,
   body: "",
   href: `/organisatoren/${slug}`,
@@ -78,4 +79,17 @@ test("an event with several organisers names every one of them", () => {
     (ld.organizer as { name: string }[]).map((o) => o.name),
     ["Buurttuin", "Celebrations Koor"],
   );
+});
+
+test("an organiser's structured data names its logo and images when it has them", () => {
+  const plain = organiser("vind", "VIND Community");
+  const bare = organiserJsonLd(plain);
+  assert.ok(!("logo" in bare) && !("image" in bare));
+  const full = organiserJsonLd({
+    ...plain,
+    logo: "/uploads/vind-logo.png",
+    images: ["/uploads/a.jpg", "https://cdn.example/b.jpg"],
+  });
+  assert.equal(full.logo, absolute("/uploads/vind-logo.png"));
+  assert.deepEqual(full.image, [absolute("/uploads/a.jpg"), "https://cdn.example/b.jpg"]);
 });

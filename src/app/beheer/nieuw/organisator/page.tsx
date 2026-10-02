@@ -9,6 +9,7 @@ import {
   SubmitButton,
 } from "@/components/admin/form";
 import { ImageField } from "@/components/admin/image-field";
+import { ImageListField } from "@/components/admin/image-list-field";
 import { BodyEditor } from "@/components/admin/body-editor";
 import { SocialFields } from "@/components/admin/social-fields";
 import { requireAdmin } from "@/lib/auth-server";
@@ -69,8 +70,16 @@ export default async function NewOrganiserPage({
           </Select>
         </Field>
 
-        <Field label="Omslagafbeelding" htmlFor="image" hint="Optioneel — upload nieuw of kies uit de galerij.">
-          <ImageField pool={pool} />
+        <fieldset className="grid gap-2 rounded-md border border-border p-4">
+          <legend className="px-1 text-sm font-medium text-ink">Afbeeldingen</legend>
+          <p className="text-xs text-muted">
+            Op de pagina van de organisator als diavoorstelling. De eerste is de omslag in
+            lijsten en bij delen.
+          </p>
+          <ImageListField pool={pool} label="Afbeelding" />
+        </fieldset>
+        <Field label="Logo" htmlFor="logo" hint="Optioneel — naast de naam op de pagina van de organisator.">
+          <ImageField pool={pool} urlName="logoUrl" fileName="logo" removable />
         </Field>
 
         <SocialFields />

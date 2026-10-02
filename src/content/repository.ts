@@ -4,6 +4,7 @@ import { CONTENT_PREFIX, getStore } from "./storage";
 import { parseAll } from "./parse";
 import { normaliseDates } from "./event-dates";
 import { resolveOrganisers } from "./event-organisers";
+import { organiserImages } from "./organiser-images";
 import { routes } from "@/lib/routes";
 import type {
   BlogPost,
@@ -61,6 +62,8 @@ const loadOrganisers = cache(async (): Promise<Map<string, Organiser>> => {
       website: d.data.website,
       location: d.data.location,
       featuredImage: d.data.featuredImage,
+      images: organiserImages(d.data),
+      logo: d.data.logo,
       excerpt: d.data.excerpt,
       socials: d.data.socials,
       status: d.data.status,

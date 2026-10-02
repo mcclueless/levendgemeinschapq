@@ -8,6 +8,7 @@ import { routes } from "@/lib/routes";
 import { listFeeds } from "./feeds";
 import { pointsAt, type ReferrerKind } from "./references";
 import { eventOrganiserSlugs, organisersLabel } from "./event-organisers";
+import { organiserGallery } from "./organiser-images";
 import { imageReferencesIn, type ImageReference, type ImageUser } from "./image-references";
 
 /**
@@ -313,6 +314,7 @@ export async function findImageReferences(url: string): Promise<ImageReference[]
       title: o.data.name,
       href: routes.organiser(o.slug),
       cover: o.data.featuredImage,
+      gallery: organiserGallery(o.data),
       body: o.body,
     })),
     ...posts.map((p) => ({

@@ -3,6 +3,8 @@ import type { BlogPost, CalendarEvent, Organiser, Venue } from "@/content/types"
 
 /** Absolute URL for a site-relative path. */
 export const absolute = (path: string) => `${site.url}${path}`;
+/** A media URL as an absolute one: stored media may be a full CDN URL or a site path. */
+const absoluteMedia = (url: string) => (/^https?:\/\//.test(url) ? url : absolute(url));
 
 /**
  * Structured data for the occurrence an event page presents: its own start and
@@ -73,6 +75,9 @@ export function organiserJsonLd(organiser: Organiser) {
     ...(organiser.email ? { email: organiser.email } : {}),
     ...(organiser.phone ? { telephone: organiser.phone } : {}),
     ...(organiser.website ? { sameAs: [organiser.website] } : {}),
+    // The organiser's own logo and pictures (organiser-page-layout D6).
+    ...(organiser.logo ? { logo: absoluteMedia(organiser.logo) } : {}),
+    ...(organiser.images.length > 0 ? { image: organiser.images.map(absoluteMedia) } : {}),
     url: absolute(organiser.href),
   };
 }

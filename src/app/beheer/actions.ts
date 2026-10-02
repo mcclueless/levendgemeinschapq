@@ -32,6 +32,7 @@ import {
   validateEventRange,
 } from "@/content/event-form";
 import { organiserFields } from "@/content/event-organisers";
+import { organiserImageFields } from "@/content/organiser-images";
 import { geocode, type GeocodeResult } from "@/content/geocode";
 import { syncFeed, type SyncResult } from "@/content/ical-import";
 import {
@@ -80,10 +81,11 @@ function str(form: FormData, key: string): string | undefined {
 async function coverImage(
   form: FormData,
   back: string,
+  fields: { url: string; file: string } = { url: "featuredImageUrl", file: "image" },
 ): Promise<string | undefined> {
-  const picked = str(form, "featuredImageUrl");
+  const picked = str(form, fields.url);
   if (picked) return picked;
-  const result = await saveUploadChecked(form.get("image"));
+  const result = await saveUploadChecked(form.get(fields.file));
   if (!result.ok) redirect(`${back}?error=${result.reason}`);
   return result.url;
 }
@@ -310,11 +312,28 @@ export async function createVenue(formData: FormData) {
   redirect(`/beheer?created=venue${flag ? `&geo=${flag}` : ""}`);
 }
 
+/** The posted image list of an organiser form, as stored fields (organiser-page-layout D2). */
+function organiserImagesFrom(form: FormData) {
+  return organiserImageFields(
+    form.getAll("images").filter((v): v is string => typeof v === "string"),
+  );
+}
+
+/**
+ * The organiser form's logo (organiser-page-layout D3): a pick or an upload, or
+ * removed, or — when neither — left out of the patch so the stored one stays.
+ */
+async function organiserLogo(form: FormData, back: string): Promise<{ logo?: string }> {
+  if (form.get("logoUrlRemove")) return { logo: undefined };
+  const logo = await coverImage(form, back, { url: "logoUrl", file: "logo" });
+  return logo ? { logo } : {};
+}
+
 export async function createOrganiser(formData: FormData) {
   await assertAdmin();
   const name = str(formData, "name");
   if (!name) redirect("/beheer/nieuw/organisator?error=1");
-  const organiserImage = await coverImage(formData, "/beheer/nieuw/organisator");
+  const logo = await organiserLogo(formData, "/beheer/nieuw/organisator");
   await createDocument(
     "organiser",
     name!,
@@ -324,7 +343,8 @@ export async function createOrganiser(formData: FormData) {
       email: str(formData, "email"),
       website: str(formData, "website"),
       location: str(formData, "location"),
-      featuredImage: organiserImage,
+      ...organiserImagesFrom(formData),
+      ...logo,
       excerpt: str(formData, "excerpt"),
       socials: socialsOrRedirect(formData, "/beheer/nieuw/organisator"),
       status: formData.get("publish") ? "published" : "draft",
@@ -517,7 +537,7 @@ export async function updateOrganiser(formData: FormData) {
   if (!slug) redirect(adminListPath("organiser"));
   const name = str(formData, "name");
   if (!name) redirect(`${adminListPath("organiser")}/${slug}/bewerken?error=1`);
-  const organiserImage = await coverImage(formData, `${adminListPath("organiser")}/${slug}/bewerken`);
+  const logo = await organiserLogo(formData, `${adminListPath("organiser")}/${slug}/bewerken`);
   await updateDocument(
     "organiser",
     slug!,
@@ -532,7 +552,10 @@ export async function updateOrganiser(formData: FormData) {
         formData,
         `${adminListPath("organiser")}/${slug}/bewerken`,
       ),
-      ...(organiserImage ? { featuredImage: organiserImage } : {}),
+      // The form posts the whole ordered list, so it replaces what is stored —
+      // removing every image clears the cover too (organiser-page-layout D2).
+      ...organiserImagesFrom(formData),
+      ...logo,
     },
     str(formData, "body") ?? "",
   );

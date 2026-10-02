@@ -9,6 +9,8 @@ import {
   SubmitButton,
 } from "@/components/admin/form";
 import { ImageField } from "@/components/admin/image-field";
+import { ImageListField } from "@/components/admin/image-list-field";
+import { organiserImages } from "@/content/organiser-images";
 import { SocialFields } from "@/components/admin/social-fields";
 import { BodyEditor } from "@/components/admin/body-editor";
 import { EventStartInput, NoPageField } from "@/components/admin/no-page-field";
@@ -264,8 +266,16 @@ export default async function EditPage({
               ))}
             </Select>
           </Field>
-          <Field label="Omslagafbeelding" htmlFor="image">
-            <ImageField pool={pool} current={d.featuredImage} />
+          <fieldset className="grid gap-2 rounded-md border border-border p-4">
+            <legend className="px-1 text-sm font-medium text-ink">Afbeeldingen</legend>
+            <p className="text-xs text-muted">
+              Op de pagina van de organisator als diavoorstelling. De eerste is de omslag in
+              lijsten en bij delen.
+            </p>
+            <ImageListField pool={pool} label="Afbeelding" defaults={organiserImages(d)} />
+          </fieldset>
+          <Field label="Logo" htmlFor="logo" hint="Optioneel — naast de naam op de pagina van de organisator.">
+            <ImageField pool={pool} urlName="logoUrl" fileName="logo" removable current={d.logo} />
           </Field>
           <SocialFields defaults={d.socials} />
           <Field label="Korte omschrijving" htmlFor="excerpt">

@@ -29,6 +29,9 @@ export interface Organiser {
   /** Linked Location — a Venue slug (resolved at render time). */
   location?: string;
   featuredImage?: string;
+  /** Every image, cover first; empty when there are none (organiser-page-layout). */
+  images: string[];
+  logo?: string;
   excerpt?: string;
   socials?: Socials;
   status: PublishStatus;

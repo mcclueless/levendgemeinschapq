@@ -168,6 +168,14 @@ export const OrganiserFrontmatter = z.object({
   /** Optional linked Location — a Venue slug (editorial-enrichments). */
   location: z.string().optional(),
   featuredImage: z.string().optional(),
+  /**
+   * Further images after the cover, shown as a slideshow on the organiser's
+   * page (organiser-page-layout D1). `featuredImage` stays the first image and
+   * the cover everywhere else.
+   */
+  moreImages: z.array(z.string().min(1)).optional(),
+  /** The organiser's logo, separate from its images (organiser-page-layout D1). */
+  logo: z.string().min(1).optional(),
   excerpt: z.string().optional(),
   socials: SocialsSchema,
   status: PublishStatus.default("published"),

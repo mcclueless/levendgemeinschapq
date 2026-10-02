@@ -11,16 +11,28 @@ import type { MediaItem } from "@/content/media";
  *
  * For unauthenticated surfaces use {@link UploadOnlyImageField} instead — it
  * takes no `pool` at all, so the library cannot leak into the page payload.
+ *
+ * `urlName` and `fileName` name the posted fields, so one form can hold more
+ * than one image field (an organiser's logo, organiser-page-layout D3).
+ * `removable` adds a button that clears the image, posted as
+ * `<urlName>Remove`.
  */
 export function ImageField({
   pool,
   current,
   hint,
+  urlName = "featuredImageUrl",
+  fileName: fileField = "image",
+  removable = false,
 }: {
   pool: MediaItem[];
   current?: string;
   hint?: string;
+  urlName?: string;
+  fileName?: string;
+  removable?: boolean;
 }) {
+  const [removed, setRemoved] = useState(false);
   const [picked, setPicked] = useState<string | undefined>(undefined);
   const [filePreview, setFilePreview] = useState<string | undefined>(undefined);
   const [fileName, setFileName] = useState<string | undefined>(undefined);
@@ -29,17 +41,19 @@ export function ImageField({
 
   // Precedence mirrors the server action: a bank pick, else a freshly chosen
   // file, else the item's existing cover.
-  const preview = picked ?? filePreview ?? current;
+  const preview = picked ?? filePreview ?? (removed ? undefined : current);
 
   function onFile(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
     setPicked(undefined); // a new upload supersedes a bank pick
+    setRemoved(false);
     setFileName(f?.name);
     setFilePreview(f ? URL.createObjectURL(f) : undefined);
   }
 
   function choose(url: string) {
     setPicked(url);
+    setRemoved(false);
     setFilePreview(undefined);
     setFileName(undefined);
     if (fileRef.current) fileRef.current.value = ""; // pick wins over any file
@@ -48,7 +62,8 @@ export function ImageField({
 
   return (
     <div className="grid gap-2">
-      <input type="hidden" name="featuredImageUrl" value={picked ?? ""} />
+      <input type="hidden" name={urlName} value={picked ?? ""} />
+      {removable && removed ? <input type="hidden" name={`${urlName}Remove`} value="1" /> : null}
 
       <div className="flex items-start gap-4">
         {preview ? (
@@ -70,9 +85,9 @@ export function ImageField({
               the unstyleable browser "Choose file" chrome (design D1). */}
           <input
             ref={fileRef}
-            id="image"
+            id={fileField}
             type="file"
-            name="image"
+            name={fileField}
             accept="image/*"
             onChange={onFile}
             className="sr-only"
@@ -92,6 +107,21 @@ export function ImageField({
             >
               Kies uit galerij{pool.length ? ` (${pool.length})` : ""}
             </button>
+            {removable && preview ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setRemoved(true);
+                  setPicked(undefined);
+                  setFilePreview(undefined);
+                  setFileName(undefined);
+                  if (fileRef.current) fileRef.current.value = "";
+                }}
+                className="inline-flex h-9 w-fit items-center rounded-md border border-border bg-surface px-3 text-sm font-medium hover:bg-surface-2"
+              >
+                Verwijderen
+              </button>
+            ) : null}
           </div>
           <p className="text-xs text-muted">
             {fileName ?? "Geen bestand gekozen"}
