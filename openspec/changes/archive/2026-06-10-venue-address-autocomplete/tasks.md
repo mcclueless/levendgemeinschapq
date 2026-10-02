@@ -22,4 +22,4 @@
 - [x] 5.1 Type a partial Maastricht address → suggestions appear; pick one → exact coordinates stored on save; `pnpm typecheck` / `lint` / `build` pass
 - [x] 5.2 Type an impossible address and don't pick → no plausible suggestion; saving as free text falls back to geocode-on-save (notice as before)
 - [x] 5.3 Keyboard-only operation works (navigate + select + escape); field still works if suggestions fail
-- [ ] 5.4 On deploy: suggestions load on live (SSR route reaches Photon) and a picked address pins correctly
+- [x] 5.4 On deploy: suggestions load on live (SSR route reaches Photon) and a picked address pins correctly
