@@ -1,6 +1,7 @@
 import type { ContentType, PublishStatus } from "./schema";
 import type { ContentSummary } from "./summaries";
 import { fold } from "@/lib/text";
+import { presentOccurrence } from "./event-presentation";
 
 /**
  * The view of a backend management list (admin-content-table D4): which items
@@ -144,7 +145,25 @@ export function eventIsUpcoming(
 const byTitle = (a: ContentSummary, b: ContentSummary) =>
   a.title.localeCompare(b.title, "nl", { sensitivity: "base" });
 
-const dateOf = (item: ContentSummary) => (item.start ?? item.date)?.getTime();
+/**
+ * The date an event is listed by (admin-events-sort-by-next-date D1): its next
+ * occurrence on or after `today`, else what its public page would show — the
+ * same rule as that page, so a weekly event sorts by this week's date, not by
+ * the January it started in.
+ */
+export function eventListDate(
+  event: Pick<ContentSummary, "start" | "end" | "recurrence" | "dates">,
+  today: Date,
+): Date | undefined {
+  if (!event.start) return undefined;
+  return presentOccurrence(
+    { start: event.start, end: event.end, recurrence: event.recurrence, dates: event.dates },
+    today,
+  ).start;
+}
+
+const dateOf = (item: ContentSummary, today: Date) =>
+  (item.type === "event" ? eventListDate(item, today) : item.date)?.getTime();
 
 /** Order of the statuses when sorting by status: as their labels read. */
 const STATUS_ORDER: Record<PublishStatus, number> = {
@@ -161,7 +180,7 @@ function byNumber(a: number | undefined, b: number | undefined, dir: ListDir) {
   return dir === "asc" ? a - b : b - a;
 }
 
-function comparator(type: ContentType, query: ListQuery) {
+function comparator(type: ContentType, query: ListQuery, today: Date) {
   // Default order: dated types newest first, the others by name.
   const sort = query.sort ?? (isDated(type) ? "datum" : "titel");
   const dir = query.sort ? query.dir : DEFAULT_DIR[sort];
@@ -173,7 +192,7 @@ function comparator(type: ContentType, query: ListQuery) {
         : sort === "status"
           ? flip * (STATUS_ORDER[a.status] - STATUS_ORDER[b.status])
           : sort === "datum"
-            ? byNumber(dateOf(a), dateOf(b), dir)
+            ? byNumber(dateOf(a, today), dateOf(b, today), dir)
             : byNumber(a.modified?.getTime(), b.modified?.getTime(), dir);
     return primary || byTitle(a, b) || a.slug.localeCompare(b.slug);
   };
@@ -214,7 +233,7 @@ export function applyListQuery(
       }
       return true;
     })
-    .sort(comparator(type, query));
+    .sort(comparator(type, query, today));
 
   const pageCount = Math.max(1, Math.ceil(matched.length / PAGE_SIZE));
   const page = Math.min(query.pagina, pageCount);

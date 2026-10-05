@@ -57,7 +57,7 @@ The management list SHALL let an Administrator narrow the items shown: by public
 - **THEN** the list SHALL state that nothing was found and SHALL offer a link that clears the search and filters
 
 ### Requirement: Sorting and paging the management list
-The management list SHALL be sortable by title or name, by status, by last-modified time, and, for types that have a date, by date, in either direction, and SHALL indicate which column it is sorted by. Without a chosen sort, Events, Blog posts and Projects SHALL be ordered by date, newest first, and Venues and Organisations by name. The list SHALL show at most 25 items per page, with controls to reach the other pages and an indication of the total number of items matched. Sorting and paging SHALL work without JavaScript.
+The management list SHALL be sortable by title or name, by status, by last-modified time, and, for types that have a date, by date, in either direction, and SHALL indicate which column it is sorted by. Without a chosen sort, Events, Blog posts and Projects SHALL be ordered by date, newest first (for Events, the date defined by the requirement "Events are listed by their next date"), and Venues and Organisations by name. The list SHALL show at most 25 items per page, with controls to reach the other pages and an indication of the total number of items matched. Sorting and paging SHALL work without JavaScript.
 
 #### Scenario: Sorting by a column
 - **WHEN** an Administrator chooses to sort a management list by last modified

@@ -9,6 +9,7 @@ import type { ContentType, PublishStatus } from "@/content/schema";
 import type { ContentSummary } from "@/content/summaries";
 import {
   DEFAULT_DIR,
+  eventListDate,
   isDated,
   listQueryString,
   type ListDir,
@@ -146,10 +147,13 @@ export function ContentTable({
   here,
   venueNames,
   organiserNames,
+  today,
 }: {
   type: ContentType;
   rows: ContentSummary[];
   query: ListQuery;
+  /** The day the list is viewed on: an event shows and sorts by its next date from here. */
+  today: Date;
   /** The list's own path, without a view. */
   listPath: string;
   /** The list's address with the current view: where actions return to (D6). */
@@ -284,7 +288,10 @@ export function ContentTable({
                     return (
                       <Cell key={c.key} label={c.label}>
                         {/* A marker is about a day, not a time (event-no-page D3). */}
-                        <When date={item.start ?? item.date} time={type === "event" && !item.noPage} />
+                        <When
+                          date={type === "event" ? eventListDate(item, today) : item.date}
+                          time={type === "event" && !item.noPage}
+                        />
                         {repeats ? <span className="block text-sm text-muted">{repeats}</span> : null}
                         {item.noPage ? (
                           <Badge tone="neutral" className="mt-1">

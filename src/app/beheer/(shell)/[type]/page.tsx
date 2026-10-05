@@ -95,7 +95,8 @@ export default async function ManageListPage({
   // The view lives in the address (D4): read it, apply it, and keep the address
   // of what is shown so that actions can return to it (D6).
   const query: ListQuery = parseListQuery(type, raw);
-  const result = applyListQuery(type, items, query, startOfToday());
+  const today = startOfToday();
+  const result = applyListQuery(type, items, query, today);
   const listPath = adminListPath(type);
   const view = (overrides: Partial<ListQuery> = {}) =>
     `${listPath}${listQueryString(query, overrides)}`;
@@ -316,6 +317,7 @@ export default async function ManageListPage({
                   here={here}
                   venueNames={venueNames}
                   organiserNames={organiserNames}
+                  today={today}
                 />
               </div>
               <Pagination

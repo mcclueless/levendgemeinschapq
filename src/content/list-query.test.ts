@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   PAGE_SIZE,
   applyListQuery,
+  eventListDate,
   eventIsUpcoming,
   listQueryString,
   parseListQuery,
@@ -200,8 +201,8 @@ const view = (params: Record<string, string> = {}, type: ContentType = "event"):
 const slugs = (params: Record<string, string> = {}) =>
   applyListQuery("event", events, view(params), today).rows.map((r) => r.slug);
 
-test("events default to newest start first", () => {
-  assert.deepEqual(slugs(), ["repair", "borrel", "zaaidag", "koffie"]);
+test("events default to newest date first; a weekly event by its next occurrence", () => {
+  assert.deepEqual(slugs(), ["repair", "koffie", "borrel", "zaaidag"]);
 });
 
 test("venues and organisers default to name order, whatever the case", () => {
@@ -240,8 +241,8 @@ test("period, location and organiser filters", () => {
 test("each column sorts in both directions", () => {
   assert.deepEqual(slugs({ sort: "titel" }), ["borrel", "koffie", "repair", "zaaidag"]);
   assert.deepEqual(slugs({ sort: "titel", dir: "desc" }), ["zaaidag", "repair", "koffie", "borrel"]);
-  assert.deepEqual(slugs({ sort: "datum", dir: "asc" }), ["koffie", "zaaidag", "borrel", "repair"]);
-  assert.deepEqual(slugs({ sort: "datum" }), ["repair", "borrel", "zaaidag", "koffie"]);
+  assert.deepEqual(slugs({ sort: "datum", dir: "asc" }), ["zaaidag", "borrel", "koffie", "repair"]);
+  assert.deepEqual(slugs({ sort: "datum" }), ["repair", "koffie", "borrel", "zaaidag"]);
   // Published, in the queue, hidden — and by title within a status.
   assert.deepEqual(slugs({ sort: "status" }), ["koffie", "repair", "zaaidag", "borrel"]);
   assert.deepEqual(slugs({ sort: "status", dir: "desc" }), ["borrel", "zaaidag", "koffie", "repair"]);
@@ -277,4 +278,51 @@ test("a page past the end shows the last page", () => {
 test("an empty type has one empty page", () => {
   const result = applyListQuery("event", [], view({ pagina: "2" }), today);
   assert.deepEqual([result.rows.length, result.total, result.page, result.pageCount], [0, 0, 1, 1]);
+});
+
+// ── The date an event is listed by (admin-events-sort-by-next-date D1) ──────
+
+const listed = (type: ContentType, list: ContentSummary[], params: Record<string, string> = {}) =>
+  applyListQuery(type, list, parseListQuery(type, params), today).rows.map((r) => r.slug);
+
+const weekly: ContentSummary = item("event", "koffie", {
+  title: "Koffieochtend",
+  start: day("2026-01-08"), // a Thursday; today is Friday 2 October
+  recurrence: { freq: "weekly", interval: 1 },
+});
+const series: ContentSummary = item("event", "cursus", {
+  title: "Cursus",
+  start: day("2026-09-01"),
+  dates: [day("2026-09-15"), day("2026-10-20")],
+});
+const past: ContentSummary = item("event", "borrel", { title: "Borrel", start: day("2026-09-25") });
+const soon: ContentSummary = item("event", "markt", { title: "Markt", start: day("2026-10-10") });
+const later: ContentSummary = item("event", "feest", { title: "Feest", start: day("2026-11-05") });
+
+test("a weekly event is listed by its next occurrence", () => {
+  const next = eventListDate(weekly, today);
+  assert.equal(next && new Date(next).toISOString().slice(0, 10), "2026-10-08");
+});
+
+test("an event with a further date still to come is listed by that date", () => {
+  assert.equal(eventListDate(series, today)?.toISOString().slice(0, 10), "2026-10-20");
+});
+
+test("a past event keeps the date its page shows", () => {
+  assert.equal(eventListDate(past, today)?.toISOString().slice(0, 10), "2026-09-25");
+  const ended = item("event", "oud", { start: day("2026-03-01"), dates: [day("2026-04-01")] });
+  assert.equal(eventListDate(ended, today)?.toISOString().slice(0, 10), "2026-04-01");
+});
+
+test("the events list orders by the next date, in both directions", () => {
+  const list = [weekly, series, past, soon, later];
+  assert.deepEqual(listed("event", list), ["feest", "cursus", "markt", "koffie", "borrel"]);
+  assert.deepEqual(listed("event", list, { sort: "datum", dir: "asc" }), ["borrel", "koffie", "markt", "cursus", "feest"]);
+});
+
+test("blog posts and projects still sort by their own date", () => {
+  const posts = [item("blog", "oud", { date: day("2026-01-01") }), item("blog", "nieuw", { date: day("2026-09-01") })];
+  assert.deepEqual(listed("blog", posts, { sort: "datum", dir: "asc" }), ["oud", "nieuw"]);
+  const projects = [item("project", "a", { date: day("2026-05-01") }), item("project", "b", { date: day("2026-06-01") })];
+  assert.deepEqual(listed("project", projects), ["b", "a"]);
 });
