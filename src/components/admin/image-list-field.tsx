@@ -15,8 +15,13 @@ const button =
  * from the gallery or by uploading — the upload is stored at once, as in the
  * body editor — and can be removed or moved.
  *
+ * Each row also posts a caption as `captions`, in the same order, prefilled
+ * with the image's stored caption (organiser-slide-captions D2): the caption
+ * belongs to the image, and this is where the editor meets it.
+ *
  * Rendered on the server with its rows, so without JavaScript the stored images
- * still post unchanged; only changing the list needs scripts.
+ * still post unchanged, captions included; only changing the list needs
+ * scripts.
  */
 export function ImageListField({
   pool: initialPool,
@@ -36,6 +41,7 @@ export function ImageListField({
   const fileRef = useRef<HTMLInputElement>(null);
 
   const add = (url: string) => setImages((list) => (list.includes(url) ? list : [...list, url]));
+  const captionOf = (url: string) => pool.find((m) => m.url === url)?.caption ?? "";
 
   function move(i: number, by: -1 | 1) {
     setImages((list) => {
@@ -76,39 +82,53 @@ export function ImageListField({
       {images.length > 0 ? (
         <ol className="grid gap-2">
           {images.map((url, i) => (
-            <li key={url} className="flex items-center gap-3 rounded-md border border-border bg-surface p-2">
-              <input type="hidden" name="images" value={url} />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={url} alt="" className="h-14 w-20 shrink-0 rounded object-cover" />
-              <span className="flex-1 text-sm text-muted">
-                {i === 0 ? "Omslag (eerste afbeelding)" : `Afbeelding ${i + 1}`}
-              </span>
-              <button
-                type="button"
-                className={button}
-                disabled={i === 0}
-                onClick={() => move(i, -1)}
-                aria-label={`${label} ${i + 1} naar voren`}
-              >
-                ↑
-              </button>
-              <button
-                type="button"
-                className={button}
-                disabled={i === images.length - 1}
-                onClick={() => move(i, 1)}
-                aria-label={`${label} ${i + 1} naar achteren`}
-              >
-                ↓
-              </button>
-              <button
-                type="button"
-                className={button}
-                onClick={() => setImages((list) => list.filter((u) => u !== url))}
-                aria-label={`${label} ${i + 1} verwijderen`}
-              >
-                Verwijderen
-              </button>
+            <li key={url} className="grid gap-2 rounded-md border border-border bg-surface p-2">
+              {/* Wraps, so the buttons drop under the picture on a phone
+                  instead of widening the form. */}
+              <div className="flex flex-wrap items-center gap-3">
+                <input type="hidden" name="images" value={url} />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={url} alt="" className="h-14 w-20 shrink-0 rounded object-cover" />
+                <span className="flex-1 text-sm text-muted">
+                  {i === 0 ? "Omslag (eerste afbeelding)" : `Afbeelding ${i + 1}`}
+                </span>
+                <button
+                  type="button"
+                  className={button}
+                  disabled={i === 0}
+                  onClick={() => move(i, -1)}
+                  aria-label={`${label} ${i + 1} naar voren`}
+                >
+                  ↑
+                </button>
+                <button
+                  type="button"
+                  className={button}
+                  disabled={i === images.length - 1}
+                  onClick={() => move(i, 1)}
+                  aria-label={`${label} ${i + 1} naar achteren`}
+                >
+                  ↓
+                </button>
+                <button
+                  type="button"
+                  className={button}
+                  onClick={() => setImages((list) => list.filter((u) => u !== url))}
+                  aria-label={`${label} ${i + 1} verwijderen`}
+                >
+                  Verwijderen
+                </button>
+              </div>
+              {/* Uncontrolled and keyed by the image, so what was typed moves
+                  with its row when the list is reordered. */}
+              <input
+                type="text"
+                name="captions"
+                defaultValue={captionOf(url)}
+                placeholder="Bijschrift onder de afbeelding (optioneel)"
+                aria-label={`Bijschrift bij ${label.toLowerCase()} ${i + 1}`}
+                className="w-full rounded-md border border-border bg-surface px-3 py-1.5 text-sm text-ink focus-visible:outline-3 focus-visible:outline-offset-1"
+              />
             </li>
           ))}
         </ol>

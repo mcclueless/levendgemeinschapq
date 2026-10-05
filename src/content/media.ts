@@ -99,6 +99,8 @@ export interface MediaItem {
   title?: string;
   /** The editor's description of it, for people who cannot see it. */
   alt?: string;
+  /** Text shown beneath it in a slideshow. */
+  caption?: string;
 }
 
 /** Public URL for a media key ("uploads/<name>"), matching the store backend. */

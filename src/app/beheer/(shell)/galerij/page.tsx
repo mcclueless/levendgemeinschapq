@@ -132,7 +132,7 @@ export default async function MediaLibraryPage({
                 name="q"
                 type="search"
                 defaultValue={query.q}
-                placeholder="Naam, titel of beschrijving"
+                placeholder="Naam, titel, beschrijving of bijschrift"
               />
             </div>
             <div className="grid gap-1.5">

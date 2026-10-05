@@ -16,6 +16,7 @@ export function Slideshow({
   images,
   alt,
   alts,
+  captions,
   className,
 }: {
   images: string[];
@@ -27,8 +28,18 @@ export function Slideshow({
    * browser and cannot look it up. Absent, the base text is used.
    */
   alts?: string[];
+  /**
+   * The caption per slide, resolved on the server from each image's details
+   * (organiser-slide-captions D3), shown beneath the image. A slide without
+   * one shows no caption area.
+   */
+  captions?: string[];
   className?: string;
 }) {
+  const caption = (i: number) => {
+    const text = captions?.[i]?.trim();
+    return text ? <figcaption className="mt-2 text-sm text-muted">{text}</figcaption> : null;
+  };
   const track = useRef<HTMLUListElement>(null);
   const [current, setCurrent] = useState(0);
 
@@ -44,12 +55,15 @@ export function Slideshow({
   if (images.length === 0) return null;
   if (images.length === 1) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={images[0]}
-        alt={alts?.[0] ?? alt}
-        className={cn("aspect-[2/1] w-full rounded-xl object-cover", className)}
-      />
+      <figure className={className}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={images[0]}
+          alt={alts?.[0] ?? alt}
+          className="aspect-[2/1] w-full rounded-xl object-cover"
+        />
+        {caption(0)}
+      </figure>
     );
   }
 
@@ -75,32 +89,41 @@ export function Slideshow({
               aria-label={`${i + 1} van ${images.length}`}
               className="w-full shrink-0 snap-start"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={src}
-                alt={alts?.[i] ?? `${alt} — afbeelding ${i + 1}`}
-                loading={i === 0 ? undefined : "lazy"}
-                className="aspect-[2/1] w-full object-cover"
-              />
+              {/* The caption scrolls with its slide, so it is right without
+                  scripts too. */}
+              <figure>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={src}
+                  alt={alts?.[i] ?? `${alt} — afbeelding ${i + 1}`}
+                  loading={i === 0 ? undefined : "lazy"}
+                  className="aspect-[2/1] w-full rounded-xl object-cover"
+                />
+                {caption(i)}
+              </figure>
             </li>
           ))}
         </ul>
-        <button
-          type="button"
-          onClick={() => go(current - 1)}
-          aria-label="Vorige afbeelding"
-          className={cn(control, "absolute left-3 top-1/2 h-10 w-10 -translate-y-1/2")}
-        >
-          <span aria-hidden="true">‹</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => go(current + 1)}
-          aria-label="Volgende afbeelding"
-          className={cn(control, "absolute right-3 top-1/2 h-10 w-10 -translate-y-1/2")}
-        >
-          <span aria-hidden="true">›</span>
-        </button>
+        {/* The same shape as the image, so the buttons stay centred on the
+            picture when a caption makes the slide taller. */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 aspect-[2/1]">
+          <button
+            type="button"
+            onClick={() => go(current - 1)}
+            aria-label="Vorige afbeelding"
+            className={cn(control, "pointer-events-auto absolute left-3 top-1/2 h-10 w-10 -translate-y-1/2")}
+          >
+            <span aria-hidden="true">‹</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => go(current + 1)}
+            aria-label="Volgende afbeelding"
+            className={cn(control, "pointer-events-auto absolute right-3 top-1/2 h-10 w-10 -translate-y-1/2")}
+          >
+            <span aria-hidden="true">›</span>
+          </button>
+        </div>
       </div>
       <div className="flex justify-center gap-1">
         {images.map((src, i) => (

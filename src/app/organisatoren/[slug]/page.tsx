@@ -4,7 +4,7 @@ import { Container } from "@/components/ui/container";
 import { Mdx } from "@/components/mdx/mdx";
 import { ContactInfo } from "@/components/content/contact-info";
 import { Slideshow } from "@/components/content/slideshow";
-import { imageAlt } from "@/content/media-details";
+import { getMediaDetails, imageAlt } from "@/content/media-details";
 import { cn } from "@/lib/cn";
 import { SocialLinks } from "@/components/content/social-links";
 import { UpcomingEvents } from "@/components/events/upcoming-events";
@@ -59,6 +59,10 @@ export default async function OrganiserPage({
       ),
     ),
   );
+  // Captions come from the same details (organiser-slide-captions D3).
+  const slideCaptions = await Promise.all(
+    organiser.images.map(async (src) => (await getMediaDetails(src))?.caption ?? ""),
+  );
 
   // Resolve the optional linked location; omit gracefully if it no longer
   // resolves (e.g. the venue was hidden — link-only, no hide guard).
@@ -102,6 +106,7 @@ export default async function OrganiserPage({
               images={organiser.images}
               alt={organiser.name}
               alts={slideAlts}
+              captions={slideCaptions}
               className="lg:col-start-1 lg:row-start-2"
             />
           ) : null}

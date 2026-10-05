@@ -8,7 +8,8 @@ export { mediaName };
 
 /**
  * What an editor has said about an image (gallery-find-and-describe D7): a
- * title to show in place of the file name, and an alternative text.
+ * title to show in place of the file name, an alternative text, and a caption
+ * shown under the image in a slideshow (organiser-slide-captions D1).
  *
  * Like a feed, this is **not content**: it has no page and no publication
  * status, so it is not a `ContentType`. It lives beside the content in the
@@ -24,6 +25,7 @@ export const MEDIA_DETAILS_PREFIX = "media";
 export const MediaDetails = z.object({
   title: z.string().trim().min(1).optional(),
   alt: z.string().trim().min(1).optional(),
+  caption: z.string().trim().min(1).optional(),
 });
 export type MediaDetails = z.infer<typeof MediaDetails>;
 
@@ -37,11 +39,17 @@ const keyFor = (name: string) => `${MEDIA_DETAILS_PREFIX}/${name}.mdx`;
  * store — saving empty details removes the document rather than leaving an
  * empty one behind. Pure, so the rule is testable without a store.
  */
-export function detailsDocument(details: { title?: string; alt?: string }): string | null {
+export function detailsDocument(details: {
+  title?: string;
+  alt?: string;
+  caption?: string;
+}): string | null {
   const clean = Object.fromEntries(
-    Object.entries({ title: details.title?.trim(), alt: details.alt?.trim() }).filter(
-      ([, v]) => v !== undefined && v !== "",
-    ),
+    Object.entries({
+      title: details.title?.trim(),
+      alt: details.alt?.trim(),
+      caption: details.caption?.trim(),
+    }).filter(([, v]) => v !== undefined && v !== ""),
   );
   return Object.keys(clean).length > 0 ? matter.stringify("\n", clean) : null;
 }
@@ -93,11 +101,37 @@ export async function imageAlt(url: string | undefined, fallback: string): Promi
 /** Store an image's details; empty details remove the document. */
 export async function saveMediaDetails(
   name: string,
-  details: { title?: string; alt?: string },
+  details: { title?: string; alt?: string; caption?: string },
 ): Promise<void> {
   const doc = detailsDocument(details);
   if (doc == null) await getStore().remove(keyFor(name));
   else await getStore().write(keyFor(name), doc);
+}
+
+/**
+ * The details after applying `patch` to `current`: a given key replaces the
+ * stored value (an empty string clears it), a key left out keeps it. Pure,
+ * so the organiser form's caption save is testable without a store.
+ */
+export function mergeDetails(
+  current: MediaDetails | null,
+  patch: { title?: string; alt?: string; caption?: string },
+): { title?: string; alt?: string; caption?: string } {
+  return { ...(current ?? {}), ...patch };
+}
+
+/**
+ * Change some of an image's details and keep the rest — the organiser form
+ * writes captions without knowing the title or alternative text
+ * (organiser-slide-captions D2).
+ */
+export async function updateMediaDetails(
+  name: string,
+  patch: { title?: string; alt?: string; caption?: string },
+): Promise<void> {
+  const raw = await getStore().read(keyFor(name));
+  const current = raw == null ? null : readDetailsDocument(raw);
+  await saveMediaDetails(name, mergeDetails(current, patch));
 }
 
 /** Remove an image's details, when the image itself is deleted. */

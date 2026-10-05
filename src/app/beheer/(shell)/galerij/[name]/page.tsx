@@ -24,7 +24,7 @@ export const dynamic = "force-dynamic";
 const GALLERY = "/beheer/galerij";
 
 const MEDIA_MESSAGE: Record<string, string> = {
-  opgeslagen: "Titel en beschrijving opgeslagen.",
+  opgeslagen: "Titel, beschrijving en bijschrift opgeslagen.",
   vervangen:
     "Bestand vervangen. Bezoekers die de oude afbeelding al hebben gezien, kunnen die nog even te zien krijgen.",
 };
@@ -101,7 +101,7 @@ export default async function MediaItemPage({
           <form action={saveMediaDetailsAction} className="mt-8 grid max-w-2xl gap-5">
             <input type="hidden" name="key" value={item.key} />
             {terug ? <input type="hidden" name="terug" value={terug} /> : null}
-            <h2 className="text-xl">Titel en beschrijving</h2>
+            <h2 className="text-xl">Titel, beschrijving en bijschrift</h2>
             <Field
               label="Titel"
               htmlFor="title"
@@ -115,6 +115,13 @@ export default async function MediaItemPage({
               hint="Wat er op de afbeelding te zien is, voor wie de afbeelding niet kan zien. Wordt gebruikt waar de afbeelding als omslag, in een galerij of in een diavoorstelling staat."
             >
               <Textarea id="alt" name="alt" defaultValue={item.alt ?? ""} className="min-h-20" />
+            </Field>
+            <Field
+              label="Bijschrift"
+              htmlFor="caption"
+              hint="Staat onder de afbeelding in een diavoorstelling, bijvoorbeeld op de pagina van een organisator."
+            >
+              <Input id="caption" name="caption" defaultValue={item.caption ?? ""} />
             </Field>
             <div>
               <SubmitButton>Opslaan</SubmitButton>

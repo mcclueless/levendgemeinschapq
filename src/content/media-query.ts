@@ -77,11 +77,14 @@ export const isMediaNarrowed = (query: MediaQuery) => Boolean(query.q || query.g
 export const mediaLabel = (item: Pick<MediaItem, "key" | "title">) =>
   item.title || mediaName(item.key);
 
-/** Whether an image matches a search: on its file name, title or alternative text. */
-export function mediaMatches(item: Pick<MediaItem, "key" | "title" | "alt">, q: string): boolean {
+/** Whether an image matches a search: on its file name, title, alternative text or caption. */
+export function mediaMatches(
+  item: Pick<MediaItem, "key" | "title" | "alt" | "caption">,
+  q: string,
+): boolean {
   const needle = fold(q.trim());
   if (!needle) return true;
-  return [mediaName(item.key), item.title, item.alt].some(
+  return [mediaName(item.key), item.title, item.alt, item.caption].some(
     (text) => text !== undefined && fold(text).includes(needle),
   );
 }

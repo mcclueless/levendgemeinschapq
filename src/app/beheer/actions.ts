@@ -24,7 +24,13 @@ import {
   loadImageUsers,
 } from "@/content/admin";
 import { deleteMedia, listMedia, replaceMedia, saveUploadChecked } from "@/content/media";
-import { mediaName, removeMediaDetails, saveMediaDetails } from "@/content/media-details";
+import {
+  loadMediaDetails,
+  mediaName,
+  removeMediaDetails,
+  saveMediaDetails,
+  updateMediaDetails,
+} from "@/content/media-details";
 import { imageUsage } from "@/content/image-references";
 import {
   ADMIN_FREQUENCIES,
@@ -344,6 +350,24 @@ function organiserImagesFrom(form: FormData) {
 }
 
 /**
+ * Store the captions posted beside the organiser's images
+ * (organiser-slide-captions D2). A caption belongs to the image, so it goes to
+ * the image's details — and only when it differs from what is stored, so
+ * saving an organiser does not rewrite every image's details.
+ */
+async function saveOrganiserCaptions(form: FormData): Promise<void> {
+  const images = form.getAll("images").filter((v): v is string => typeof v === "string");
+  const captions = form.getAll("captions").map((v) => (typeof v === "string" ? v.trim() : ""));
+  const stored = await loadMediaDetails();
+  for (const [i, url] of images.entries()) {
+    const name = mediaName(url);
+    const caption = captions[i] ?? "";
+    if ((stored.get(name)?.caption ?? "") === caption) continue;
+    await updateMediaDetails(name, { caption });
+  }
+}
+
+/**
  * The organiser form's logo (organiser-page-layout D3): a pick or an upload, or
  * removed, or — when neither — left out of the patch so the stored one stays.
  */
@@ -375,6 +399,7 @@ export async function createOrganiser(formData: FormData) {
     },
     str(formData, "body") ?? "",
   );
+  await saveOrganiserCaptions(formData);
   await revalidatePublic();
   redirect("/beheer?created=organiser");
 }
@@ -581,6 +606,7 @@ export async function updateOrganiser(formData: FormData) {
     },
     str(formData, "body") ?? "",
   );
+  await saveOrganiserCaptions(formData);
   await revalidatePublic();
   revalidatePath(adminListPath("organiser"));
   redirect(listBack("organiser", formData));
@@ -873,7 +899,11 @@ export async function saveMediaDetailsAction(formData: FormData) {
   const item = (await listMedia()).find((m) => m.key === key);
   if (!item) redirect(GALLERY);
   const name = mediaName(key);
-  await saveMediaDetails(name, { title: str(formData, "title"), alt: str(formData, "alt") });
+  await saveMediaDetails(name, {
+    title: str(formData, "title"),
+    alt: str(formData, "alt"),
+    caption: str(formData, "caption"),
+  });
   const users = await findImageReferences(item.url);
   await revalidateContent(users.map((u) => u.href));
   await revalidatePublic();

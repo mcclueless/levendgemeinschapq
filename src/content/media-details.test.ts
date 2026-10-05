@@ -38,3 +38,32 @@ test("an image's file name follows from its key or its address", () => {
   assert.equal(mediaName("https://media.example/uploads/borrel-8f3a1c.jpg"), "borrel-8f3a1c.jpg");
   assert.equal(mediaName("/uploads/borrel-8f3a1c.jpg?v=2"), "borrel-8f3a1c.jpg");
 });
+
+// ── A caption beside the title and alternative text (organiser-slide-captions D1) ──
+
+import { mergeDetails } from "./media-details";
+
+test("three details survive being stored and read back", () => {
+  const doc = detailsDocument({ title: "Zaal", alt: "De grote zaal", caption: "Onze werkplaats" });
+  assert.ok(doc);
+  assert.deepEqual(readDetailsDocument(doc), { title: "Zaal", alt: "De grote zaal", caption: "Onze werkplaats" });
+});
+
+test("a patch changes what it names and keeps the rest", () => {
+  const current = { title: "Zaal", alt: "De grote zaal" };
+  assert.deepEqual(mergeDetails(current, { caption: "Onze werkplaats" }), {
+    title: "Zaal",
+    alt: "De grote zaal",
+    caption: "Onze werkplaats",
+  });
+  assert.deepEqual(mergeDetails({ ...current, caption: "Oud" }, { caption: "" }), {
+    title: "Zaal",
+    alt: "De grote zaal",
+    caption: "",
+  });
+  assert.deepEqual(mergeDetails(null, { caption: "Nieuw" }), { caption: "Nieuw" });
+});
+
+test("a patch that empties the last detail leaves nothing to store", () => {
+  assert.equal(detailsDocument(mergeDetails({ caption: "Oud" }, { caption: "" })), null);
+});

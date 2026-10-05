@@ -73,7 +73,8 @@ export default async function NewOrganiserPage({
           <legend className="px-1 text-sm font-medium text-ink">Afbeeldingen</legend>
           <p className="text-xs text-muted">
             Op de pagina van de organisator als diavoorstelling. De eerste is de omslag in
-            lijsten en bij delen.
+            lijsten en bij delen. Een bijschrift hoort bij de afbeelding zelf en staat
+            eronder in de diavoorstelling.
           </p>
           <ImageListField pool={pool} label="Afbeelding" />
         </fieldset>
