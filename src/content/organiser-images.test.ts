@@ -2,7 +2,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import matter from "gray-matter";
 import { OrganiserFrontmatter } from "./schema";
-import { organiserGallery, organiserImageFields, organiserImages } from "./organiser-images";
+import {
+  organiserCardImage,
+  organiserGallery,
+  organiserImageFields,
+  organiserImages,
+} from "./organiser-images";
 import { imageReferencesIn } from "./image-references";
 import { mergeDocument } from "./write";
 
@@ -88,4 +93,31 @@ test("an image used only as an organiser's logo or later slide is in use", () =>
   const slide = imageReferencesIn("/c.jpg", [user({ featuredImage: "/a.jpg", moreImages: ["/b.jpg", "/c.jpg"] })]);
   assert.deepEqual(slide.map((r) => r.slug), ["vind"]);
   assert.deepEqual(imageReferencesIn("/other.jpg", [user({ featuredImage: "/a.jpg", logo: "/logo.png" })]), []);
+});
+
+/** The card image chain: logo, then cover, then the name (organiser-card-logo). */
+
+test("a card shows the logo when there is one, even with a cover", () => {
+  assert.deepEqual(organiserCardImage({ logo: "/l.png", featuredImage: "/a.jpg" }), {
+    kind: "logo",
+    src: "/l.png",
+  });
+});
+
+test("a card without a logo shows the cover", () => {
+  assert.deepEqual(organiserCardImage({ featuredImage: "/a.jpg", moreImages: ["/b.jpg"] }), {
+    kind: "cover",
+    src: "/a.jpg",
+  });
+});
+
+test("a card with neither shows the name", () => {
+  assert.deepEqual(organiserCardImage({}), { kind: "name" });
+});
+
+test("an empty logo counts as absent", () => {
+  assert.deepEqual(organiserCardImage({ logo: "  ", featuredImage: "/a.jpg" }), {
+    kind: "cover",
+    src: "/a.jpg",
+  });
 });

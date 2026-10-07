@@ -41,3 +41,22 @@ export function organiserImageFields(urls: readonly string[]): {
 export function organiserGallery(data: StoredOrganiserImages & { logo?: string }): string[] {
   return [...(data.moreImages ?? []), data.logo].filter((url): url is string => Boolean(url));
 }
+
+/** What an organiser card shows in its image area (organiser-card-logo D1). */
+export type OrganiserCardImage =
+  | { kind: "logo"; src: string }
+  | { kind: "cover"; src: string }
+  | { kind: "name" };
+
+/**
+ * The image for an organiser card, wherever organisers are listed: the logo
+ * when there is one, else the cover, else the name on a panel. One rule for
+ * the overview and the homepage, so the same organiser looks the same on both.
+ */
+export function organiserCardImage(
+  data: StoredOrganiserImages & { logo?: string },
+): OrganiserCardImage {
+  if (data.logo?.trim()) return { kind: "logo", src: data.logo };
+  if (data.featuredImage?.trim()) return { kind: "cover", src: data.featuredImage };
+  return { kind: "name" };
+}

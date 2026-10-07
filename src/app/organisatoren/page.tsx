@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Container } from "@/components/ui/container";
 import { Card, Badge } from "@/components/ui/card";
-import { CoverImage } from "@/components/content/cover-image";
+import { OrganiserCardImage } from "@/components/content/organiser-card-image";
 import { getOrganisers } from "@/content/repository";
 import { AdminListingNotice } from "@/components/admin/admin-listing-notice";
 
@@ -30,11 +30,7 @@ export default async function OrganisersPage() {
       <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {organisers.map((organiser) => (
           <Card key={organiser.slug} as="article" className="overflow-hidden">
-            <CoverImage
-              src={organiser.featuredImage}
-              alt={organiser.name}
-              className="h-44"
-            />
+            <OrganiserCardImage organiser={organiser} heightClass="h-44" />
             <div className="p-6">
               <h2 className="text-xl">
                 <Link
