@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Card, Badge } from "@/components/ui/card";
 import { requireAdmin } from "@/lib/auth-server";
 import { getContentCounts } from "@/content/admin";
+import { listTrash } from "@/content/write";
 import { listFeeds } from "@/content/feeds";
 import { adminListPath } from "@/lib/routes";
 
@@ -23,10 +24,13 @@ export default async function AdminHome({
   searchParams: Promise<{ created?: string; geo?: string }>;
 }) {
   await requireAdmin();
-  const [{ created, geo }, counts, feeds] = await Promise.all([
+  // The trash count only counts; expiry is purged when the trash page itself
+  // is opened, so the dashboard stays side-effect free (content-trash D6).
+  const [{ created, geo }, counts, feeds, trashed] = await Promise.all([
     searchParams,
     getContentCounts(),
     listFeeds(),
+    listTrash(),
   ]);
   // Sync is manual and nothing notifies anyone, so a feed that has stopped
   // working is otherwise invisible — the dashboard is the one page an admin
@@ -83,7 +87,7 @@ export default async function AdminHome({
         </p>
       ) : null}
 
-      <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
         <Stat label="Evenementen" value={counts.events} href={adminListPath("event")} />
         <Stat label="Locaties" value={counts.venues} href={adminListPath("venue")} />
         <Stat
@@ -94,6 +98,7 @@ export default async function AdminHome({
         <Stat label="Blogposts" value={counts.posts} href={adminListPath("blog")} />
         <Stat label="Projecten" value={counts.projects} href={adminListPath("project")} />
         <Stat label="In wachtrij" value={counts.pending} href="/beheer/queue" highlight />
+        <Stat label="Prullenbak" value={trashed.length} href="/beheer/prullenbak" />
       </div>
 
       <div className="mt-10 flex flex-wrap items-center gap-3">

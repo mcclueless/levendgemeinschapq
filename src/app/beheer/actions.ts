@@ -13,8 +13,11 @@ import {
 import { isAdmin } from "@/lib/auth-server";
 import {
   createDocument,
-  deleteDocument,
+  purgeDocument,
+  listTrash,
+  restoreDocument,
   setStatus,
+  trashDocument,
   updateDocument,
 } from "@/content/write";
 import {
@@ -675,10 +678,11 @@ export async function updateProject(formData: FormData) {
   redirect(listBack("project", formData));
 }
 
-// ── Hide / show existing content ─────────────────────────────────────────────
-// "Delete" is unpublish: setting status to draft hides the item from the public
-// site while keeping the document. Hiding a Venue/Organiser that a published
-// Event/Blog still references is blocked (design D3).
+// ── Hide / show / trash existing content ─────────────────────────────────────
+// "Verbergen" is unpublish: setting status to draft hides the item from the
+// public site while keeping the document in its list. "Verwijderen" moves the
+// document to the trash (content-trash). Hiding a Venue/Organiser that a
+// published Event/Blog still references is blocked (design D3).
 
 // Core hide/delete logic, shared by the backend and the public-banner actions
 // so the reference guard (design D3) and revalidation live in ONE place; only
@@ -699,12 +703,14 @@ async function performHide(
 }
 
 /**
- * Permanently delete an item. For a venue/organiser this is guarded by the
- * ALL-STATUS reference scan (stricter than hide): a referrer of any status —
- * published, past, or hidden/draft — blocks it, since a permanent delete is
- * irreversible and a re-published draft would dangle. Events and blog posts
- * have no inbound references, so they delete unguarded. Returns whether it was
- * blocked.
+ * "Verwijderen": move an item to the trash (content-trash D3). For a
+ * venue/organiser this is guarded by the ALL-STATUS reference scan (stricter
+ * than hide): a referrer of any status — published, past, or hidden/draft —
+ * blocks it. A trashed document is invisible to every reference check and may
+ * later be purged, so a re-published draft would dangle; keeping the guard
+ * here also means nothing in the trash is ever referenced and purging needs no
+ * guard. Events, blog posts and projects have no inbound references, so they
+ * go unguarded. Returns whether it was blocked.
  */
 async function performDelete(
   type: ManagedType,
@@ -713,7 +719,7 @@ async function performDelete(
   if ((await findReferences(type, slug, { includeHidden: true })).length) {
     return { blocked: true };
   }
-  await deleteDocument(type, slug);
+  await trashDocument(type, slug);
   await revalidateAfterItemChange(type, slug);
   revalidatePath(adminListPath(type));
   return { blocked: false };
@@ -742,10 +748,10 @@ export async function showContent(formData: FormData) {
   redirect(listBack(type, formData));
 }
 
-// Permanent, irreversible removal for any content type. A venue/organiser still
-// referenced by any event/blog (any status) is blocked; the admin list re-runs
-// the all-status scan for ?undeletable to name the referrers (distinct from the
-// hide ?blocked signal, which reports the published-only set).
+// Move any content type to the trash. A venue/organiser still referenced by
+// any event/blog (any status) is blocked; the admin list re-runs the all-status
+// scan for ?undeletable to name the referrers (distinct from the hide ?blocked
+// signal, which reports the published-only set).
 export async function deleteContent(formData: FormData) {
   await assertAdmin();
   const type = managedType(formData);
@@ -756,6 +762,50 @@ export async function deleteContent(formData: FormData) {
     redirect(withParam(back, "undeletable", slug));
   }
   redirect(back);
+}
+
+// ── Trash (content-trash) ────────────────────────────────────────────────────
+// Restore lands hidden (D4) and is refused when the slug has since been taken
+// (D5); purge and empty run no guard (D3) because nothing referenced can enter
+// the trash. All three land back on the trash page with a flag it turns into a
+// notice.
+
+const TRASH = "/beheer/prullenbak";
+
+export async function restoreContent(formData: FormData) {
+  await assertAdmin();
+  const type = managedType(formData);
+  const slug = str(formData, "slug");
+  if (!type || !slug) return;
+  const result = await restoreDocument(type, slug);
+  if (!result.ok) {
+    if (result.reason === "taken") {
+      // The page names the live item that holds the slug (D5).
+      redirect(
+        `${TRASH}?bezet=${encodeURIComponent(`${type}:${slug}`)}&door=${encodeURIComponent(result.title)}`,
+      );
+    }
+    redirect(TRASH);
+  }
+  // Hidden on return, so nothing public changes (D9) — only the type's list.
+  revalidatePath(adminListPath(type));
+  redirect(`${TRASH}?hersteld=${encodeURIComponent(slug)}`);
+}
+
+export async function purgeContent(formData: FormData) {
+  await assertAdmin();
+  const type = managedType(formData);
+  const slug = str(formData, "slug");
+  if (!type || !slug) return;
+  await purgeDocument(type, slug);
+  redirect(`${TRASH}?verwijderd=1`);
+}
+
+export async function emptyTrash() {
+  await assertAdmin();
+  const items = await listTrash();
+  await Promise.all(items.map((i) => purgeDocument(i.type, i.slug)));
+  redirect(`${TRASH}?geleegd=${items.length}`);
 }
 
 /**

@@ -221,6 +221,11 @@ export function getStore(): ContentStore {
   return store;
 }
 
+/** A local store rooted anywhere — for tests that must not touch ./content. */
+export function createLocalStore(root: string): ContentStore {
+  return new LocalFsStore(root);
+}
+
 export const CONTENT_PREFIX = {
   event: "events",
   venue: "venues",
@@ -228,3 +233,19 @@ export const CONTENT_PREFIX = {
   blog: "blog",
   project: "projects",
 } as const;
+
+/**
+ * Trashed documents live under a parallel prefix (content-trash D1):
+ *   trash/events/<slug>.mdx, trash/venues/<slug>.mdx, …
+ * Every live reader lists a per-type prefix, so a document here is invisible
+ * to the site, the lists, the index, the guards and the slug checks without
+ * any of them changing.
+ */
+export const TRASH_PREFIX = "trash";
+
+export function trashKeyFor(
+  type: keyof typeof CONTENT_PREFIX,
+  slug: string,
+): string {
+  return `${TRASH_PREFIX}/${CONTENT_PREFIX[type]}/${slug}.mdx`;
+}

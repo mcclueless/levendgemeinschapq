@@ -62,7 +62,7 @@ export function AdminBarMount({
             <input type="hidden" name="type" value={type} />
             <input type="hidden" name="slug" value={slug} />
             <ConfirmButton
-              message={`“${title}” definitief verwijderen? Dit kan niet ongedaan worden gemaakt.`}
+              message={`“${title}” naar de prullenbak verplaatsen? Je kunt het binnen 30 dagen herstellen.`}
               className="admin-chip admin-chip-danger"
             >
               Verwijderen

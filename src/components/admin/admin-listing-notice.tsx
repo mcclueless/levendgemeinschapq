@@ -13,7 +13,7 @@ import { Notice } from "@/components/ui/notice";
  */
 const MESSAGES: Record<string, string> = {
   verborgen: "Verborgen van de website.",
-  verwijderd: "Definitief verwijderd.",
+  verwijderd: "Naar de prullenbak verplaatst. Herstellen kan in het beheer.",
 };
 
 export function AdminListingNotice() {

@@ -271,7 +271,7 @@ export function ContentTable({
                             <input type="hidden" name="slug" value={item.slug} />
                             <input type="hidden" name="terug" value={here} />
                             <ConfirmButton
-                              message={`“${item.title}” definitief verwijderen? Dit kan niet ongedaan worden gemaakt.`}
+                              message={`“${item.title}” naar de prullenbak verplaatsen? Je kunt het binnen 30 dagen herstellen.`}
                               className={cn(action, "text-brand-strong")}
                             >
                               Verwijderen

@@ -23,6 +23,7 @@ const groups: Array<Array<{ href: string; label: string; also?: string[] }>> = [
     { href: "/beheer/queue", label: "Wachtrij" },
     { href: "/beheer/galerij", label: "Galerij" },
     { href: "/beheer/feeds", label: "Agenda-feeds", also: ["/beheer/import"] },
+    { href: "/beheer/prullenbak", label: "Prullenbak" },
   ],
 ];
 

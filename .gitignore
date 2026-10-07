@@ -31,6 +31,9 @@ yarn-error.log*
 # derived content index (rebuildable via `pnpm reindex`)
 /content/.index.json
 
+# trashed documents (local fallback store; content-trash)
+/content/trash
+
 # user-uploaded media (local fallback store)
 /public/uploads
 
