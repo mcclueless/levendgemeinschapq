@@ -26,4 +26,4 @@
       with JavaScript disabled; at phone width the panel fits without
       horizontal scrolling; clicking the field label still focuses its control;
       the logo field shows logo guidance and every cover field cover guidance.
-- [ ] 3.3 After deploy, open the guidance on goeddoen.net's submission form.
+- [x] 3.3 After deploy, open the guidance on goeddoen.net's submission form.

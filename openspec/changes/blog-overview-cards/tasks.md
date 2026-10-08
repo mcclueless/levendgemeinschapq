@@ -11,5 +11,5 @@
 - [x] 2.2 In the app at 375, 768, 1024 and 1280 px: a 16:9 cover is shown whole
       (box ratio 1.78); a post without a cover shows no image area and its text uses the full card width; order
       is newest first; no horizontal scrolling.
-- [ ] 2.3 After deploy, measure the blog card cover box on goeddoen.net at
+- [x] 2.3 After deploy, measure the blog card cover box on goeddoen.net at
       1280 px and confirm a 16:9 ratio.

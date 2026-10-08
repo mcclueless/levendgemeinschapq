@@ -51,5 +51,5 @@
       centred; a cover and the name panel have the same 16:9 area; cards in a
       row line up. Restore any content files the checks changed.
 - [x] 5.3 Run `pnpm test`, `pnpm typecheck` and `pnpm lint`. All pass.
-- [ ] 5.4 After deploy, check Thee-Resia Samentuin on goeddoen.net's
+- [x] 5.4 After deploy, check Thee-Resia Samentuin on goeddoen.net's
       organisers overview and homepage alongside Athos and VIND.
