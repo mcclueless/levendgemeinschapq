@@ -4,7 +4,7 @@ The organisers overview page shows each organiser as a card with its cover image
 
 ## What Changes
 
-- **Logo first on organiser cards.** On the `/organisatoren` overview and in the homepage's "Wie we zijn" grid, each card SHALL show the organiser's logo when it has one. The logo is shown whole, contained inside a plain panel with padding, never cropped to fill the box, since wordmarks and emblems do not survive a crop.
+- **Logo first on organiser cards.** On the `/organisatoren` overview and in the homepage's "Wie we zijn" grid, each card SHALL show the organiser's logo when it has one. The logo is shown whole on a plain white panel that fills the card's 16:9 image area, never cropped to fill the box, since wordmarks and emblems do not survive a crop. A logo exported at 16:9, as the team's image rule asks, fills the area edge to edge (revised 2026-10-08).
 - **A fallback chain when there is no logo.** Without a logo the card shows the organiser's cover image as it does today. Without a cover either, the card shows the organiser's name on a brand-coloured panel, as the homepage's who-we-are cards already do. No card is ever left without an image area, and the same organiser looks the same on both pages.
 - **The organiser's own page is unchanged.** It keeps the logo beside the name and the photo slideshow.
 - **Amends the cover rule.** The organisers spec currently says the first image serves as the cover "wherever a single image represents it", with a scenario for lists and share previews. That rule stays for share previews and for any list without a logo, and gains the exception that a listing card prefers the logo.
