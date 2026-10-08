@@ -30,7 +30,7 @@ export default async function OrganisersPage() {
       <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {organisers.map((organiser) => (
           <Card key={organiser.slug} as="article" className="overflow-hidden">
-            <OrganiserCardImage organiser={organiser} heightClass="h-44" />
+            <OrganiserCardImage organiser={organiser} />
             <div className="p-6">
               <h2 className="text-xl">
                 <Link

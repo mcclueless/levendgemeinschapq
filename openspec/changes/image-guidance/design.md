@@ -30,12 +30,16 @@ the site may cut; the advice is true for every surface except the blog outlier.
 `Field` gains an optional `info` prop. When set, a `<details>` sits on the label
 row, after the `<label>` (never inside it, so clicking the label still focuses
 the control). Its `<summary>` is a small round "i" button with
-`aria-label="Uitleg over de afbeelding"`. Native `<details>` opens by click,
+an accessible name of "Uitleg: " plus the field label. Native `<details>` opens by click,
 Enter and Space without JavaScript, and announces its state.
 
-The opened panel is a block below the label row, not a floating popover: no
-positioning code, nothing clipped at phone width, and it pushes the field down
-rather than covering it.
+The "i" is pinned to the right end of the label row (`absolute`, the field
+`relative`), and the opened panel sits in the normal flow between the label and
+the control, pushing the field down. *Revised during implementation:* a first
+version overlaid the panel on the field; in a browser check an open panel then
+covered the next field's own "i" button, and without JavaScript there is no
+click-outside to close it. Pinning the button keeps it from jumping when the
+panel opens, which is why the panel could not simply follow it in the flow.
 
 *Alternative: a hint line always visible.* Rejected: the cover text with its
 picture is too long to show on every form permanently.
@@ -44,8 +48,8 @@ picture is too long to show on every form permanently.
 
 `ImageGuidance({ kind: "cover" | "logo" })` renders the text. Both say
 1920 × 1080 (16:9). Cover adds the safe area and its picture; logo says it is
-shown whole on a white panel. File types and size come from constants exported
-by `media.ts`, never typed twice, so the advice cannot drift from validation.
+shown whole on a white panel. File types and size come from `upload-rules.ts`,
+a dependency-free module that `media.ts` also reads, never typed twice, so the advice cannot drift from validation.
 The component holds no data, so it is safe on the public form.
 
 ### D3. The safe area: central 1440 × 960

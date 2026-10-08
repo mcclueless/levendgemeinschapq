@@ -33,8 +33,19 @@ export default async function BlogPage() {
       ) : (
         <div className="mt-10 grid gap-6">
           {posts.map((post) => (
-            <Card key={post.slug} as="article" className="overflow-hidden">
-              <CoverImage src={post.featuredImage} alt={post.title} className="h-56" />
+            // A 16:9 cover beside the text from `md`, above it on phones, so a
+            // 16:9 image is never cut (blog-overview-cards D1). Without a cover
+            // the card is text only, as before.
+            <Card
+              key={post.slug}
+              as="article"
+              className={
+                post.featuredImage
+                  ? "overflow-hidden md:grid md:grid-cols-[2fr_3fr] md:items-center"
+                  : "overflow-hidden"
+              }
+            >
+              <CoverImage src={post.featuredImage} alt={post.title} className="aspect-video" />
               <div className="p-6">
                 <p className="text-sm text-muted">
                   <time dateTime={isoDate(post.date)}>

@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { slugify } from "./write";
 import { loadMediaDetails, mediaName } from "./media-details";
+import { MAX_UPLOAD_BYTES, UPLOAD_EXT } from "./upload-rules";
 
 /**
  * Media uploads + library (editorial-backend spec). Stores images and lists the
@@ -18,18 +19,10 @@ import { loadMediaDetails, mediaName } from "./media-details";
  */
 const IMAGE_EXT = /\.(png|jpe?g|gif|webp|avif|svg)$/i;
 
-/**
- * Extensions that may be *uploaded*. Narrower than IMAGE_EXT by one entry:
- * SVG is a scriptable document, and `public/uploads/*` is served from the
- * site's own origin, so accepting one is a stored-XSS vector. Administrators
- * are not a mitigation once anonymous upload exists.
- *
- * Keep this in sync with MAGIC below and with IMAGE_EXT's intentional gap.
- */
-const UPLOAD_EXT = /\.(png|jpe?g|gif|webp|avif)$/i;
-
-/** Maximum accepted upload, both paths (add-public-media-and-socials D7). */
-export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024; // 10 MB
+// Upload extensions and size live in `upload-rules.ts`, shared with the
+// guidance shown beside image fields. Keep UPLOAD_EXT in sync with MAGIC below
+// and with IMAGE_EXT's intentional gap (no SVG uploads).
+export { MAX_UPLOAD_BYTES } from "./upload-rules";
 
 /**
  * Leading-byte signatures, so a `.jpg` that is not a JPEG is refused. The

@@ -2,7 +2,8 @@
 
 `src/app/blog/page.tsx` renders `posts` in a single-column grid; each `Card`
 holds `<CoverImage className="h-56">` above a text block. `CoverImage` crops
-with `object-cover` and falls back to the site's default cover. A full-width
+with `object-cover` and renders nothing when a post has no cover, so such a
+post's card is text only; that stays as it is. A full-width
 card with a fixed height gives a ratio that grows with the screen: 1.5 on a
 phone, 4.85 at 1280 px.
 

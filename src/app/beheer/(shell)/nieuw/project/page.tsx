@@ -6,6 +6,7 @@ import {
   Select,
   SubmitButton,
 } from "@/components/admin/form";
+import { ImageGuidance } from "@/components/admin/image-guidance";
 import { ImageField } from "@/components/admin/image-field";
 import { BodyEditor } from "@/components/admin/body-editor";
 import { requireAdmin } from "@/lib/auth-server";
@@ -36,7 +37,7 @@ export default async function NewProjectPage() {
           <Input id="title" name="title" required />
         </Field>
 
-        <Field label="Uitgelichte afbeelding" htmlFor="image" hint="Optioneel — upload nieuw of kies uit de galerij.">
+        <Field label="Uitgelichte afbeelding" htmlFor="image" info={<ImageGuidance kind="cover" />} hint="Optioneel — upload nieuw of kies uit de galerij.">
           <ImageField pool={pool} />
         </Field>
 

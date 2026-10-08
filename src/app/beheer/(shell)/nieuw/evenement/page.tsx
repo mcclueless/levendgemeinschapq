@@ -7,6 +7,7 @@ import {
   Select,
   SubmitButton,
 } from "@/components/admin/form";
+import { ImageGuidance } from "@/components/admin/image-guidance";
 import { ImageField } from "@/components/admin/image-field";
 import { SocialFields } from "@/components/admin/social-fields";
 import { BodyEditor } from "@/components/admin/body-editor";
@@ -49,7 +50,7 @@ export default async function NewEventPage({
 
         <NoPageField />
 
-        <Field label="Uitgelichte afbeelding" htmlFor="image" hint="Upload nieuw of kies uit de galerij. Optioneel, behalve bij Geen pagina.">
+        <Field label="Uitgelichte afbeelding" htmlFor="image" info={<ImageGuidance kind="cover" />} hint="Upload nieuw of kies uit de galerij. Optioneel, behalve bij Geen pagina.">
           <ImageField pool={pool} />
         </Field>
 

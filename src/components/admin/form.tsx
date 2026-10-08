@@ -8,23 +8,68 @@ export function Field({
   htmlFor,
   required,
   hint,
+  info,
   children,
 }: {
   label: string;
   htmlFor: string;
   required?: boolean;
   hint?: string;
+  /**
+   * Optional guidance behind an "i" button beside the label (image-guidance
+   * D1), see {@link InfoButton}. It sits after the `<label>`, never inside it,
+   * so clicking the label still focuses the control.
+   */
+  info?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
-    <div className="grid gap-1.5">
-      <label htmlFor={htmlFor} className="text-sm font-medium text-ink">
+    <div className={cn("grid gap-1.5", info ? "relative" : undefined)}>
+      <label
+        htmlFor={htmlFor}
+        className={cn("text-sm font-medium text-ink", info ? "pr-7" : undefined)}
+      >
         {label}
         {required ? <span className="text-brand-strong"> *</span> : null}
       </label>
+      {info ? <InfoButton name={`Uitleg: ${label}`}>{info}</InfoButton> : null}
       {children}
       {hint ? <p className="text-xs text-muted">{hint}</p> : null}
     </div>
+  );
+}
+
+/**
+ * An "i" button that reveals guidance (image-guidance D1). A native
+ * `<details>`: opens by click, Enter or Space, without JavaScript. The button is
+ * pinned to the top right of the nearest `relative` ancestor (the label row),
+ * so it never moves; the panel opens in the normal flow and pushes what follows
+ * down, so it never covers another field. Closed, the element takes no space.
+ */
+export function InfoButton({
+  name,
+  buttonClassName = "right-0 top-0",
+  children,
+}: {
+  name: string;
+  buttonClassName?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <details className="group -mt-1.5">
+      <summary
+        aria-label={name}
+        className={cn(
+          "absolute flex h-5 w-5 cursor-pointer list-none items-center justify-center rounded-full border border-border bg-surface text-xs font-semibold text-muted hover:text-ink focus-visible:outline-3 focus-visible:outline-offset-1 group-open:border-brand-strong group-open:text-brand-strong [&::-webkit-details-marker]:hidden",
+          buttonClassName,
+        )}
+      >
+        i
+      </summary>
+      <div className="mt-1.5 rounded-md border border-border bg-surface p-4 shadow-card">
+        {children}
+      </div>
+    </details>
   );
 }
 

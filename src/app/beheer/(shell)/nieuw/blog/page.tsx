@@ -6,6 +6,7 @@ import {
   Select,
   SubmitButton,
 } from "@/components/admin/form";
+import { ImageGuidance } from "@/components/admin/image-guidance";
 import { ImageField } from "@/components/admin/image-field";
 import { requireAdmin } from "@/lib/auth-server";
 import { getOrganisers, getVenues } from "@/content/repository";
@@ -45,7 +46,7 @@ export default async function NewBlogPage() {
           </Field>
         </div>
 
-        <Field label="Uitgelichte afbeelding" htmlFor="image" hint="Optioneel — upload nieuw of kies uit de galerij.">
+        <Field label="Uitgelichte afbeelding" htmlFor="image" info={<ImageGuidance kind="cover" />} hint="Optioneel — upload nieuw of kies uit de galerij.">
           <ImageField pool={pool} />
         </Field>
 

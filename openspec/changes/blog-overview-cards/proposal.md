@@ -13,7 +13,8 @@ honestly advise around.
   text, in a 16:9 box, instead of across the top. The whole 16:9 image shows,
   with nothing cut off.
 - On phones the card keeps the cover on top, also in a 16:9 box.
-- A post without a cover keeps the site's default cover, in the same box.
+- A post without a cover keeps showing no image, its text across the full card,
+  as today.
 - Order, content, links and what is listed are unchanged.
 
 Not in scope: the single post page (2:1, within the image guidance's safe

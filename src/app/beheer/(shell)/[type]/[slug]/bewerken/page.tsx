@@ -6,7 +6,9 @@ import {
   Input,
   Select,
   SubmitButton,
+  InfoButton,
 } from "@/components/admin/form";
+import { ImageGuidance } from "@/components/admin/image-guidance";
 import { ImageField } from "@/components/admin/image-field";
 import { ImageListField } from "@/components/admin/image-list-field";
 import { organiserImages } from "@/content/organiser-images";
@@ -93,7 +95,7 @@ export default async function EditPage({
             <Input id="title" name="title" required defaultValue={d.title} />
           </Field>
           <NoPageField defaultChecked={d.noPage === true} />
-          <Field label="Uitgelichte afbeelding" htmlFor="image">
+          <Field label="Uitgelichte afbeelding" htmlFor="image" info={<ImageGuidance kind="cover" />}>
             <ImageField pool={pool} current={d.featuredImage} />
           </Field>
           <div className="grid gap-5 sm:grid-cols-2">
@@ -214,7 +216,7 @@ export default async function EditPage({
           <Field label="Adres" htmlFor="address">
             <AddressAutocomplete defaultValue={d.address ?? ""} />
           </Field>
-          <Field label="Omslagafbeelding" htmlFor="image">
+          <Field label="Omslagafbeelding" htmlFor="image" info={<ImageGuidance kind="cover" />}>
             <ImageField pool={pool} current={d.featuredImage} />
           </Field>
           <Field label="Korte omschrijving" htmlFor="excerpt">
@@ -270,16 +272,19 @@ export default async function EditPage({
               ))}
             </Select>
           </Field>
-          <fieldset className="grid gap-2 rounded-md border border-border p-4">
-            <legend className="px-1 text-sm font-medium text-ink">Afbeeldingen</legend>
+          <fieldset className="relative grid gap-2 rounded-md border border-border p-4">
+            <legend className="px-1 pr-8 text-sm font-medium text-ink">Afbeeldingen</legend>
             <p className="text-xs text-muted">
               Op de pagina van de organisator als diavoorstelling. De eerste is de omslag in
               lijsten en bij delen. Een bijschrift hoort bij de afbeelding zelf en staat
-            eronder in de diavoorstelling.
+              eronder in de diavoorstelling.
             </p>
+            <InfoButton name="Uitleg: Afbeeldingen" buttonClassName="right-3 top-3">
+              <ImageGuidance kind="cover" />
+            </InfoButton>
             <ImageListField pool={pool} label="Afbeelding" defaults={organiserImages(d)} />
           </fieldset>
-          <Field label="Logo" htmlFor="logo" hint="Optioneel — naast de naam op de pagina van de organisator.">
+          <Field label="Logo" htmlFor="logo" info={<ImageGuidance kind="logo" />} hint="Optioneel — naast de naam op de pagina van de organisator.">
             <ImageField pool={pool} urlName="logoUrl" fileName="logo" removable current={d.logo} />
           </Field>
           <SocialFields defaults={d.socials} />
@@ -315,7 +320,7 @@ export default async function EditPage({
           <Field label="Titel" htmlFor="title" required>
             <Input id="title" name="title" required defaultValue={d.title} />
           </Field>
-          <Field label="Uitgelichte afbeelding" htmlFor="image">
+          <Field label="Uitgelichte afbeelding" htmlFor="image" info={<ImageGuidance kind="cover" />}>
             <ImageField pool={pool} current={d.featuredImage} />
           </Field>
           <Field label="Locatie" htmlFor="venue">
@@ -395,7 +400,7 @@ export default async function EditPage({
             />
           </Field>
         </div>
-        <Field label="Uitgelichte afbeelding" htmlFor="image">
+        <Field label="Uitgelichte afbeelding" htmlFor="image" info={<ImageGuidance kind="cover" />}>
           <ImageField pool={pool} current={d.featuredImage} />
         </Field>
         <Field label="Korte omschrijving" htmlFor="excerpt">

@@ -5,6 +5,7 @@ import {
   Input,
   SubmitButton,
 } from "@/components/admin/form";
+import { ImageGuidance } from "@/components/admin/image-guidance";
 import { ImageField } from "@/components/admin/image-field";
 import { BodyEditor } from "@/components/admin/body-editor";
 import { AddressAutocomplete } from "@/components/admin/address-autocomplete";
@@ -48,7 +49,7 @@ export default async function NewVenuePage() {
           <AddressAutocomplete />
         </Field>
 
-        <Field label="Omslagafbeelding" htmlFor="image" hint="Optioneel — upload nieuw of kies uit de galerij.">
+        <Field label="Omslagafbeelding" htmlFor="image" info={<ImageGuidance kind="cover" />} hint="Optioneel — upload nieuw of kies uit de galerij.">
           <ImageField pool={pool} />
         </Field>
 

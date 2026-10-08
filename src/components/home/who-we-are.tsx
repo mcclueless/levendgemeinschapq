@@ -35,7 +35,7 @@ export async function WhoWeAre() {
               aria-label={organiser.name}
               className="block transition hover:opacity-90 focus-visible:opacity-90"
             >
-              <OrganiserCardImage organiser={organiser} heightClass="h-56" />
+              <OrganiserCardImage organiser={organiser} />
             </Link>
           </Card>
         ))}

@@ -9,6 +9,7 @@ import {
   SubmitButton,
   Textarea,
 } from "@/components/admin/form";
+import { ImageGuidance } from "@/components/admin/image-guidance";
 import { UploadOnlyImageField } from "@/components/admin/image-field";
 import { SocialFields } from "@/components/admin/social-fields";
 import { pageMetadata } from "@/lib/metadata";
@@ -72,7 +73,7 @@ export default async function SubmitPage({
               page never fetches the pool at all (design D1). */}
           <Field
             label="Afbeelding"
-            htmlFor="image"
+            htmlFor="image" info={<ImageGuidance kind="cover" />}
             hint="Optioneel. JPG, PNG, GIF, WebP of AVIF, maximaal 10 MB."
           >
             <UploadOnlyImageField />
