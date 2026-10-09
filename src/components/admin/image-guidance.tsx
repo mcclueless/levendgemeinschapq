@@ -15,18 +15,23 @@ import { MAX_UPLOAD_LABEL, UPLOAD_FORMATS } from "@/content/upload-rules";
 export function ImageGuidance({ kind }: { kind: "cover" | "logo" }) {
   const formats = `${UPLOAD_FORMATS.slice(0, -1).join(", ")} of ${UPLOAD_FORMATS.at(-1)}`;
 
+  // Wording from the tester, 8 October 2026 (image-guidance, revised).
+  const accepted = (
+    <p className="text-muted">
+      Geaccepteerde formaten: {formats}; maximaal {MAX_UPLOAD_LABEL}.
+    </p>
+  );
+
   if (kind === "logo") {
     return (
       <div className="grid gap-2 text-sm text-ink">
         <p>
           <strong>Beste formaat: 1920 × 1080 pixels (16:9).</strong> Het logo wordt altijd
-          helemaal getoond en nooit bijgesneden, op een wit vlak. Een logo van 16:9 vult de kaart
-          precies.
+          volledig weergegeven – geschaald, maar nooit bijgesneden – tegen een witte achtergrond.
+          Een logo in 16:9-verhouding vult de kaart perfect.
         </p>
-        <p>Een witte of doorzichtige achtergrond werkt het best.</p>
-        <p className="text-muted">
-          {formats}, maximaal {MAX_UPLOAD_LABEL}.
-        </p>
+        <p>Een witte of transparante achtergrond werkt het best.</p>
+        {accepted}
       </div>
     );
   }
@@ -34,36 +39,45 @@ export function ImageGuidance({ kind }: { kind: "cover" | "logo" }) {
   return (
     <div className="grid gap-3 text-sm text-ink">
       <p>
-        <strong>Beste formaat: 1920 × 1080 pixels (16:9).</strong> De site toont de afbeelding op
-        verschillende plekken in iets andere vormen, en snijdt daarbij soms een stukje van de
-        randen af.
+        <strong>Beste formaat: 1920 × 1080 pixels (16:9).</strong> Houd tekst, gezichten en
+        logo&apos;s binnen het middelste deel van 1440 × 960 pixels.
       </p>
-      <figure className="grid gap-1.5">
-        <SafeArea />
-        <figcaption>
-          Houd tekst, gezichten en logo&apos;s binnen het middelste deel van 1440 × 960 pixels. Wat
-          daarbuiten valt, kan op sommige pagina&apos;s wegvallen.
-        </figcaption>
-      </figure>
-      <p className="text-muted">
-        {formats}, maximaal {MAX_UPLOAD_LABEL}.
+      <p>
+        De site toont de afbeelding op verschillende plekken in iets andere vormen, en snijdt daarbij
+        soms een stukje van de randen af. Wat buiten het middelste deel valt, kan op sommige
+        pagina&apos;s wegvallen.
       </p>
+      <SafeArea />
+      {accepted}
     </div>
   );
 }
 
 /**
- * A 1920 × 1080 frame at 1/10 scale with the central 1440 × 960 outlined. The
- * caption carries the same advice in words, so the picture is decorative.
+ * The full 1920 × 1080 frame at 1/10 scale, labelled, with the central
+ * 1440 × 960 outlined and labelled inside it. The text above carries the same
+ * advice in words, so the picture is decorative.
  */
 function SafeArea() {
   return (
     <svg
       viewBox="0 0 192 108"
       aria-hidden="true"
-      className="w-full max-w-xs rounded-md border border-border"
+      className="w-full max-w-xs rounded-md"
     >
-      <rect x="0" y="0" width="192" height="108" className="fill-surface-2" />
+      <rect
+        x="0.5"
+        y="0.5"
+        width="191"
+        height="107"
+        rx="3"
+        strokeWidth="1"
+        className="fill-surface-2 stroke-muted"
+      />
+      <text x="12" textAnchor="middle" fontSize="5.5" className="fill-ink">
+        <tspan x="12" y="92">1920</tspan>
+        <tspan x="12" y="99">× 1080</tspan>
+      </text>
       <rect x="24" y="6" width="144" height="96" className="fill-surface" />
       <rect
         x="24"

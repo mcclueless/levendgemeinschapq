@@ -27,3 +27,11 @@
       horizontal scrolling; clicking the field label still focuses its control;
       the logo field shows logo guidance and every cover field cover guidance.
 - [x] 3.3 After deploy, open the guidance on goeddoen.net's submission form.
+
+## 4. Tester feedback (2026-10-09)
+
+- [x] 4.1 Apply Atticus's wording: the safe-area advice right after the size
+      sentence, "Geaccepteerde formaten:" before the file list, and his logo
+      text; label the full 1920 × 1080 frame in the picture. Checked the
+      rendered panel.
+

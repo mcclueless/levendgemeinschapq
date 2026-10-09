@@ -79,3 +79,12 @@ stays; the admin cover hints stay as they are.
 ## Migration Plan
 
 None. Deploy, then check the button on one admin form and the public form.
+
+## Tester feedback (2026-10-09)
+
+Atticus asked for the safe-area sentence to follow the size sentence directly,
+for "Geaccepteerde formaten:" before the file list, for the picture to show the
+1440 × 960 area inside the labelled 1920 × 1080 frame, and supplied reworded
+logo text. All applied; the picture's frame label sits in its left margin,
+since the top margin is too thin for text.
+
