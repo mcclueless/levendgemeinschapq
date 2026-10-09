@@ -54,7 +54,7 @@ work.
 
 - **`EventCard`:** for a marker, render a non-link `<article>`:
   - the whole image, fitted (`object-contain`) inside the same height as an
-    ordinary card's image (`h-44`), on the alternate surface colour. A tall
+    ordinary card's image (`h-44`), on the card's own white (`bg-surface`). *Revised 2026-10-09:* first built on the alternate surface colour (grey); a tester found that a 16:9 image with its own white background then showed as a white box inside grey, the same issue as organiser logos. A tall
     image at its natural height stretched every card in its grid row, which
     changed the ordinary events beside it.
   - a date badge with `formatDate` only

@@ -25,6 +25,7 @@ import {
   type MediaSort,
 } from "@/content/media-query";
 import { deleteMediaBulk } from "@/app/beheer/actions";
+import { versionedImageUrl } from "@/content/media-url";
 
 export const metadata: Metadata = { title: "Galerij", robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -259,7 +260,7 @@ function MediaCard({ item, uses, href }: { item: MediaItem; uses: number; href: 
         {/* The name is in the link text below; the picture adds nothing to it. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={item.url}
+          src={versionedImageUrl(item)}
           alt=""
           loading="lazy"
           className="aspect-[4/3] w-full object-cover"

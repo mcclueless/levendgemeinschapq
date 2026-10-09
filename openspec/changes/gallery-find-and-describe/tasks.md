@@ -101,3 +101,11 @@ Part 1 (groups 1–5) can be delivered without part 2 (groups 6–8).
       `Cache-Control: no-cache`, that replacing it shows the new file on an
       ordinary reload, and that a described cover image has its own text on
       the live page.
+
+## 10. Tester feedback (2026-10-09)
+
+- [x] 10.1 Show images in the gallery grid, the image page and the picker at a
+      versioned address (`src/content/media-url.ts`, tested), so a replaced
+      file shows at once. Reproduced in the app before the fix (old picture
+      until reload) and checked after it (new picture straight away).
+

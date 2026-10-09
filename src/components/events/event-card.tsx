@@ -26,13 +26,16 @@ function Thumb({ src, alt }: { src?: string; alt: string }) {
  * the date without a time and the title. Not a link — a marker has no page.
  *
  * The image is fitted inside the same height as an ordinary card's image, so a
- * tall picture never stretches the grid row and the events beside it.
+ * tall picture never stretches the grid row and the events beside it. The
+ * background is the card's own white, not a grey panel: a 16:9 image with its
+ * own white background then blends in instead of showing as a white box
+ * (tester report, 8 October 2026, the same issue as organiser logos).
  */
 function MarkerCard({ occurrence }: { occurrence: EventOccurrence }) {
   const { event, start } = occurrence;
   return (
     <Card as="article" className="overflow-hidden">
-      <DescribedImage src={eventCover(event.featuredImage)} detailsOf={event.featuredImage} alt={event.title} loading="lazy" className="h-44 w-full bg-surface-2 object-contain" />
+      <DescribedImage src={eventCover(event.featuredImage)} detailsOf={event.featuredImage} alt={event.title} loading="lazy" className="h-44 w-full bg-surface object-contain" />
       <div className="p-5">
         <Badge tone="accent">
           <time dateTime={isoDate(start)}>{formatDate(start)}</time>

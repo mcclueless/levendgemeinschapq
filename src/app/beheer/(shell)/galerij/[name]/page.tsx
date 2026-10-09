@@ -17,6 +17,7 @@ import {
   replaceMediaAction,
   saveMediaDetailsAction,
 } from "@/app/beheer/actions";
+import { versionedImageUrl } from "@/content/media-url";
 
 export const metadata: Metadata = { title: "Afbeelding", robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -93,7 +94,7 @@ export default async function MediaItemPage({
         <div className="min-w-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={item.url}
+            src={versionedImageUrl(item)}
             alt={item.alt ?? ""}
             className="max-h-[70vh] w-auto max-w-full rounded-lg border border-border bg-surface-2"
           />
@@ -144,7 +145,7 @@ export default async function MediaItemPage({
               <div>
                 <dt className="font-medium text-muted">Afmetingen</dt>
                 <dd>
-                  <ImageDimensions url={item.url} />
+                  <ImageDimensions url={versionedImageUrl(item)} />
                 </dd>
               </div>
               <div>

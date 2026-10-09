@@ -224,3 +224,15 @@ None. Existing images have no details and behave as today.
 
 None. Whether a CDN sits in front of the media bucket was checked on the live
 site and answered in D10.
+
+### D10 addendum (2026-10-09): versioned addresses in the backend
+
+A tester replaced an image: the event using it showed the new file, but the
+gallery kept the old one. The file and its `no-cache` header were correct; the
+browser reused the image it already held in memory for that address, because
+returning to the gallery after a replace is not a full page load. The gallery
+grid, the image's page (picture and dimensions) and the image picker now show
+the image at `versionedImageUrl(item)`: the stored address plus `?v=` and the
+file's last-modified time, which changes on every replace. The stored address
+that content refers to, and that a picker hands back, is unchanged.
+

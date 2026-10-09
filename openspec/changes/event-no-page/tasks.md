@@ -55,3 +55,9 @@
 - [x] 5.2 In the app, turn a marker back into an event and check that its page
       returns with its earlier venue, organisers and text. Restore any content
       files the checks changed.
+
+## 6. Tester feedback (2026-10-09)
+
+- [x] 6.1 A marker's image sits on the card's white instead of a grey panel, so a
+      16:9 image with a white background no longer shows as a box. Checked in
+      the app next to ordinary event cards: same image height, no grey panel.

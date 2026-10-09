@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { MediaItem } from "@/content/media";
 import { mediaLabel, mediaMatches } from "@/content/media-query";
+import { versionedImageUrl } from "@/content/media-url";
 
 /**
  * Cover-image field (cover-image-bank): set a cover by uploading a new file
@@ -257,7 +258,7 @@ export function MediaPicker({
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={m.url}
+                      src={versionedImageUrl(m)}
                       alt=""
                       loading="lazy"
                       className="aspect-[4/3] w-full object-cover"
