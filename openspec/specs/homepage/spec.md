@@ -3,7 +3,9 @@
 ## Purpose
 
 Defines the homepage's visual composition — its split photo/colour panel structure, the duotone wash applied to its neighbourhood photography, and the contrast and performance constraints that treatment must satisfy — while leaving its wording and listings untouched. `projects` defines where the homepage projects section sits and `content-storage` defines how the page is rendered; this capability defines what the page looks like.
+
 ## Requirements
+
 ### Requirement: Photographic split panels on the homepage
 The homepage SHALL present its introductory content as a split panel pairing a
 photograph with an adjacent flat colour panel carrying the text, and SHALL
@@ -57,9 +59,11 @@ Homepage photographs SHALL be served as locally hosted, appropriately sized asse
 The homepage SHALL present, in addition to its listings, a "what we do" section
 describing the organisation's three pillars — Muziek & Concerten, Sociale
 Ontmoetingen, and Tuinen & Natuur — each as a photograph with its label, and a
-"who we are" section listing the organisation's organisatoren as cover-image cards
-that each link to the corresponding organiser page. A tagline separator SHALL
-appear between the pillars and the projects section.
+"who we are" section listing the organisation's organisatoren as cards that each
+link to the corresponding organiser page and show the image chosen by the
+organiser card image rule of the organisers capability (logo, otherwise cover,
+otherwise the name on a brand panel). A tagline separator SHALL appear between
+the pillars and the projects section.
 
 #### Scenario: The three pillars are shown
 - **WHEN** a visitor opens the homepage
@@ -69,8 +73,9 @@ appear between the pillars and the projects section.
 
 #### Scenario: Who-we-are links to organiser pages
 - **WHEN** a visitor opens the homepage and organisatoren exist
-- **THEN** the system SHALL render each organiser as a cover-image card linking to
-  its `/organisatoren/<slug>` page
+- **THEN** the system SHALL render each organiser as a card linking to its
+  `/organisatoren/<slug>` page, showing its logo when it has one and otherwise
+  its cover image or its name on a brand panel
 
 #### Scenario: Who-we-are with no organisers
 - **WHEN** a visitor opens the homepage and no organisatoren exist
@@ -116,4 +121,3 @@ capability.
 - **WHEN** the homepage renders its introductory panel
 - **THEN** its heading, supporting paragraph, and call-to-action labels SHALL read
   exactly as they did before this change
-

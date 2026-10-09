@@ -3,23 +3,25 @@
 ## Purpose
 
 Defines the Event content type and its public presentation: event fields and required Venue/Organiser relationships, featured images, recurring events, reusable upcoming-only listings (with limits, variants, and embedding), and the single event page.
+
 ## Requirements
+
 ### Requirement: Event entity and fields
-The system SHALL represent an Event with a title, rich description, start date and time, optional end date and time, an optional Venue, an optional Organiser, and an optional featured image. Where a Venue or an Organiser is given, it SHALL be one record chosen from the pre-populated list of existing records, not entered as free text. An Event SHALL be valid with neither, and every surface that presents an Event SHALL omit what is absent rather than presenting an empty or placeholder reference.
+The system SHALL represent an Event with a title, rich description, start date and time, optional end date and time, an optional Venue, zero or more Organisers, and an optional featured image. Where a Venue or an Organiser is given, it SHALL be a record chosen from the pre-populated list of existing records, not entered as free text. An Event's Organisers SHALL be equal, with none of them its main organiser; the system SHALL NOT hold the same Organiser twice for one event, and SHALL present them in order of name. An Event SHALL be valid with neither a Venue nor an Organiser, and every surface that presents an Event SHALL omit what is absent rather than presenting an empty or placeholder reference.
 
 An Event MAY additionally carry a list of further dates on which the same event takes place, for series whose dates follow no regular interval. Each listed date SHALL carry its own time. Where an event has an end date and time, each date's end SHALL be that occurrence's start plus the duration between the event's own start and end, so that every occurrence lasts as long as the first. The system SHALL hold the dates in chronological order, SHALL NOT hold the same date twice, and SHALL bound how many dates one event may carry. An event carrying no such list SHALL behave exactly as an event with a single date.
 
 #### Scenario: Creating a valid event
 - **WHEN** an editor provides a title, description, and start date/time
-- **THEN** the system SHALL persist the event, with the Venue and Organiser it selected if any
+- **THEN** the system SHALL persist the event, with the Venue and the Organisers it selected if any
 
 #### Scenario: An event without a location or organiser
 - **WHEN** an event carrying neither a Venue nor an Organiser is presented, in a listing, on its page, in its share card, or in its structured data
 - **THEN** the system SHALL present the event without a location or organiser, and SHALL NOT render an empty block, a placeholder name, or a broken link
 
 #### Scenario: Clearing a reference that was set
-- **WHEN** an editor removes the Venue or the Organiser from an event that had one and saves
-- **THEN** the system SHALL persist the event without it
+- **WHEN** an editor removes the Venue, or one or all of the Organisers, from an event that had them and saves
+- **THEN** the system SHALL persist the event without what was removed
 
 #### Scenario: An event on several irregular dates
 - **WHEN** an editor gives an event further dates beyond its start
@@ -33,16 +35,28 @@ An Event MAY additionally carry a list of further dates on which the same event 
 - **WHEN** an event carries no list of further dates
 - **THEN** the system SHALL present it exactly as it presents a single-date event
 
+#### Scenario: An event with several organisers
+- **WHEN** an editor selects more than one Organiser for an event and saves
+- **THEN** the system SHALL persist every selected Organiser with the event, and every surface that presents the event's organisers SHALL present all of them, in order of name
+
+#### Scenario: Events stored before several organisers were possible
+- **WHEN** the system reads an event stored with a single Organiser before this change
+- **THEN** it SHALL present that event with that one Organiser, without the event having to be converted or saved again
+
 ### Requirement: Venue and Organiser selection from drop-down lists
-The Event editor SHALL present the Venue and Organiser as drop-down selectors populated from existing Venue and Organiser records, ordered by name. Each selector SHALL offer an explicit choice meaning "no location" or "no organiser", and SHALL NOT accept a value that is not one of the listed records.
+The Event editor SHALL present the Venue as a drop-down selector and the Organisers as a selector that accepts several choices, each populated from existing Venue or Organiser records and ordered by name. The Venue selector SHALL offer an explicit choice meaning "no location"; the Organiser selector SHALL accept no choice at all, meaning "no organiser". Neither SHALL accept a value that is not one of the listed records.
 
 #### Scenario: Selecting from pre-input lists
 - **WHEN** an editor opens the Venue or Organiser selector on the event form
 - **THEN** the system SHALL list all existing Venues / Organisers for selection and SHALL NOT allow saving an unlisted free-text value
 
 #### Scenario: Choosing no location or no organiser
-- **WHEN** an editor chooses the "no location" or "no organiser" option and saves
+- **WHEN** an editor chooses the "no location" option, or selects no Organiser, and saves
 - **THEN** the system SHALL persist the event without that reference, and SHALL NOT reject the save
+
+#### Scenario: Selecting several organisers
+- **WHEN** an editor selects two or more Organisers on the event form and saves
+- **THEN** the system SHALL persist all of them, and reopening the form SHALL show all of them selected
 
 ### Requirement: Featured image and thumbnail
 An Event MAY have a featured image. When present, the featured image SHALL appear on the single event view and SHALL be usable as the event's thumbnail in listings.
@@ -135,7 +149,7 @@ The system SHALL provide reusable event listings that show only events occurring
 - **THEN** the listing SHALL omit the date that has passed and SHALL still show the later ones
 
 ### Requirement: Listing display variants
-The system SHALL provide event listings in at least three variants: one that includes each event's featured image, one that is text-only (without images), and a table. The table SHALL show, for each occurrence, its date, its time (with the end time when the event has one), the event title linking to the event, the location linking to the Venue, the organiser linking to the Organiser, and how often the event repeats when it does. The table SHALL identify its columns to assistive technology. On narrow screens each table row SHALL be presented as a stacked block that keeps every field, rather than dropping columns or requiring horizontal scrolling.
+The system SHALL provide event listings in at least three variants: one that includes each event's featured image, one that is text-only (without images), and a table. The table SHALL show, for each occurrence, its date, its time (with the end time when the event has one), the event title linking to the event, the location linking to the Venue, each of its organisers linking to that Organiser, and how often the event repeats when it does. The table SHALL identify its columns to assistive technology. On narrow screens each table row SHALL be presented as a stacked block that keeps every field, rather than dropping columns or requiring horizontal scrolling.
 
 #### Scenario: Image and text-only variants
 - **WHEN** a listing is requested in the image variant or the text-only variant
@@ -143,7 +157,7 @@ The system SHALL provide event listings in at least three variants: one that inc
 
 #### Scenario: Table variant
 - **WHEN** a listing is requested in the table variant
-- **THEN** the system SHALL render one row per occurrence with date, time, event, location, organiser, and repetition, with the event, location, and organiser linking to their pages
+- **THEN** the system SHALL render one row per occurrence with date, time, event, location, organiser, and repetition, with the event, location, and each organiser linking to their pages
 
 #### Scenario: Table on a narrow screen
 - **WHEN** the table variant is shown on a phone-width screen
@@ -161,7 +175,7 @@ Event listings SHALL be embeddable on static pages and on blog posts, and SHALL 
 - **THEN** the system SHALL display that entity's upcoming events at the bottom of the page
 
 ### Requirement: Single event view
-The system SHALL provide a dedicated, linkable page for each event showing its full description, date/time, featured image, and links to its Venue and Organiser pages.
+The system SHALL provide a dedicated, linkable page for each event showing its full description, date/time, featured image, and links to its Venue page and to the page of each of its Organisers.
 
 Where an event takes place on several dates, its page SHALL present the next date at or after the current day, SHALL also present the event's other dates, and SHALL mark those that have passed as past rather than omitting them. When every date has passed, the page SHALL present the last of them. A visitor SHALL be able to link to one date of the event; the page SHALL then present that date, and the event's canonical URL SHALL remain the one without a date.
 
@@ -180,7 +194,7 @@ The structured data an event page publishes SHALL describe the occurrence the pa
 
 #### Scenario: Viewing one event
 - **WHEN** a visitor opens an event's page
-- **THEN** the system SHALL display the full event details and links to the associated Venue and Organiser
+- **THEN** the system SHALL display the full event details and links to the associated Venue and to every associated Organiser
 
 #### Scenario: A recurring event's page after its occurrence passes
 
@@ -233,6 +247,10 @@ The structured data an event page publishes SHALL describe the occurrence the pa
 - **WHEN** the presented occurrence has no end
 - **THEN** the page SHALL show its start time alone, as it does today
 
+#### Scenario: Structured data names every organiser
+- **WHEN** an event with several Organisers publishes its structured data
+- **THEN** the structured data SHALL name every one of them as an organizer
+
 ### Requirement: Event social media links
 An Event MAY have social media profile URLs for a curated set of platforms. The Event's public page SHALL render the platforms that are set as a row of icon links; platforms without a URL SHALL be omitted, and an Event with none SHALL show no social row.
 
@@ -278,4 +296,3 @@ The event listings on the homepage and on `/agenda` SHALL let a visitor switch b
 #### Scenario: Controls without JavaScript
 - **WHEN** a visitor without JavaScript uses the view switch or "Meer laden"
 - **THEN** the system SHALL render the requested view and number of events as an ordinary page load
-

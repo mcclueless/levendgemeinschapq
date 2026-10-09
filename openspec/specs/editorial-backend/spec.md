@@ -3,7 +3,9 @@
 ## Purpose
 
 Defines the authenticated editorial backend: route protection, create/edit forms for all content types, relationship selectors on the event form, media upload, and the draft / submit-for-review flow.
+
 ## Requirements
+
 ### Requirement: Authenticated editorial backend
 The system SHALL provide an authenticated backend that signed-in editors and administrators use to manage content. Unauthenticated users SHALL NOT access the backend.
 
@@ -470,8 +472,8 @@ The backend event create and edit forms SHALL let an authorized user give an eve
 - **WHEN** the event has no end, or a further date has not been filled in
 - **THEN** the form SHALL show no end for that date
 
-### Requirement: Body editing aids on the event and blog forms
-The backend create and edit forms for Events and Blog posts SHALL offer, with the body field, a toolbar that inserts the Markdown for bold, italic, a heading, a bulleted list, a numbered list, and a link, applied to the selected text or at the cursor. The body SHALL remain plain Markdown text: the aids SHALL NOT change how a body is stored, and the field SHALL remain usable as a plain text field when scripts do not run.
+### Requirement: Body editing aids on the backend content forms
+The backend create and edit forms for Events, Blog posts, Venues, Organisers, and Projects SHALL offer, with the body field, a toolbar that inserts the Markdown for bold, italic, a heading, a bulleted list, a numbered list, and a link, applied to the selected text or at the cursor. The body SHALL remain plain Markdown text: the aids SHALL NOT change how a body is stored, and the field SHALL remain usable as a plain text field when scripts do not run.
 
 The forms SHALL let an authorized user preview the body before saving. The preview SHALL render the body as the public page renders it, including embedded components. When a body cannot be rendered, the preview SHALL report that and SHALL NOT present a partial result as the outcome. The preview SHALL be available only to authenticated backend users.
 
@@ -490,15 +492,19 @@ The toolbar and the preview SHALL be operable by keyboard, and each control SHAL
 - **THEN** the preview SHALL report that the text cannot be displayed and SHALL NOT show a partial rendering
 
 #### Scenario: Without scripts
-- **WHEN** the event or blog form is used without scripts
+- **WHEN** a backend content form is used without scripts
 - **THEN** the body SHALL be a plain text field that submits as it does today
 
+#### Scenario: Venue, Organiser, and Project forms
+- **WHEN** an authorized user creates or edits a Venue, an Organiser, or a Project
+- **THEN** the description field SHALL offer the same toolbar and preview as the event and blog forms, and the preview SHALL match that item's public page
+
 #### Scenario: Other forms unchanged
-- **WHEN** an authorized user opens a Venue, Organiser, or Project form, or a visitor opens the public event submission form
+- **WHEN** a visitor opens the public event submission form
 - **THEN** the body field SHALL be offered without the toolbar or preview
 
 ### Requirement: Inserting an image into a body
-The event and blog body toolbar SHALL offer an image control that lets an authorized user choose an image from the media library or upload a new one, and SHALL insert that image into the body at the cursor as its own paragraph, without the user handling the image's address. The control SHALL require a description of the image for users of assistive technology before inserting it, and SHALL use that description as the image's alternative text. An image uploaded this way SHALL be validated and stored exactly as any other upload, SHALL appear in the media library, and a rejected upload SHALL be reported in the control without inserting anything. The control SHALL NOT offer size, position, or caption settings; the page layout SHALL place the image.
+The body toolbar on the backend content forms SHALL offer an image control that lets an authorized user choose an image from the media library or upload a new one, and SHALL insert that image into the body at the cursor as its own paragraph, without the user handling the image's address. The control SHALL require a description of the image for users of assistive technology before inserting it, and SHALL use that description as the image's alternative text. An image uploaded this way SHALL be validated and stored exactly as any other upload, SHALL appear in the media library, and a rejected upload SHALL be reported in the control without inserting anything. The control SHALL NOT offer size, position, or caption settings; the page layout SHALL place the image.
 
 #### Scenario: Inserting an image from the library
 - **WHEN** an authorized user chooses an image from the library, enters a description, and confirms
@@ -515,6 +521,10 @@ The event and blog body toolbar SHALL offer an image control that lets an author
 #### Scenario: A rejected upload
 - **WHEN** an upload made through the control is rejected, for example for its type or size
 - **THEN** the control SHALL report the reason, SHALL NOT insert anything, and SHALL NOT store the file
+
+#### Scenario: An image in a venue, organiser, or project description
+- **WHEN** an authorized user inserts an image into the description of a Venue, an Organiser, or a Project and saves
+- **THEN** the image SHALL appear in that item's public page, and the media library SHALL treat the image as in use by that item
 
 ### Requirement: Managing an organiser's images and logo
 The backend Organiser create and edit forms SHALL let an authorized user keep an ordered list of images, adding an image by uploading it or by choosing it from the media library, removing one, and moving one earlier or later. The first image in the list SHALL be stored as the Organiser's cover. The forms SHALL offer a separate logo, set by uploading or choosing from the media library, and removable. Uploads SHALL be validated and stored as any other upload. Saving the form SHALL store the list in the order shown.
@@ -538,3 +548,18 @@ The backend Organiser create and edit forms SHALL let an authorized user keep an
 #### Scenario: Existing organisers
 - **WHEN** an authorized user opens the edit form of an Organiser saved before this change, with one cover image
 - **THEN** the image list SHALL contain that cover as its only image
+
+### Requirement: Captions on the organiser's image list
+The Organiser create and edit forms SHALL offer, for each image in the organiser's image list, a caption field prefilled with the image's current caption. Saving the organiser SHALL store each caption with its image, so that the same caption is used wherever that image is shown with one. The fields SHALL post with the form without JavaScript.
+
+#### Scenario: Writing a caption while editing an organiser
+- **WHEN** an editor enters "Onze werkplaats" as the caption of the first image on an organiser's edit form and saves
+- **THEN** the image SHALL have the caption "Onze werkplaats", and the organiser's page SHALL show it beneath that image
+
+#### Scenario: An image that already has a caption
+- **WHEN** an editor adds an image from the gallery that already has a caption
+- **THEN** its row SHALL show that caption, which the editor can change
+
+#### Scenario: Clearing a caption from the form
+- **WHEN** an editor empties an image's caption field and saves the organiser
+- **THEN** the image SHALL have no caption
