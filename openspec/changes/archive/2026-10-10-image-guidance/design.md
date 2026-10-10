@@ -88,3 +88,10 @@ for "Geaccepteerde formaten:" before the file list, for the picture to show the
 logo text. All applied; the picture's frame label sits in its left margin,
 since the top margin is too thin for text.
 
+
+## Tester feedback (2026-10-10)
+
+Atticus asked for the frame's 1920 × 1080 label to sit under the inner
+rectangle rather than in the left margin, because it looks neater there.
+Applied: the label is one line now, centred in the strip between the safe area
+and the bottom edge, which is the only way it fits a strip that thin.

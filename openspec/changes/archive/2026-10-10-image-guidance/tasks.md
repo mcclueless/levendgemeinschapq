@@ -35,3 +35,8 @@
       text; label the full 1920 × 1080 frame in the picture. Checked the
       rendered panel.
 
+## 5. Tester feedback (2026-10-10)
+
+- [x] 5.1 Move the frame's 1920 × 1080 label from the left margin to under the
+      inner rectangle, centred and on one line (`SafeArea`). Tester to confirm
+      the look on the deployed panel.
