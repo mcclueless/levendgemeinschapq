@@ -104,6 +104,18 @@ export default async function NewEventPage({
           </Field>
         </div>
 
+        {/* Only meaningful for a repeating event, so hidden until one is chosen
+            (event-recurring-next-only D7). */}
+        <div data-recurrence-only className="grid gap-1">
+          <CheckboxField
+            name="nextOnly"
+            label="Toon in de agenda alleen de volgende keer"
+          />
+          <p className="pl-6 text-sm text-muted">
+            In de agenda staat dit evenement dan één keer, op de eerstvolgende datum, met de tekst “Elke week vr. om 16:30” erboven. Geef het evenement een eindtijd als de vermelding tot ná de activiteit moet blijven staan.
+          </p>
+        </div>
+
         <DateListField />
 
         {/* The text an external page carries itself (event-external-link D4). */}

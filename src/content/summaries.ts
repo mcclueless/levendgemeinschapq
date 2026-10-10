@@ -30,6 +30,8 @@ export interface ContentSummary {
   start?: Date;
   end?: Date;
   recurrence?: Recurrence;
+  /** Listed by its next occurrence alone (event-recurring-next-only D1). */
+  nextOccurrenceOnly?: boolean;
   /** Further dates beyond `start`, normalised; absent when there are none. */
   dates?: Date[];
   noPage?: boolean;
@@ -82,6 +84,7 @@ export function toSummary(
           start,
           end: data.end as Date | undefined,
           recurrence: data.recurrence as Recurrence | undefined,
+          nextOccurrenceOnly: data.nextOccurrenceOnly === true,
           dates: normaliseDates(data.dates as Date[] | undefined, start),
           noPage: data.noPage === true,
           externalUrl: data.externalUrl as string | undefined,

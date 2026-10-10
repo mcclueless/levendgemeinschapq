@@ -3,8 +3,10 @@ import assert from "node:assert/strict";
 import {
   addDays,
   addMonths,
+  formatDayMonth,
   formatTime,
   formatTimeRange,
+  formatWeekdayShort,
   parseStoredDateTime,
   siteInputToIso,
   siteWallTime,
@@ -136,4 +138,20 @@ test("a range across the change to winter time reads in wall time", () => {
     formatTimeRange(siteWallTime(2026, 10, 25, 1, 30), siteWallTime(2026, 10, 25, 4, 30)),
     "01:30–04:30",
   );
+});
+
+// ── The two halves of a recurrence's listing label (D4) ────────────────────
+
+test("the weekday formatter names the Amsterdam weekday", () => {
+  assert.equal(formatWeekdayShort(siteWallTime(2026, 10, 16, 16, 30)), "vr");
+  // Just before midnight Amsterdam is already the next day in UTC+2 terms, so
+  // a UTC-based formatter would name the wrong weekday here.
+  assert.equal(formatWeekdayShort(siteWallTime(2026, 10, 16, 23, 30)), "vr");
+});
+
+test("the day-month formatter drops the weekday and the year", () => {
+  assert.equal(formatDayMonth(siteWallTime(2026, 10, 16, 16, 30)), "16 okt");
+  assert.equal(formatDayMonth(siteWallTime(2027, 1, 1)), "1 jan");
+  // Midnight on the day itself, not the evening before, whatever TZ is set.
+  assert.equal(formatDayMonth(siteWallTime(2026, 10, 16)), "16 okt");
 });

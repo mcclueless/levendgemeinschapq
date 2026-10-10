@@ -6,8 +6,40 @@ import { eventCover } from "@/lib/images";
 import type { EventOccurrence } from "@/content/types";
 import { occurrenceLink } from "@/content/event-dates";
 import { externalLink } from "@/content/event-mode";
+import { showsNextOnly } from "@/content/event-series";
+import { nextDateLabel, recurrenceSummary } from "@/lib/recurrence-label";
 import { ExternalMark } from "@/components/events/external-mark";
 import { DescribedImage } from "@/components/content/described-image";
+
+/**
+ * The date box of a listing entry. A recurring event standing in for its next
+ * occurrence states its rhythm above that date (event-recurring-next-only D5),
+ * with a repeat glyph and a thin ring as a second, redundant cue: everything
+ * they suggest is already in the sentence beside them (D6), so nothing is
+ * carried by colour or shape alone.
+ */
+function WhenBadge({ occurrence }: { occurrence: EventOccurrence }) {
+  const { event, start } = occurrence;
+  const rhythm = showsNextOnly(event)
+    ? recurrenceSummary(event.recurrence, start)
+    : undefined;
+  if (!rhythm) {
+    return (
+      <Badge tone="accent">
+        <time dateTime={isoDate(start)}>{formatWhen(start)}</time>
+      </Badge>
+    );
+  }
+  return (
+    <Badge tone="accent" className="flex-col items-start gap-0.5 ring-1 ring-accent/50">
+      <span>
+        <span aria-hidden="true">⟳</span> {rhythm}
+      </span>
+      {/* Only the date is machine-readable: the rhythm is not one date. */}
+      <time dateTime={isoDate(start)}>{nextDateLabel(start)}</time>
+    </Badge>
+  );
+}
 
 function Thumb({ src, alt }: { src?: string; alt: string }) {
   return (
@@ -63,9 +95,7 @@ export function EventCard({ occurrence }: { occurrence: EventOccurrence }) {
     <>
       <Thumb src={event.featuredImage} alt={event.title} />
       <div className="p-5">
-        <Badge tone="accent">
-          <time dateTime={isoDate(start)}>{formatWhen(start)}</time>
-        </Badge>
+        <WhenBadge occurrence={occurrence} />
         <h3 className="mt-3 text-xl group-hover:text-brand-strong">
           {event.title}
           {external ? <ExternalMark url={external} /> : null}
@@ -114,6 +144,12 @@ export function EventRow({
     );
   }
   const external = externalLink(event);
+  // A collapsed series names its next date here and its rhythm after the venue,
+  // where the row already appends its secondary facts (event-recurring-next-only
+  // D5).
+  const rhythm = showsNextOnly(event)
+    ? recurrenceSummary(event.recurrence, start)
+    : undefined;
   const inner = "flex flex-wrap items-baseline gap-x-3 gap-y-1 py-3.5 transition-colors hover:text-brand-strong";
   const body = (
     <>
@@ -121,7 +157,7 @@ export function EventRow({
         dateTime={isoDate(start)}
         className="w-40 shrink-0 font-medium text-muted"
       >
-        {formatWhen(start)}
+        {rhythm ? nextDateLabel(start) : formatWhen(start)}
       </time>
       <span className="text-lg font-medium">
         {event.title}
@@ -129,6 +165,11 @@ export function EventRow({
       </span>
       {event.venue ? (
         <span className="text-sm text-muted">· {event.venue.name}</span>
+      ) : null}
+      {rhythm ? (
+        <span className="text-sm text-muted">
+          <span aria-hidden="true">⟳</span> {rhythm}
+        </span>
       ) : null}
     </>
   );

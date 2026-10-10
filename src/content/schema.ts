@@ -139,6 +139,20 @@ export const EventFrontmatter = z.object({
   excerpt: z.string().optional(),
   socials: SocialsSchema,
   recurrence: RecurrenceSchema.optional(),
+  /**
+   * Show this recurring event in listings by its next occurrence alone
+   * (event-recurring-next-only D1), instead of one entry per occurrence.
+   * Absent means off, so every event stored before this field is unchanged.
+   *
+   * A plain optional boolean with **no cross-field rule pairing it with
+   * `recurrence`**, deliberately: `parseAll` skips a document that fails
+   * validation, which would remove the event from the public site and the
+   * backend list at once with no UI path back to it. The pairing is enforced on
+   * the form instead, and `showsNextOnly` ignores a flag without a rule — the
+   * same reasoning that keeps `dates`-versus-`recurrence` (event-multiple-dates
+   * D2) and an `end` before its `start` out of this schema.
+   */
+  nextOccurrenceOnly: z.boolean().optional(),
   /** Calendar UID for import de-duplication (calendar-import spec). */
   uid: z.string().optional(),
   /**

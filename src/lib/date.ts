@@ -180,9 +180,27 @@ const timeFmt = new Intl.DateTimeFormat(LOCALE, {
   timeZone: TZ,
 });
 
+// The two halves of a recurring event's listing label
+// (event-recurring-next-only D4): the weekday its rhythm falls on, and a date
+// without the weekday, because the rhythm line has already named it.
+const weekdayShortFmt = new Intl.DateTimeFormat(LOCALE, {
+  weekday: "short",
+  timeZone: TZ,
+});
+
+const dayMonthFmt = new Intl.DateTimeFormat(LOCALE, {
+  day: "numeric",
+  month: "short",
+  timeZone: TZ,
+});
+
 export const formatDate = (d: Date) => dateFmt.format(d);
 export const formatDateLong = (d: Date) => dateLongFmt.format(d);
 export const formatTime = (d: Date) => timeFmt.format(d);
+/** "vr" — the weekday alone, for a recurrence's rhythm (D4). */
+export const formatWeekdayShort = (d: Date) => weekdayShortFmt.format(d);
+/** "16 okt" — the date without its weekday (D4). */
+export const formatDayMonth = (d: Date) => dayMonthFmt.format(d);
 
 /** Machine-readable ISO date for <time datetime>. */
 export const isoDate = (d: Date) => d.toISOString();

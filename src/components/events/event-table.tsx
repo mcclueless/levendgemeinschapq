@@ -1,10 +1,11 @@
 import { Fragment } from "react";
 import Link from "next/link";
 import { formatDate, formatTimeRange, isoDate } from "@/lib/date";
-import { recurrenceLabel } from "@/lib/recurrence-label";
+import { nextDateLabel, recurrenceLabel, recurrenceRhythm } from "@/lib/recurrence-label";
 import type { EventOccurrence } from "@/content/types";
 import { occurrenceLink } from "@/content/event-dates";
 import { externalLink } from "@/content/event-mode";
+import { showsNextOnly } from "@/content/event-series";
 import { ExternalMark } from "@/components/events/external-mark";
 
 const COLUMNS = ["Datum", "Tijd", "Evenement", "Locatie", "Organisator", "Herhaling"] as const;
@@ -66,6 +67,11 @@ export function EventTable({ occurrences }: { occurrences: EventOccurrence[] }) 
         {occurrences.map((o) => {
           const { event, start } = o;
           const external = externalLink(event);
+          // A collapsed series says it in the table's own columns rather than
+          // repeating the whole sentence in Datum: the Herhaling column already
+          // names every recurrence, so it carries the rhythm and its weekday,
+          // and Tijd still states the time (event-recurring-next-only D5).
+          const nextOnly = showsNextOnly(event);
           return (
             <tr
               key={`${event.slug}-${start.getTime()}`}
@@ -73,7 +79,9 @@ export function EventTable({ occurrences }: { occurrences: EventOccurrence[] }) 
               className="block border-b border-border py-3 last:border-0 sm:table-row sm:py-0"
             >
               <Cell label="Datum" className="whitespace-nowrap">
-                <time dateTime={isoDate(start)}>{formatDate(start)}</time>
+                <time dateTime={isoDate(start)}>
+                  {nextOnly ? nextDateLabel(start) : formatDate(start)}
+                </time>
               </Cell>
               <Cell label="Tijd" className="whitespace-nowrap tabular-nums">
                 {/* A marker is about a day, not a time (event-no-page D3). */}
@@ -121,7 +129,14 @@ export function EventTable({ occurrences }: { occurrences: EventOccurrence[] }) 
                   : "—"}
               </Cell>
               <Cell label="Herhaling" className="whitespace-nowrap text-muted">
-                {recurrenceLabel(event.recurrence) ?? "—"}
+                {nextOnly ? (
+                  <>
+                    <span aria-hidden="true">⟳</span>{" "}
+                    {recurrenceRhythm(event.recurrence, start)}
+                  </>
+                ) : (
+                  recurrenceLabel(event.recurrence) ?? "—"
+                )}
               </Cell>
             </tr>
           );

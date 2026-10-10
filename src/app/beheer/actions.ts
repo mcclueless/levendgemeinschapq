@@ -233,6 +233,21 @@ function adminRecurrence(form: FormData, start: string | undefined): RecurrenceF
   );
 }
 
+/**
+ * The "only the next occurrence" flag from an event form
+ * (event-recurring-next-only D7). Read **after** the recurrence, and only when
+ * there is one: the flag means nothing without a rule, so one arriving without
+ * it is dropped silently rather than refused — the same treatment as a
+ * recurrence end date supplied for a non-repeating event, which saves without
+ * an error. That is what makes the no-JavaScript path, where the checkbox is
+ * always visible, unable to store a contradiction.
+ *
+ * `undefined` rather than `false` when off, so the key leaves the document.
+ */
+function readNextOnly(form: FormData, hasRecurrence: boolean): true | undefined {
+  return hasRecurrence && form.get("nextOnly") ? true : undefined;
+}
+
 export async function createEvent(formData: FormData) {
   await assertAdmin();
   // Where the event leads: its own page, an external one, or no page at all
@@ -293,6 +308,7 @@ export async function createEvent(formData: FormData) {
       featuredImage: eventImage,
       socials,
       recurrence: recurrence.recurrence,
+      nextOccurrenceOnly: readNextOnly(formData, Boolean(recurrence.recurrence)),
       dates: dates.dates,
       noPage: noPage || undefined,
       // Exactly one of the two, or neither: the radio group cannot ask for both
@@ -531,6 +547,9 @@ export async function updateEvent(formData: FormData) {
       excerpt: str(formData, "excerpt"),
       socials,
       recurrence: recurrence.recurrence,
+      // Always in the patch, so clearing the box removes the key, and a save
+      // that turns the recurrence off takes the flag with it (D7).
+      nextOccurrenceOnly: readNextOnly(formData, Boolean(recurrence.recurrence)),
       dates: dates.dates,
       // Both are always in the patch, so changing the mode removes the key of
       // the mode left behind (event-no-page D1, event-external-link D4). Fields

@@ -1,4 +1,4 @@
-import { formatDateLong } from "./date";
+import { formatDateLong, formatDayMonth, formatTime, formatWeekdayShort } from "./date";
 
 /**
  * One vocabulary for describing a recurrence (share-event-previews D4).
@@ -57,4 +57,48 @@ export function recurrenceDetail(r?: RecurrenceLike): string {
   // An unparseable stored date must not render "Invalid Date" into the backend.
   if (Number.isNaN(until.getTime())) return `${label} — zonder einddatum`;
   return `${label}, t/m ${formatDateLong(until)}`;
+}
+
+/**
+ * The rhythm of a recurring event, as a listing entry states it
+ * (event-recurring-next-only D4): "Elke week vr. om 16:30".
+ *
+ * Built on {@link recurrenceLabel}, so the interval is never dropped — every
+ * second week reads "Elke 2 weken vr. om 16:30", which the events spec requires
+ * of every description of a recurrence. A weekly rhythm names its weekday,
+ * because that is what makes it recognisable; a monthly one does not, because
+ * the next-date line beside it states the day of the month exactly.
+ *
+ * `undefined` when the event does not repeat, so a caller can omit the line
+ * rather than render an empty one.
+ */
+export function recurrenceSummary(
+  r: RecurrenceLike | undefined,
+  next: Date,
+): string | undefined {
+  const rhythm = recurrenceRhythm(r, next);
+  return rhythm ? `${rhythm} om ${formatTime(next)}` : undefined;
+}
+
+/**
+ * The same rhythm without its time — "Elke week vr.", "Elke maand" — for the
+ * table view, whose Tijd column states the time in its own right (D5). Split
+ * out so the two surfaces cannot word the rhythm differently, which is the
+ * whole reason this module exists.
+ */
+export function recurrenceRhythm(
+  r: RecurrenceLike | undefined,
+  next: Date,
+): string | undefined {
+  if (!r) return undefined;
+  const label = recurrenceLabel(r);
+  return r.freq === "weekly" ? `${label} ${formatWeekdayShort(next)}.` : label;
+}
+
+/**
+ * The date a collapsed series next happens, as its listing entry states it:
+ * "Volgende 16 okt". Without the weekday, which the rhythm line already named.
+ */
+export function nextDateLabel(next: Date): string {
+  return `Volgende ${formatDayMonth(next)}`;
 }

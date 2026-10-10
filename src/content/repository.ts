@@ -98,6 +98,7 @@ const loadEvents = cache(async (): Promise<CalendarEvent[]> => {
     excerpt: d.data.excerpt,
     socials: d.data.socials,
     recurrence: d.data.recurrence,
+    nextOccurrenceOnly: d.data.nextOccurrenceOnly,
     dates: normaliseDates(d.data.dates, d.data.start),
     uid: d.data.uid,
     status: d.data.status,

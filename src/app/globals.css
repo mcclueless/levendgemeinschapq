@@ -204,3 +204,11 @@ form:has(input[name="mode"][value="external"]:checked) [data-page-text],
 form:not(:has(input[name="mode"][value="external"]:checked)) [data-external-only] {
   display: none;
 }
+
+/* Event form: controls that only mean something for a repeating event
+   (event-recurring-next-only D7). Keyed on the selected option rather than a
+   script, like the mode rules above; the action is authoritative either way and
+   drops the flag when the event does not repeat. */
+form:has(select[name="recurrence"] option[value="none"]:checked) [data-recurrence-only] {
+  display: none;
+}

@@ -55,6 +55,11 @@ export interface CalendarEvent {
   excerpt?: string;
   socials?: Socials;
   recurrence?: Recurrence;
+  /**
+   * Listed by its next occurrence alone, not one entry per occurrence
+   * (event-recurring-next-only D1). Only meaningful with a `recurrence`.
+   */
+  nextOccurrenceOnly?: boolean;
   /** Further dates beyond `start`, normalised; absent when there are none. */
   dates?: Date[];
   uid?: string;
