@@ -80,7 +80,7 @@ Every page SHALL include a footer containing a table of contents / site navigati
 - **THEN** the system SHALL display the footer with navigation, the privacy statement link, and required static content
 
 ### Requirement: Admin chrome accessibility
-The dark admin-chrome surfaces (the public contextual banner and the backend top bar) SHALL meet WCAG 2.1 AA on their own terms. Text and actionable controls on the ink surface SHALL meet the AA contrast ratio against that dark background, interactive controls SHALL show a visible keyboard focus indicator that is perceivable against the dark surface, and hover/active states SHALL remain distinguishable on the dark background.
+The dark admin-chrome surfaces (the public contextual banner and the backend navigation) SHALL meet WCAG 2.1 AA on their own terms. Text and actionable controls on the ink surface SHALL meet the AA contrast ratio against that dark background, interactive controls SHALL show a visible keyboard focus indicator that is perceivable against the dark surface, and hover/active states SHALL remain distinguishable on the dark background. The entry for the current section SHALL be distinguishable from the other entries by more than color alone.
 
 #### Scenario: Contrast on the dark chrome
 - **WHEN** text or controls are rendered on the dark admin chrome
@@ -89,6 +89,10 @@ The dark admin-chrome surfaces (the public contextual banner and the backend top
 #### Scenario: Visible focus on the dark chrome
 - **WHEN** a user navigates the admin chrome controls by keyboard
 - **THEN** each focused control SHALL show a focus indicator that is clearly perceivable against the dark surface
+
+#### Scenario: The current section on the dark chrome
+- **WHEN** the backend navigation marks the current section
+- **THEN** the mark SHALL be perceivable without relying on color alone
 
 ### Requirement: Primary navigation on small screens
 Where the header's horizontal navigation is not shown because the viewport is too narrow, the header SHALL provide a control that reveals the same primary navigation entries, together with any header call to action hidden at that width. The control SHALL be reachable and operable by keyboard, SHALL be labelled, and SHALL report whether the navigation is currently revealed. The revealed navigation SHALL close when a visitor follows one of its links, presses Escape, or activates something outside it, and closing SHALL leave keyboard focus on the control. The control SHALL NOT depend on JavaScript to reveal the navigation.
@@ -120,4 +124,3 @@ Where the header's horizontal navigation is not shown because the viewport is to
 #### Scenario: Wide viewports are unaffected
 - **WHEN** a page is viewed at a width where the horizontal navigation is shown
 - **THEN** the menu control SHALL NOT be shown, and the navigation SHALL render as before
-

@@ -74,11 +74,10 @@ function SafeArea() {
         strokeWidth="1"
         className="fill-surface-2 stroke-muted"
       />
-      <text x="12" textAnchor="middle" fontSize="5.5" className="fill-ink">
-        <tspan x="12" y="92">1920</tspan>
-        <tspan x="12" y="99">× 1080</tspan>
-      </text>
       <rect x="24" y="6" width="144" height="96" className="fill-surface" />
+      <text x="96" textAnchor="middle" fontSize="5.5" className="fill-ink">
+        <tspan x="96" y="106.5">1920 × 1080</tspan>
+      </text>
       <rect
         x="24"
         y="6"

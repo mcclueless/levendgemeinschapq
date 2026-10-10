@@ -184,11 +184,27 @@ The backend SHALL allow content to be saved as a draft and SHALL allow it to be 
 - **THEN** the system SHALL place the item in the approval queue in an unpublished state
 
 ### Requirement: List existing content for management
-The backend SHALL provide Administrators a per-type listing of existing Events, Venues, Organisations, and Blog posts, showing each item's title and publication status and offering actions to edit and to hide or show it.
+The backend SHALL provide Administrators a per-type listing of existing Events, Venues, Organisations, Blog posts, and Projects, presented as a table with one row per item. Every row SHALL show the item's title or name, its publication status, and when it was last modified. The table SHALL also show, per type: for Events the date, location and organisers; for Blog posts the date and author; for Projects the location and organisers; for Venues the address; for Organisations the location. Every row SHALL offer actions to edit the item and to hide or show it, and a published item that has a public page SHALL offer a link to that page. The listing SHALL include items of every publication status.
 
 #### Scenario: Browsing a content type
 - **WHEN** an Administrator opens the management list for a content type
-- **THEN** the system SHALL list every item of that type regardless of publication status, each with its title, status, and edit / hide-or-show actions
+- **THEN** the system SHALL present a table of that type's items regardless of publication status, each with its title or name, status, last-modified time, the columns for its type, and edit / hide-or-show actions
+
+#### Scenario: Viewing a published item from the list
+- **WHEN** an Administrator views the row of a published item that has a public page
+- **THEN** the row SHALL offer a link that opens that public page
+
+#### Scenario: An item without a public page
+- **WHEN** an Administrator views the row of a hidden item, or of an event that has no page
+- **THEN** the row SHALL NOT offer a link to a public page
+
+#### Scenario: A reference to a record that no longer exists
+- **WHEN** an item names a location or organiser that no longer exists
+- **THEN** its row SHALL show that reference as unknown rather than leaving the cell empty
+
+#### Scenario: The table on a narrow screen
+- **WHEN** an Administrator opens the management list at a phone width
+- **THEN** every column's value SHALL be readable, with its column name, without horizontal scrolling
 
 ### Requirement: Hide and show content
 The backend SHALL allow an Administrator to hide a published item (removing it from the public site by setting it unpublished) and to show a hidden item again. Hiding SHALL NOT delete the underlying document.
@@ -221,42 +237,46 @@ The backend SHALL prevent hiding a Venue or Organisation referenced by any publi
 - **THEN** the system SHALL hide it
 
 ### Requirement: Permanently delete events
-The backend SHALL allow an Administrator to permanently delete any content item — Event, Venue, Organisation, or Blog post — removing its document from storage. This is irreversible and SHALL require explicit confirmation. The delete action SHALL always be offered for every type; whether it succeeds is decided at action time by the referential-integrity guard on delete.
+The backend SHALL allow an Administrator to remove any content item — Event, Venue, Organisation, Blog post, or Project — by moving it to the trash. A trashed item SHALL NOT appear on the public site or in the backend's per-type lists and counts. Moving to the trash SHALL require explicit confirmation, SHALL always be offered for every type, and SHALL succeed only when the referential-integrity guard on delete permits it. Permanent removal from storage SHALL happen only from the trash.
 
 #### Scenario: Deleting a content item
-- **WHEN** an Administrator confirms permanent deletion of an Event, Venue, Organisation, or Blog post that the delete guard permits
-- **THEN** the system SHALL remove that document from storage and it SHALL no longer appear anywhere on the public site or in the backend
+- **WHEN** an Administrator confirms removal of an Event, Venue, Organisation, Blog post, or Project that the delete guard permits
+- **THEN** the system SHALL move that document to the trash and it SHALL no longer appear anywhere on the public site, in the backend's per-type lists, or in the dashboard counts
 
 #### Scenario: Delete is confirmed before acting
-- **WHEN** an Administrator triggers permanent deletion of any content item
-- **THEN** the system SHALL require an explicit confirmation before removing it
+- **WHEN** an Administrator triggers removal of any content item
+- **THEN** the system SHALL require an explicit confirmation before moving it to the trash, and the confirmation SHALL say that the item can be restored from the trash
 
 #### Scenario: Delete action is always offered
 - **WHEN** an Administrator views the management actions for any content item
-- **THEN** the system SHALL show a permanent-delete action regardless of whether the item is currently deletable
+- **THEN** the system SHALL show a remove-to-trash action regardless of whether the item is currently removable
 
 ### Requirement: Referential-integrity guard on delete
-The backend SHALL prevent permanently deleting a Venue or Organisation referenced by any Event, Blog post, or Project, by an Organisation that has the Venue as its location, or by a calendar feed that uses it as its default — regardless of the referrer's publication status (published, past, or hidden/draft) — and SHALL report the referencing items so the Administrator can reassign or unlink them first. This guard is stricter than the hide guard, which considers only published content: because deletion is irreversible, a hidden or draft referrer, or a feed default, also blocks it. Events and Blog posts have no inbound references and SHALL always be deletable.
+The backend SHALL prevent moving to the trash a Venue or Organisation referenced by any Event, Blog post, or Project, by an Organisation that has the Venue as its location, or by a calendar feed that uses it as its default — regardless of the referrer's publication status (published, past, or hidden/draft) — and SHALL report the referencing items so the Administrator can reassign or unlink them first. This guard is stricter than the hide guard, which considers only published content: because a trashed item is invisible to every reference check and may later be purged, a hidden or draft referrer, or a feed default, also blocks it. Events, Blog posts, and Projects have no inbound references and SHALL always be removable. Permanent deletion from the trash SHALL NOT run a guard, since the guard at trash time guarantees nothing in the trash is referenced.
 
 #### Scenario: Deleting a referenced venue or organiser is blocked
-- **WHEN** an Administrator attempts to permanently delete a Venue or Organisation referenced by at least one Event or Blog post of any status
-- **THEN** the system SHALL refuse the deletion and list the referencing items (including hidden/draft ones)
+- **WHEN** an Administrator attempts to move to the trash a Venue or Organisation referenced by at least one Event or Blog post of any status
+- **THEN** the system SHALL refuse and list the referencing items (including hidden/draft ones)
 
 #### Scenario: Deleting a venue or organiser used by a project is blocked
-- **WHEN** an Administrator attempts to permanently delete a Venue or Organisation referenced by a Project of any status
-- **THEN** the system SHALL refuse the deletion and list that Project
+- **WHEN** an Administrator attempts to move to the trash a Venue or Organisation referenced by a Project of any status
+- **THEN** the system SHALL refuse and list that Project
 
 #### Scenario: Deleting a feed's default venue or organiser is blocked
-- **WHEN** an Administrator attempts to permanently delete a Venue or Organisation that a saved calendar feed uses as its default
-- **THEN** the system SHALL refuse the deletion and name that feed
+- **WHEN** an Administrator attempts to move to the trash a Venue or Organisation that a saved calendar feed uses as its default
+- **THEN** the system SHALL refuse and name that feed
 
 #### Scenario: Deleting an unreferenced item succeeds
-- **WHEN** an Administrator permanently deletes an Event or Blog post, or a Venue or Organisation that no content or feed references in any status
-- **THEN** the system SHALL remove the document from storage
+- **WHEN** an Administrator removes an Event, Blog post, or Project, or a Venue or Organisation that no content or feed references in any status
+- **THEN** the system SHALL move the document to the trash
 
 #### Scenario: Hidden referrer blocks delete but not hide
 - **WHEN** only a hidden/draft Event references a Venue
-- **THEN** hiding that Venue SHALL be allowed (the hide guard counts published referrers only) while permanently deleting it SHALL be blocked and SHALL name the hidden referrer
+- **THEN** hiding that Venue SHALL be allowed (the hide guard counts published referrers only) while moving it to the trash SHALL be blocked and SHALL name the hidden referrer
+
+#### Scenario: A trashed referrer no longer blocks
+- **WHEN** the only Event referencing a Venue has itself been moved to the trash
+- **THEN** moving that Venue to the trash SHALL be allowed
 
 ### Requirement: Administrator-only management actions
 Editing, hiding, and showing existing content SHALL be restricted to Administrators; unauthenticated or unauthorized requests SHALL be denied and redirected to sign in.
@@ -563,3 +583,220 @@ The Organiser create and edit forms SHALL offer, for each image in the organiser
 #### Scenario: Clearing a caption from the form
 - **WHEN** an editor empties an image's caption field and saves the organiser
 - **THEN** the image SHALL have no caption
+
+### Requirement: Finding content in the management list
+The management list SHALL let an Administrator narrow the items shown: by publication status, by a search on the title or name, and by the filters for the type. The status choices SHALL each show how many items of the type have that status. The search SHALL ignore letter case and accents. The list of Events SHALL be filterable by period (upcoming or past), by location and by organiser, and the list of Projects by location and by organiser. Narrowing SHALL work without JavaScript. When nothing matches, the list SHALL say so and offer a way to clear the search and filters.
+
+#### Scenario: Filtering by status
+- **WHEN** an Administrator chooses the hidden status on a management list
+- **THEN** the list SHALL show only hidden items of that type
+
+#### Scenario: Status counts
+- **WHEN** an Administrator opens a management list
+- **THEN** each status choice SHALL show the number of items of that type with that status
+
+#### Scenario: Status choices fit the type
+- **WHEN** an Administrator opens the management list of a type that cannot have pending items (Venues, Organisations, Projects)
+- **THEN** the list SHALL NOT offer the pending status as a choice
+
+#### Scenario: Searching by title
+- **WHEN** an Administrator searches a management list for "cafe"
+- **THEN** the list SHALL show the items whose title or name contains that text, including "Repair Café"
+
+#### Scenario: Upcoming events
+- **WHEN** an Administrator filters the list of Events to upcoming
+- **THEN** the list SHALL show the events with a date today or later, including a repeating event whose repetition has not ended
+
+#### Scenario: Filtering events by location
+- **WHEN** an Administrator filters the list of Events by a location
+- **THEN** the list SHALL show only the events at that location
+
+#### Scenario: Nothing matches
+- **WHEN** a search or filter matches no items
+- **THEN** the list SHALL state that nothing was found and SHALL offer a link that clears the search and filters
+
+### Requirement: Sorting and paging the management list
+The management list SHALL be sortable by title or name, by status, by last-modified time, and, for types that have a date, by date, in either direction, and SHALL indicate which column it is sorted by. Without a chosen sort, Events, Blog posts and Projects SHALL be ordered by date, newest first (for Events, the date defined by the requirement "Events are listed by their next date"), and Venues and Organisations by name. The list SHALL show at most 25 items per page, with controls to reach the other pages and an indication of the total number of items matched. Sorting and paging SHALL work without JavaScript.
+
+#### Scenario: Sorting by a column
+- **WHEN** an Administrator chooses to sort a management list by last modified
+- **THEN** the list SHALL be ordered by that column and SHALL indicate the sorted column and its direction
+
+#### Scenario: More items than one page
+- **WHEN** a management list matches 60 items
+- **THEN** the list SHALL show the first 25, the total of 60, and controls to reach the remaining pages
+
+#### Scenario: A page that no longer exists
+- **WHEN** an Administrator opens a page number beyond the last page, for example after deleting the last item on it
+- **THEN** the list SHALL show the last page that exists
+
+### Requirement: The management list keeps its view
+The chosen status, search, filters, sort order and page of a management list SHALL be part of its address, so that reloading, going back, or sharing the address shows the same view. After an Administrator edits, hides, shows or deletes an item from a management list, the system SHALL return them to the view they acted from, including when the action is refused. The system SHALL NOT redirect to an address outside the backend on the strength of a value in the request.
+
+#### Scenario: Reloading a filtered list
+- **WHEN** an Administrator reloads a management list that is filtered, sorted and on its second page
+- **THEN** the list SHALL show the same filter, sort order and page
+
+#### Scenario: Returning after an action
+- **WHEN** an Administrator hides an item from the second page of a filtered management list
+- **THEN** the system SHALL return them to that list with the same filter, sort order and page
+
+#### Scenario: Returning after editing
+- **WHEN** an Administrator opens an item's edit form from a filtered management list and saves it
+- **THEN** the system SHALL return them to that list with the same filter, sort order and page
+
+#### Scenario: A return address outside the backend
+- **WHEN** a request to act on an item carries a return address that is not a backend path
+- **THEN** the system SHALL ignore it and return to the item's management list
+
+### Requirement: Backend navigation
+Every backend page other than the login page SHALL present navigation that links to the dashboard, to the management list of each content type (Events, Venues, Organisations, Blog posts, Projects), to the approval queue, to the gallery, and to the calendar feeds, and that offers signing out. The navigation SHALL indicate the section the current page belongs to. At a width where the navigation is not shown in full, the backend SHALL provide a labelled control that reveals it, that reports whether it is revealed, and that does not depend on JavaScript to reveal it.
+
+#### Scenario: Reaching a content type from any backend page
+- **WHEN** an Administrator is on any backend page other than the login page
+- **THEN** the navigation SHALL offer a link to each content type's management list
+
+#### Scenario: The current section is marked
+- **WHEN** an Administrator is on a content type's management list, its edit form or its create form
+- **THEN** the navigation SHALL mark that content type's entry as the current section, in a way that assistive technology also reports
+
+#### Scenario: Navigation on a phone
+- **WHEN** an Administrator opens a backend page at a phone width and activates the navigation control
+- **THEN** the system SHALL reveal every navigation entry, each linking to its page
+
+#### Scenario: The login page has no navigation
+- **WHEN** a visitor opens the backend login page
+- **THEN** the page SHALL NOT present the backend navigation
+
+### Requirement: Loading feedback in the backend
+When an Administrator moves to a backend page whose content is not yet available, the backend SHALL show, without waiting for that content, that the page is loading, and SHALL keep the navigation in place and usable. The loading state SHALL be reported to assistive technology.
+
+#### Scenario: Opening a management list
+- **WHEN** an Administrator follows a navigation link to a management list
+- **THEN** the backend SHALL show a loading placeholder in the content area at once, with the navigation unchanged, until the list is shown
+
+### Requirement: Searching the image pool
+Wherever a backend form offers the pool of previously uploaded images — for a cover image, a logo, an image list, or an image in a body — the pool SHALL offer a search that narrows the images shown by file name, title and alternative text, ignoring letter case and accents. The pool SHALL show an image's title in place of its file name when it has one.
+
+#### Scenario: Finding an image in the pool
+- **WHEN** an editor opens the image pool on a form and searches for "tuin"
+- **THEN** the pool SHALL show only the images whose file name, title or alternative text contains that text
+
+#### Scenario: A search that matches nothing
+- **WHEN** an editor's search in the image pool matches no image
+- **THEN** the pool SHALL say that nothing was found and SHALL still let the editor clear the search
+
+### Requirement: The body image description starts from the stored one
+When an authorized user chooses an image for a body from the media library and that image has a stored alternative text, the image control SHALL fill its description with that text. The user SHALL be able to change the description for this use, and a description SHALL remain required before the image is inserted.
+
+#### Scenario: Choosing a described image
+- **WHEN** an authorized user chooses, in the body image control, an image whose stored alternative text is "De moestuin in mei"
+- **THEN** the control's description SHALL read "De moestuin in mei", and the user SHALL be able to edit it before inserting
+
+#### Scenario: Choosing an image without a description
+- **WHEN** an authorized user chooses an image that has no stored alternative text
+- **THEN** the control's description SHALL be empty and SHALL be required before inserting
+
+### Requirement: Events are listed by their next date
+In the management list of Events, the date an event is ordered by and shown with SHALL be its next occurrence on or after the current day, taken from its start, its further dates and its recurrence rule — the same occurrence its public page would present. An event with no occurrence on or after the current day SHALL use the date its public page presents (the last date of a date series, otherwise its start). Sorting by date and the default order of the Events list SHALL use this date.
+
+#### Scenario: A repeating event sorts by its next occurrence
+- **WHEN** an Administrator views the Events list, ordered by date, and a weekly event that started in January has its next occurrence on Thursday
+- **THEN** that event SHALL be placed by Thursday's date and its Datum cell SHALL show Thursday's date with its recurrence label
+
+#### Scenario: An event with further dates
+- **WHEN** an event's first date has passed but one of its further dates is still to come
+- **THEN** the list SHALL order and show the event by that coming date
+
+#### Scenario: A past event
+- **WHEN** an event has no occurrence on or after the current day
+- **THEN** the list SHALL order and show it by the date its public page presents
+
+### Requirement: Trash listing
+The backend SHALL provide Administrators a trash page listing every trashed item across all content types, showing each item's title, its content type, and the date it was trashed, newest first. The page SHALL offer a restore action and a permanent-delete action for each item, and an empty-trash action for the whole list. The dashboard SHALL show how many items are in the trash and SHALL link to the trash page.
+
+#### Scenario: Viewing the trash
+- **WHEN** an Administrator opens the trash page
+- **THEN** the system SHALL list every trashed item with its title, type, and trashed date, newest first, each with restore and permanent-delete actions
+
+#### Scenario: An empty trash
+- **WHEN** an Administrator opens the trash page and nothing is trashed
+- **THEN** the page SHALL say the trash is empty and SHALL NOT offer the empty-trash action
+
+#### Scenario: Dashboard count
+- **WHEN** an Administrator views the dashboard
+- **THEN** it SHALL show the number of trashed items and link to the trash page
+
+#### Scenario: Trash access is restricted
+- **WHEN** an unauthenticated or non-Administrator request reaches the trash page or any trash action
+- **THEN** the system SHALL deny it and redirect to sign in
+
+### Requirement: Restore from the trash
+The backend SHALL allow an Administrator to restore a trashed item. A restored item SHALL return to its content type under its original slug as a hidden item, whatever its status was when it was trashed, so that it is not public until deliberately published. The system SHALL refuse the restore, name the conflicting item, and leave both untouched when another item of the same type now uses that slug.
+
+#### Scenario: Restoring an item
+- **WHEN** an Administrator restores a trashed item whose slug is free
+- **THEN** the system SHALL move the document back to its content type under its original slug with hidden status, and it SHALL appear in that type's backend list as hidden
+
+#### Scenario: Restored items are not public
+- **WHEN** an item that was published at the time it was trashed is restored
+- **THEN** it SHALL be hidden after the restore and SHALL NOT appear on the public site until an Administrator publishes it
+
+#### Scenario: Restore blocked by a slug collision
+- **WHEN** an Administrator restores a trashed item and a different item of the same type now has the same slug
+- **THEN** the system SHALL refuse the restore, keep the trashed item in the trash, leave the live item unchanged, and name the live item
+
+### Requirement: Permanently delete from the trash
+The backend SHALL allow an Administrator to permanently delete a single trashed item or to empty the trash, removing the documents from storage. Both are irreversible and SHALL require explicit confirmation.
+
+#### Scenario: Permanently deleting one item
+- **WHEN** an Administrator confirms permanent deletion of a trashed item
+- **THEN** the system SHALL remove that document from storage and it SHALL no longer appear in the trash
+
+#### Scenario: Emptying the trash
+- **WHEN** an Administrator confirms emptying the trash
+- **THEN** the system SHALL remove every trashed document from storage and the trash SHALL be empty
+
+#### Scenario: Permanent deletion is confirmed before acting
+- **WHEN** an Administrator triggers permanent deletion of one item or of the whole trash
+- **THEN** the system SHALL require an explicit confirmation that states the action cannot be undone
+
+### Requirement: Trashed items expire
+A trashed item SHALL be kept for 30 days from the moment it was trashed. The system SHALL permanently delete items older than that when the trash page is next opened; no scheduled job is involved. Until then the item SHALL remain restorable.
+
+#### Scenario: Expired items are purged on viewing the trash
+- **WHEN** an Administrator opens the trash page and it contains items trashed more than 30 days ago
+- **THEN** the system SHALL remove those documents from storage before showing the list, and they SHALL NOT appear in it
+
+#### Scenario: Items within the retention period are kept
+- **WHEN** the trash page is opened and an item was trashed 30 days ago or less
+- **THEN** the item SHALL remain listed and restorable
+
+#### Scenario: Expiry shown per item
+- **WHEN** an Administrator views a trashed item on the trash page
+- **THEN** the page SHALL show when the item will expire
+
+### Requirement: Image guidance beside image fields
+Every form field that accepts a cover image or a logo SHALL offer, beside its label, a control that reveals guidance on the image to upload. This SHALL apply to the cover field of the create and edit forms for every content type, to the organiser logo field, and to the image upload of the public event submission form. The control SHALL be operable by keyboard, SHALL have an accessible name, and SHALL work when scripts do not run. The guidance SHALL be hidden until the control is used, so the form stays compact.
+
+The cover guidance SHALL recommend an image of 1920 × 1080 pixels (16:9), SHALL state that the site shows covers in several shapes and may cut off the edges, SHALL advise keeping text, faces and logos within the central 1440 × 960 pixels, SHALL show that safe area visually, and SHALL state the accepted file types and the maximum file size. The logo guidance SHALL recommend an image of 1920 × 1080 pixels (16:9), SHALL state that a logo is shown whole and never cut off, and SHALL advise a white or transparent background. The guidance SHALL state the same accepted file types and maximum size that the upload validation enforces.
+
+#### Scenario: Opening the cover guidance
+- **WHEN** an authorized user activates the info control beside a cover field on any content form
+- **THEN** the form SHALL show the recommended size and ratio, the safe area and its picture, and the accepted file types and size
+
+#### Scenario: Opening the logo guidance
+- **WHEN** an authorized user activates the info control beside the organiser logo field
+- **THEN** the form SHALL show the logo guidance, not the cover guidance
+
+#### Scenario: Guidance on the public submission form
+- **WHEN** a visitor activates the info control beside the image upload on the public event submission form
+- **THEN** the form SHALL show the cover guidance, and SHALL NOT reveal anything about the media library
+
+#### Scenario: By keyboard and without scripts
+- **WHEN** a user reaches the info control by keyboard, or uses a form with scripts disabled
+- **THEN** the control SHALL open and close the guidance
+
+#### Scenario: Guidance matches what uploads accept
+- **WHEN** the guidance states the accepted file types and maximum size
+- **THEN** they SHALL be those the upload validation enforces

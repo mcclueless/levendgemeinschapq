@@ -43,10 +43,10 @@ The interface SHALL present events, venues, and organisers in a simple, attracti
 - **THEN** the system SHALL present each event so its key facts (title, date/time, venue) are scannable at a glance
 
 ### Requirement: Admin chrome visual token
-The design system SHALL define a distinct dark admin-chrome treatment — surface color, text color, and focus/hover/active states — used for management UI. This treatment SHALL be applied consistently to both the public contextual admin banner and the backend top bar, establishing a single visual language so that the dark chrome reliably signals "management mode" and is clearly distinct from the public palette. The chrome SHALL be cool/green-tinted so it stays cohesive with the green public palette while remaining unmistakably a management surface, and its on-chrome pairings SHALL meet WCAG 2.1 AA.
+The design system SHALL define a distinct dark admin-chrome treatment — surface color, text color, and focus/hover/active states — used for management UI. This treatment SHALL be applied consistently to both the public contextual admin banner and the backend navigation, establishing a single visual language so that the dark chrome reliably signals "management mode" and is clearly distinct from the public palette. The chrome SHALL be cool/green-tinted so it stays cohesive with the green public palette while remaining unmistakably a management surface, and its on-chrome pairings SHALL meet WCAG 2.1 AA.
 
 #### Scenario: Shared treatment across surfaces
-- **WHEN** the public admin banner and the backend top bar are rendered
+- **WHEN** the public admin banner and the backend navigation are rendered
 - **THEN** both SHALL use the same dark admin-chrome treatment, visibly distinct from the public site's palette
 
 #### Scenario: Backend reads as the backend

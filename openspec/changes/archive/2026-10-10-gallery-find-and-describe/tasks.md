@@ -97,7 +97,7 @@ Part 1 (groups 1–5) can be delivered without part 2 (groups 6–8).
 - [x] 9.2 Check the gallery, an image's page and the picker at phone width,
       by keyboard only, and with JavaScript disabled. Remove generated images
       and restore any content files the checks changed.
-- [ ] 9.3 On deploy: check that a newly uploaded image is served with
+- [x] 9.3 On deploy: check that a newly uploaded image is served with
       `Cache-Control: no-cache`, that replacing it shows the new file on an
       ordinary reload, and that a described cover image has its own text on
       the live page.

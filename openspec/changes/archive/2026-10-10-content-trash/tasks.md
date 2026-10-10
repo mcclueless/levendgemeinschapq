@@ -76,7 +76,7 @@
 ## 4. Verify
 
 - [x] 4.1 Run `pnpm test`, `pnpm typecheck` and `pnpm lint`. All pass.
-- [ ] 4.2 End-to-end in the app: a published venue with one hidden event is
+- [x] 4.2 End-to-end in the app: a published venue with one hidden event is
       blocked from the trash and the hidden event is named; trash that event,
       then the venue succeeds; restore the venue and it is hidden; set a
       trashed item's `trashedAt` 31 days back in `content/trash/`, open the
