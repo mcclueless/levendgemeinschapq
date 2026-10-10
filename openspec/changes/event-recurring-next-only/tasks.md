@@ -1,9 +1,13 @@
 ## 1. Model (D1, D2)
 
 - [ ] 1.1 Add optional `nextOccurrenceOnly?: boolean` to the event schema in
-      `src/content/schema.ts`; carry it through `types.ts`, `repository.ts` and
-      `summaries.ts`. Test that an event without the field parses, and that a
-      flag without a recurrence rule is ignored by `showsNextOnly`.
+      `src/content/schema.ts` as a plain `z.boolean().optional()` — **no
+      cross-field rule pairing it with `recurrence`**, for the reason in D1:
+      `parseAll` skips a document that fails validation, so such a rule could
+      silently delete an event. Carry it through `types.ts`, `repository.ts` and
+      `summaries.ts`. Test that an event without the field parses, that an event
+      carrying the flag alone still parses, and that a flag without a recurrence
+      rule is ignored by `showsNextOnly`.
 - [ ] 1.2 Add `src/content/event-series.ts` with `showsNextOnly(event)`,
       `occurrencePassedAt(event, start)`, and `listedOccurrences(event, from,
       horizon, now)`. Unit-test all three: selection returns the first
@@ -50,6 +54,9 @@
       create and edit event forms. Label: "Toon in de agenda alleen de volgende
       keer". Add the CSS rule that hides `[data-recurrence-only]` controls when
       `recurrence` is set to `none`. Mark the checkbox `data-recurrence-only`.
+      If `:has(option:checked)` proves unreliable in a supported browser, fall
+      back to the `useMarkerMode` listener pattern rather than redesigning (D7);
+      the action stays authoritative either way.
 - [ ] 4.2 In the create and update actions in
       `src/app/beheer/actions.ts`, read `nextOnly` and write `nextOccurrenceOnly`
       only after a recurrence rule is confirmed; drop it silently otherwise. The
