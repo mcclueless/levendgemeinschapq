@@ -191,9 +191,16 @@ a {
   top: 0.75rem;
 }
 
-/* Event form: an agenda marker hides the fields it never shows (event-no-page
-   D5). CSS only, so it works without scripts; the hidden inputs still post,
-   which keeps their stored values. */
-form:has(input[name="noPage"]:checked) [data-page-only] {
+/* Event form: each mode hides the fields it never shows (event-no-page D5,
+   event-external-link D4). CSS only, so it works without scripts; the hidden
+   inputs still post, which keeps their stored values.
+
+   A marker hides every page-only field. An external event keeps the ones its
+   card shows — location, organisers, end, further dates — and hides only the
+   text an external page carries itself. The address is asked for only when it
+   is used. */
+form:has(input[name="mode"][value="marker"]:checked) [data-page-only],
+form:has(input[name="mode"][value="external"]:checked) [data-page-text],
+form:not(:has(input[name="mode"][value="external"]:checked)) [data-external-only] {
   display: none;
 }

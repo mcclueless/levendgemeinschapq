@@ -5,6 +5,8 @@ import { cn } from "@/lib/cn";
 import { eventCover } from "@/lib/images";
 import type { EventOccurrence } from "@/content/types";
 import { occurrenceLink } from "@/content/event-dates";
+import { externalLink } from "@/content/event-mode";
+import { ExternalMark } from "@/components/events/external-mark";
 import { DescribedImage } from "@/components/content/described-image";
 
 function Thumb({ src, alt }: { src?: string; alt: string }) {
@@ -46,26 +48,45 @@ function MarkerCard({ occurrence }: { occurrence: EventOccurrence }) {
   );
 }
 
-/** Card variant — used in image listings. */
+/**
+ * Card variant — used in image listings.
+ *
+ * An external event is an ordinary card with a plain `<a>` to the
+ * organisation's own page, which opens in a new tab (event-external-link D3);
+ * `Link` is for routes on this site.
+ */
 export function EventCard({ occurrence }: { occurrence: EventOccurrence }) {
   const { event, start } = occurrence;
   if (event.noPage) return <MarkerCard occurrence={occurrence} />;
+  const external = externalLink(event);
+  const body = (
+    <>
+      <Thumb src={event.featuredImage} alt={event.title} />
+      <div className="p-5">
+        <Badge tone="accent">
+          <time dateTime={isoDate(start)}>{formatWhen(start)}</time>
+        </Badge>
+        <h3 className="mt-3 text-xl group-hover:text-brand-strong">
+          {event.title}
+          {external ? <ExternalMark url={external} /> : null}
+        </h3>
+        {event.venue ? (
+          <p className="mt-1 text-sm text-muted">{event.venue.name}</p>
+        ) : null}
+      </div>
+    </>
+  );
   return (
     <Card as="article" className="group overflow-hidden">
-      <Link href={occurrenceLink(event, start)} className="block">
-        <Thumb src={event.featuredImage} alt={event.title} />
-        <div className="p-5">
-          <Badge tone="accent">
-            <time dateTime={isoDate(start)}>{formatWhen(start)}</time>
-          </Badge>
-          <h3 className="mt-3 text-xl group-hover:text-brand-strong">
-            {event.title}
-          </h3>
-          {event.venue ? (
-            <p className="mt-1 text-sm text-muted">{event.venue.name}</p>
-          ) : null}
-        </div>
-      </Link>
+      {external ? (
+        <a href={external} target="_blank" rel="noopener noreferrer" className="block">
+          {body}
+        </a>
+      ) : (
+        <Link href={occurrenceLink(event, start)} className="block">
+          {body}
+        </Link>
+      )}
     </Card>
   );
 }
@@ -92,23 +113,36 @@ export function EventRow({
       </li>
     );
   }
+  const external = externalLink(event);
+  const inner = "flex flex-wrap items-baseline gap-x-3 gap-y-1 py-3.5 transition-colors hover:text-brand-strong";
+  const body = (
+    <>
+      <time
+        dateTime={isoDate(start)}
+        className="w-40 shrink-0 font-medium text-muted"
+      >
+        {formatWhen(start)}
+      </time>
+      <span className="text-lg font-medium">
+        {event.title}
+        {external ? <ExternalMark url={external} /> : null}
+      </span>
+      {event.venue ? (
+        <span className="text-sm text-muted">· {event.venue.name}</span>
+      ) : null}
+    </>
+  );
   return (
     <li className={cn("border-b border-border last:border-0", className)}>
-      <Link
-        href={occurrenceLink(event, start)}
-        className="flex flex-wrap items-baseline gap-x-3 gap-y-1 py-3.5 transition-colors hover:text-brand-strong"
-      >
-        <time
-          dateTime={isoDate(start)}
-          className="w-40 shrink-0 font-medium text-muted"
-        >
-          {formatWhen(start)}
-        </time>
-        <span className="text-lg font-medium">{event.title}</span>
-        {event.venue ? (
-          <span className="text-sm text-muted">· {event.venue.name}</span>
-        ) : null}
-      </Link>
+      {external ? (
+        <a href={external} target="_blank" rel="noopener noreferrer" className={inner}>
+          {body}
+        </a>
+      ) : (
+        <Link href={occurrenceLink(event, start)} className={inner}>
+          {body}
+        </Link>
+      )}
     </li>
   );
 }

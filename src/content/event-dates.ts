@@ -8,6 +8,7 @@ import {
   siteParts,
   siteWallTime,
 } from "../lib/date";
+import { externalLink } from "./event-mode";
 
 /**
  * An event's further dates (event-multiple-dates D1). `start` stays the anchor;
@@ -110,14 +111,24 @@ export function occurrenceHref(eventHref: string, start: Date): string {
 }
 
 /**
- * Where a listing row for one occurrence should point: that date, for an event
- * with more than one, so clicking "8 nov" opens the 8 November night; the bare
- * page for a single-date event, whose URL needs no qualifier.
+ * Where a listing row for one occurrence should point: the organisation's own
+ * page for an external event (event-external-link D3), so every listing links
+ * out without a change of its own; otherwise that date, for an event with more
+ * than one, so clicking "8 nov" opens the 8 November night; the bare page for a
+ * single-date event, whose URL needs no qualifier.
  */
 export function occurrenceLink(
-  event: { href: string; recurrence?: unknown; dates?: readonly Date[] },
+  event: {
+    href: string;
+    recurrence?: unknown;
+    dates?: readonly Date[];
+    noPage?: boolean;
+    externalUrl?: string;
+  },
   start: Date,
 ): string {
+  const external = externalLink(event);
+  if (external) return external;
   return event.recurrence || event.dates?.length
     ? occurrenceHref(event.href, start)
     : event.href;

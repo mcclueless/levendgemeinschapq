@@ -147,7 +147,8 @@ export const FORM_ERRORS: Record<string, string> = {
     "Een van de extra data is geen geldige datum en tijd. Controleer de extra data.",
   "dates-too-many": `Een evenement kan hoogstens ${MAX_EVENT_DATES} extra data hebben.`,
   "image-required":
-    "Een agenda-item zonder pagina toont alleen zijn afbeelding. Kies of upload een afbeelding.",
+    "Een agenda-item zonder eigen pagina toont vooral zijn afbeelding. Kies of upload een afbeelding.",
+  "external-url": "Vul een volledig webadres in, beginnend met https://.",
   "range-end-before-start":
     "Het einde van het evenement ligt vóór de start. Controleer de start- en einddatum.",
   "upload-type":

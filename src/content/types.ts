@@ -49,6 +49,8 @@ export interface CalendarEvent {
   organisers: Organiser[];
   /** An agenda marker: listed by date, but no page, link or time. */
   noPage: boolean;
+  /** Leads to the organisation's own page instead of one here (event-external-link D1). */
+  externalUrl?: string;
   featuredImage?: string;
   excerpt?: string;
   socials?: Socials;

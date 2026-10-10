@@ -11,7 +11,7 @@ import { ImageGuidance } from "@/components/admin/image-guidance";
 import { ImageField } from "@/components/admin/image-field";
 import { SocialFields } from "@/components/admin/social-fields";
 import { BodyEditor } from "@/components/admin/body-editor";
-import { EventStartInput, NoPageField } from "@/components/admin/no-page-field";
+import { EventModeField, EventStartInput } from "@/components/admin/event-mode-field";
 import { DateListField } from "@/components/admin/date-list-field";
 import { requireAdmin } from "@/lib/auth-server";
 import { getOrganisers, getVenues } from "@/content/repository";
@@ -48,9 +48,9 @@ export default async function NewEventPage({
           <Input id="title" name="title" required />
         </Field>
 
-        <NoPageField />
+        <EventModeField />
 
-        <Field label="Uitgelichte afbeelding" htmlFor="image" info={<ImageGuidance kind="cover" />} hint="Upload nieuw of kies uit de galerij. Optioneel, behalve bij Geen pagina.">
+        <Field label="Uitgelichte afbeelding" htmlFor="image" info={<ImageGuidance kind="cover" />} hint="Upload nieuw of kies uit de galerij. Optioneel, behalve zonder eigen pagina of bij een eigen website.">
           <ImageField pool={pool} />
         </Field>
 
@@ -106,7 +106,8 @@ export default async function NewEventPage({
 
         <DateListField />
 
-        <div data-page-only className="grid gap-5">
+        {/* The text an external page carries itself (event-external-link D4). */}
+        <div data-page-only data-page-text className="grid gap-5">
           <SocialFields />
 
           <Field label="Korte omschrijving" htmlFor="excerpt" hint="Voor lijsten en previews.">

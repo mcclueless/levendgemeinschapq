@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { Input } from "@/components/admin/form";
-import { useMarkerMode, valueForMode } from "@/components/admin/no-page-field";
+import { useMarkerMode, valueForMode } from "@/components/admin/event-mode-field";
 import { DATES_FIELD } from "@/content/event-form";
 import { MAX_EVENT_DATES, previewDateEnd } from "@/content/event-dates";
 

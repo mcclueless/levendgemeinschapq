@@ -42,9 +42,8 @@ import {
 } from "@/content/recurrence-form";
 import { socialsFromForm } from "@/content/socials-form";
 import {
-  DATES_FIELD,
   datesFromForm,
-  markerDayInput,
+  readEventMode,
   validateEventRange,
 } from "@/content/event-form";
 import { organiserFields } from "@/content/event-organisers";
@@ -234,30 +233,12 @@ function adminRecurrence(form: FormData, start: string | undefined): RecurrenceF
   );
 }
 
-/**
- * Whether the event form asks for an agenda marker (event-no-page D4). For a
- * marker, the start and every further date are rewritten to the start of their
- * day before any parsing, so a typed time is ignored and a date-only value
- * parses like any other.
- */
-function readMarker(formData: FormData): boolean {
-  const marker = Boolean(formData.get("noPage"));
-  // A marker drops any time. An ordinary event keeps its time, but a bare date
-  // (an input still in marker mode when the box was just cleared) reads as the
-  // start of that day rather than being refused.
-  const day = (value: string | undefined) =>
-    marker || (value && /^\d{4}-\d{2}-\d{2}$/.test(value.trim())) ? markerDayInput(value) : value;
-  const start = day(str(formData, "start"));
-  if (start) formData.set("start", start);
-  const dates = formData.getAll(DATES_FIELD).map((v) => (typeof v === "string" ? v : ""));
-  formData.delete(DATES_FIELD);
-  for (const value of dates) formData.append(DATES_FIELD, day(value) ?? "");
-  return marker;
-}
-
 export async function createEvent(formData: FormData) {
   await assertAdmin();
-  const noPage = readMarker(formData);
+  // Where the event leads: its own page, an external one, or no page at all
+  // (event-external-link D4). Read first, because a marker's dates are
+  // rewritten before anything parses them.
+  const mode = readEventMode(formData);
   const title = str(formData, "title");
   const start = str(formData, "start");
   const venue = str(formData, "venue");
@@ -270,9 +251,14 @@ export async function createEvent(formData: FormData) {
   if (!title || !start) {
     redirect("/beheer/nieuw/evenement?error=1");
   }
+  // An external event without a usable address would link nowhere, so it is
+  // refused before the upload (event-external-link D5).
+  if (!mode.ok) redirect(`/beheer/nieuw/evenement?error=${mode.reason}`);
+  const noPage = mode.mode === "marker";
   const end = str(formData, "end");
   // A marker shows no end, so its hidden end is kept as posted but not checked
-  // against the day-start it was moved to (event-no-page D4, D5).
+  // against the day-start it was moved to (event-no-page D4, D5). An external
+  // event shows its time like any other, so its range is checked.
   const range = noPage ? { ok: true as const } : validateEventRange(start, end);
   if (!range.ok) redirect(`/beheer/nieuw/evenement?error=${range.reason}`);
   const recurrence = adminRecurrence(formData, start);
@@ -287,8 +273,12 @@ export async function createEvent(formData: FormData) {
   // behind for a document that was never created.
   const socials = socialsOrRedirect(formData, "/beheer/nieuw/evenement");
   const eventImage = await coverImage(formData, "/beheer/nieuw/evenement");
-  // A marker is its image; without one there is nothing to show (event-no-page D5).
-  if (noPage && !eventImage) redirect("/beheer/nieuw/evenement?error=image-required");
+  // A marker is its image, and an external event's card is little more than its
+  // image; without one there is nothing to show (event-no-page D5,
+  // event-external-link D4).
+  if (mode.mode !== "page" && !eventImage) {
+    redirect("/beheer/nieuw/evenement?error=image-required");
+  }
   await createDocument(
     "event",
     title!,
@@ -305,6 +295,9 @@ export async function createEvent(formData: FormData) {
       recurrence: recurrence.recurrence,
       dates: dates.dates,
       noPage: noPage || undefined,
+      // Exactly one of the two, or neither: the radio group cannot ask for both
+      // (event-external-link D1, D4).
+      externalUrl: mode.externalUrl,
       status: formData.get("publish") ? "published" : "draft",
     },
     str(formData, "body") ?? "",
@@ -486,7 +479,7 @@ export async function updateEvent(formData: FormData) {
   await assertAdmin();
   const slug = str(formData, "slug");
   if (!slug) redirect(adminListPath("event"));
-  const noPage = readMarker(formData);
+  const mode = readEventMode(formData);
   const title = str(formData, "title");
   const start = str(formData, "start");
   const venue = str(formData, "venue");
@@ -495,6 +488,8 @@ export async function updateEvent(formData: FormData) {
   const organisers = organiserFields(organisersFrom(formData));
   const back = editBack("event", slug, formData);
   if (!title || !start) redirect(withParam(back, "error", "1"));
+  if (!mode.ok) redirect(withParam(back, "error", mode.reason));
+  const noPage = mode.mode === "marker";
   const end = str(formData, "end");
   // As in createEvent: a marker's hidden end is kept, not checked (event-no-page D4).
   const range = noPage ? { ok: true as const } : validateEventRange(start, end);
@@ -519,7 +514,8 @@ export async function updateEvent(formData: FormData) {
   if (!dates.ok) redirect(withParam(back, "error", dates.reason));
   const socials = socialsOrRedirect(formData, back);
   const eventImage = await coverImage(formData, back);
-  if (noPage && !eventImage && !stored?.data.featuredImage) {
+  // As in createEvent, with the stored image counting as one already chosen.
+  if (mode.mode !== "page" && !eventImage && !stored?.data.featuredImage) {
     redirect(withParam(back, "error", "image-required"));
   }
   await updateDocument(
@@ -536,8 +532,12 @@ export async function updateEvent(formData: FormData) {
       socials,
       recurrence: recurrence.recurrence,
       dates: dates.dates,
-      // Always in the patch, so unchecking removes the key (event-no-page D1).
+      // Both are always in the patch, so changing the mode removes the key of
+      // the mode left behind (event-no-page D1, event-external-link D4). Fields
+      // the other modes do not show are posted hidden and so kept, which is
+      // what makes switching back restore the text, venue and organisers.
       noPage: noPage || undefined,
+      externalUrl: mode.externalUrl,
       ...(eventImage ? { featuredImage: eventImage } : {}),
     },
     str(formData, "body") ?? "",

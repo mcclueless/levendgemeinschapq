@@ -28,9 +28,10 @@ function raw(form: FormData, key: string): string | undefined {
 /**
  * Add a scheme to a bare profile address so `instagram.com/buurttuin` is
  * accepted rather than rejected. Normalising is friendlier than refusing, and a
- * scheme-less value is what people actually paste.
+ * scheme-less value is what people actually paste. Shared with an event's
+ * external address (event-external-link D4), which is pasted the same way.
  */
-function withScheme(value: string): string {
+export function withScheme(value: string): string {
   return /^[a-z][a-z0-9+.-]*:/i.test(value) ? value : `https://${value}`;
 }
 

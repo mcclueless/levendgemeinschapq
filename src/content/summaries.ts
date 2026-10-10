@@ -33,6 +33,8 @@ export interface ContentSummary {
   /** Further dates beyond `start`, normalised; absent when there are none. */
   dates?: Date[];
   noPage?: boolean;
+  /** An event that leads to an external page (event-external-link D1). */
+  externalUrl?: string;
   /** Blog posts and projects. */
   date?: Date;
   /** Blog posts. */
@@ -82,6 +84,7 @@ export function toSummary(
           recurrence: data.recurrence as Recurrence | undefined,
           dates: normaliseDates(data.dates as Date[] | undefined, start),
           noPage: data.noPage === true,
+          externalUrl: data.externalUrl as string | undefined,
         }
       : {}),
     ...(type === "blog" || type === "project" ? { date: data.date as Date } : {}),

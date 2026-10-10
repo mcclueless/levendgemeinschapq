@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/card";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { hideContent, showContent, deleteContent } from "@/app/beheer/actions";
 import { adminEditPath } from "@/lib/routes";
+import { hasOwnPage } from "@/content/event-mode";
 import { recurrenceLabel } from "@/lib/recurrence-label";
 import { cn } from "@/lib/cn";
 import type { ContentType, PublishStatus } from "@/content/schema";
@@ -216,8 +217,9 @@ export function ContentTable({
       <tbody className="block rounded-lg border border-border bg-surface px-4 xl:table-row-group xl:px-0">
         {rows.map((item) => {
           const editHref = `${adminEditPath(type, item.slug)}?terug=${encodeURIComponent(here)}`;
-          // A hidden item's page is not found, and a marker has none.
-          const hasPage = item.status === "published" && !item.noPage;
+          // A hidden item's page is not found; a marker and an external event
+          // have none (event-no-page D2, event-external-link D2).
+          const hasPage = item.status === "published" && hasOwnPage(item);
           return (
             <tr
               key={item.slug}

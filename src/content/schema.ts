@@ -125,6 +125,16 @@ export const EventFrontmatter = z.object({
    * event, so files that predate the flag are unchanged.
    */
   noPage: z.boolean().optional(),
+  /**
+   * The organisation's own page for this event (event-external-link D1): set
+   * means the agenda links straight out and the event has no page here. Absent
+   * means an ordinary event, so files that predate the field are unchanged.
+   *
+   * Validated with the same http/https rule as social links, unlike most
+   * form-only rules, because the value goes straight into an `href`: no stored
+   * event has the field yet, so tightening it removes nothing.
+   */
+  externalUrl: webUrl().optional(),
   featuredImage: z.string().optional(),
   excerpt: z.string().optional(),
   socials: SocialsSchema,

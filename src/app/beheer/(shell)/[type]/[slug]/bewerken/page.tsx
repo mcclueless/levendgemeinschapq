@@ -14,7 +14,7 @@ import { ImageListField } from "@/components/admin/image-list-field";
 import { organiserImages } from "@/content/organiser-images";
 import { SocialFields } from "@/components/admin/social-fields";
 import { BodyEditor } from "@/components/admin/body-editor";
-import { EventStartInput, NoPageField } from "@/components/admin/no-page-field";
+import { EventModeField, EventStartInput } from "@/components/admin/event-mode-field";
 import { DateListField } from "@/components/admin/date-list-field";
 import { AddressAutocomplete } from "@/components/admin/address-autocomplete";
 import { PermalinkForm } from "@/components/admin/permalink-form";
@@ -26,6 +26,7 @@ import { listMedia } from "@/content/media";
 import { ADMIN_SEGMENT_TO_TYPE, type AdminSegment } from "@/lib/routes";
 import { toSiteInputValue } from "@/lib/date";
 import { normaliseDates } from "@/content/event-dates";
+import { eventMode } from "@/content/event-mode";
 import {
   updateBlog,
   updateEvent,
@@ -94,7 +95,8 @@ export default async function EditPage({
           <Field label="Titel" htmlFor="title" required>
             <Input id="title" name="title" required defaultValue={d.title} />
           </Field>
-          <NoPageField defaultChecked={d.noPage === true} />
+          {/* The stored mode, derived from the two fields (event-external-link D1). */}
+          <EventModeField defaultMode={eventMode(d)} defaultUrl={d.externalUrl} />
           <Field label="Uitgelichte afbeelding" htmlFor="image" info={<ImageGuidance kind="cover" />}>
             <ImageField pool={pool} current={d.featuredImage} />
           </Field>
@@ -172,7 +174,8 @@ export default async function EditPage({
             defaults={normaliseDates(d.dates, d.start)?.map(toSiteInputValue)}
             marker={d.noPage === true}
           />
-          <div data-page-only className="grid gap-5">
+          {/* The text an external page carries itself (event-external-link D4). */}
+          <div data-page-only data-page-text className="grid gap-5">
             <SocialFields defaults={d.socials} />
             <Field label="Korte omschrijving" htmlFor="excerpt">
               <Input id="excerpt" name="excerpt" defaultValue={d.excerpt} />

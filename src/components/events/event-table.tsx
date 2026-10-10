@@ -4,6 +4,8 @@ import { formatDate, formatTimeRange, isoDate } from "@/lib/date";
 import { recurrenceLabel } from "@/lib/recurrence-label";
 import type { EventOccurrence } from "@/content/types";
 import { occurrenceLink } from "@/content/event-dates";
+import { externalLink } from "@/content/event-mode";
+import { ExternalMark } from "@/components/events/external-mark";
 
 const COLUMNS = ["Datum", "Tijd", "Evenement", "Locatie", "Organisator", "Herhaling"] as const;
 
@@ -63,6 +65,7 @@ export function EventTable({ occurrences }: { occurrences: EventOccurrence[] }) 
       <tbody className="block rounded-lg border border-border bg-surface px-4 sm:table-row-group sm:px-0">
         {occurrences.map((o) => {
           const { event, start } = o;
+          const external = externalLink(event);
           return (
             <tr
               key={`${event.slug}-${start.getTime()}`}
@@ -77,8 +80,19 @@ export function EventTable({ occurrences }: { occurrences: EventOccurrence[] }) 
                 {event.noPage ? "—" : formatTimeRange(start, o.end)}
               </Cell>
               <Cell label="Evenement">
+                {/* An external event links out, in a new tab (event-external-link D3). */}
                 {event.noPage ? (
                   event.title
+                ) : external ? (
+                  <a
+                    href={external}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={link}
+                  >
+                    {event.title}
+                    <ExternalMark url={external} />
+                  </a>
                 ) : (
                   <Link href={occurrenceLink(event, start)} className={link}>
                     {event.title}

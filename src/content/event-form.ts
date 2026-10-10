@@ -1,4 +1,6 @@
 import { MAX_EVENT_DATES, normaliseDates } from "./event-dates";
+import type { EventMode } from "./event-mode";
+import { isWebUrl, withScheme } from "./socials-form";
 import { siteInputToIso, toSiteInputValue } from "@/lib/date";
 
 /**
@@ -103,4 +105,59 @@ export function datesFromForm(
 export function markerDayInput(value: string | undefined): string | undefined {
   const day = value?.trim().match(/^(\d{4}-\d{2}-\d{2})(?:T\d{2}:\d{2}(?::\d{2})?)?$/)?.[1];
   return day ? `${day}T00:00` : value;
+}
+
+// ── Where an event leads (event-external-link D4) ───────────────────────────
+
+/** A trimmed form value, or nothing when it is empty or absent. */
+function field(form: FormData, key: string): string | undefined {
+  const v = form.get(key);
+  return typeof v === "string" && v.trim() !== "" ? v.trim() : undefined;
+}
+
+/**
+ * The event form's mode choice, with the date rewriting a marker needs.
+ *
+ * One radio group replaces the "Geen pagina" checkbox, so the three modes are
+ * mutually exclusive by construction and the action never writes both stored
+ * fields (event-external-link D1, D4). An absent or unknown value reads as
+ * `page`, the default and the mode of every event stored before this change.
+ *
+ * Shared between the create and edit actions so the two cannot disagree about
+ * what a mode means, and pure apart from the date rewriting it does on the
+ * form, so it is testable without a request.
+ */
+export type EventModeFormResult =
+  | { ok: true; mode: EventMode; externalUrl?: string }
+  | { ok: false; reason: "external-url" };
+
+export function readEventMode(form: FormData): EventModeFormResult {
+  const chosen = form.get("mode");
+  const mode: EventMode =
+    chosen === "marker" || chosen === "external" ? chosen : "page";
+
+  // A marker drops any time: its start and every further date are rewritten to
+  // the start of their day before any parsing, so a typed time is ignored and a
+  // date-only value parses like any other (event-no-page D4). An event with a
+  // time keeps it, but a bare date — an input still in marker mode when the
+  // choice was just changed — reads as the start of that day rather than being
+  // refused.
+  const day = (v: string | undefined) =>
+    mode === "marker" || (v && /^\d{4}-\d{2}-\d{2}$/.test(v.trim()))
+      ? markerDayInput(v)
+      : v;
+  const start = day(field(form, "start"));
+  if (start) form.set("start", start);
+  const dates = form.getAll(DATES_FIELD).map((v) => (typeof v === "string" ? v : ""));
+  form.delete(DATES_FIELD);
+  for (const value of dates) form.append(DATES_FIELD, day(value) ?? "");
+
+  if (mode !== "external") return { ok: true, mode };
+  // The address goes straight into an `href`, so the scheme check is what
+  // matters, not the URL parse (see `isWebUrl`). A scheme-less value is
+  // normalised rather than refused, as a pasted social link is.
+  const typed = field(form, "externalUrl");
+  const url = typed ? withScheme(typed) : undefined;
+  if (!url || !isWebUrl(url)) return { ok: false, reason: "external-url" };
+  return { ok: true, mode, externalUrl: url };
 }

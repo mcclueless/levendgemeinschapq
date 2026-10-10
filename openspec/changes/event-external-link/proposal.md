@@ -19,7 +19,7 @@ manageable.
 - Its listings look like an **ordinary event** — image, date and time,
   location and organiser when given — with a visible "↗" mark and a
   screen-reader text naming the external site, so leaving Goeddoen is never a
-  surprise. The link opens in the same tab.
+  surprise. The link opens in a new tab.
 - The admin event form replaces the "Geen pagina" checkbox with **one choice
   between three modes**: its own page (the default), an external page with its
   address, or no page at all. An external event requires an http or https

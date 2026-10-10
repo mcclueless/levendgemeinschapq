@@ -3,6 +3,7 @@ import "server-only";
 import { CONTENT_PREFIX, getStore } from "./storage";
 import { parseAll } from "./parse";
 import { normaliseDates } from "./event-dates";
+import { hasOwnPage } from "./event-mode";
 import { resolveOrganisers } from "./event-organisers";
 import { organiserImages } from "./organiser-images";
 import { routes } from "@/lib/routes";
@@ -92,6 +93,7 @@ const loadEvents = cache(async (): Promise<CalendarEvent[]> => {
     venue: d.data.venue ? venues.get(d.data.venue) ?? null : null,
     organisers: resolveOrganisers(d.data, organisers),
     noPage: d.data.noPage === true,
+    externalUrl: d.data.externalUrl,
     featuredImage: d.data.featuredImage,
     excerpt: d.data.excerpt,
     socials: d.data.socials,
@@ -183,10 +185,14 @@ export async function getAllEvents(): Promise<CalendarEvent[]> {
   return (await loadEvents()).filter(isPublished);
 }
 
-/** One event's page data, or `null` — also for an agenda marker, which has no page (event-no-page D2). */
+/**
+ * One event's page data, or `null` — also for an agenda marker and for an event
+ * that leads to an external page, neither of which has a page here
+ * (event-no-page D2, event-external-link D2).
+ */
 export async function getEvent(slug: string): Promise<CalendarEvent | null> {
   const e = (await loadEvents()).find((ev) => ev.slug === slug);
-  return e && isPublished(e) && !e.noPage ? e : null;
+  return e && isPublished(e) && hasOwnPage(e) ? e : null;
 }
 
 /** Published blog posts in reverse-chronological order (blog spec). */

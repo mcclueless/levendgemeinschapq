@@ -68,8 +68,8 @@ title, venue — plus:
 - visually hidden text "(opent website van <host>)", where `<host>` is the
   address's hostname without `www.`, so screen readers announce where the link
   goes;
-- `rel="noopener noreferrer"`, and no `target`: the same tab, the accessible
-  default, so the browser's back button returns to the agenda.
+- `target="_blank"` with `rel="noopener noreferrer"`: a new tab, as the
+  requester specified, so the agenda stays open in its own tab.
 
 A plain `<a>` is used instead of Next's `Link`, which is for routes on the site.
 

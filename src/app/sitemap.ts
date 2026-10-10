@@ -6,6 +6,7 @@ import {
   getProjects,
   getVenues,
 } from "@/content/repository";
+import { hasOwnPage } from "@/content/event-mode";
 import { routes } from "@/lib/routes";
 import { absolute } from "@/lib/structured-data";
 
@@ -42,8 +43,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ].map((path) => ({ url: absolute(path), changeFrequency: "weekly" as const }));
 
   const content = [
-    // An agenda marker has no page to list (event-no-page D2).
-    ...events.filter((e) => !e.noPage).map((e) => e.href),
+    // A marker and an external event have no page to list (event-no-page D2,
+    // event-external-link D2).
+    ...events.filter(hasOwnPage).map((e) => e.href),
     ...venues.map((v) => v.href),
     ...organisers.map((o) => o.href),
     ...posts.map((p) => p.href),

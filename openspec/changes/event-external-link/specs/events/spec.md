@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Events that lead to an external page
-An Event MAY lead to an external web page instead of having its own page on the site. Such an event SHALL appear in every upcoming-events listing that shows events by date, as an ordinary event does, with its image, date and time, and its Venue and Organisers when given. Its entry in a listing SHALL link to the external page, SHALL show a visible mark that the link leads to another site, and SHALL give assistive technology the name of that site. The link SHALL open in the same browser tab.
+An Event MAY lead to an external web page instead of having its own page on the site. Such an event SHALL appear in every upcoming-events listing that shows events by date, as an ordinary event does, with its image, date and time, and its Venue and Organisers when given. Its entry in a listing SHALL link to the external page, SHALL show a visible mark that the link leads to another site, and SHALL give assistive technology the name of that site. The link SHALL open in a new browser tab.
 
 Such an event SHALL NOT have a page on the site: its address SHALL return "not found", it SHALL NOT appear in the sitemap, and the site SHALL publish no structured data for it. The external address SHALL be an http or https address.
 
