@@ -168,3 +168,25 @@ export function previewDateEnd(
   if (duration <= 0 || duration >= DAY_MS) return undefined;
   return formatTime(occEnd!);
 }
+
+/** The note a filled further date shows while the event has no start or end. */
+export const DATE_END_NOTE = "Vul eerst de start en het einde van het evenement in";
+
+/**
+ * Why a filled further date shows no end, when the editor can do something
+ * about it: the event's start or end is missing or unreadable
+ * (extra-date-end-visible D2). Undefined when the row is empty or unreadable,
+ * when it is a date without a time (a marker's row, D3), or when start and
+ * end are both present — then either {@link previewDateEnd} shows an end, or
+ * the duration is one the server shows no end for either, which a note would
+ * contradict.
+ */
+export function previewDateEndNote(
+  dateValue: string | undefined,
+  startValue: string | undefined,
+  endValue: string | undefined,
+): string | undefined {
+  if (!dateValue?.includes("T") || !fromInput(dateValue)) return undefined;
+  if (fromInput(startValue) && fromInput(endValue)) return undefined;
+  return DATE_END_NOTE;
+}

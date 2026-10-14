@@ -9,6 +9,8 @@ import {
   occurrenceLink,
   parseDayParam,
   previewDateEnd,
+  previewDateEndNote,
+  DATE_END_NOTE,
   readStoredDates,
   siteDayKey,
 } from "./event-dates";
@@ -115,4 +117,21 @@ test("the admin preview shows nothing it cannot derive", () => {
   assert.equal(previewDateEnd("2026-10-17T20:00", "2026-10-03T20:00", "2026-10-03T19:00"), undefined);
   assert.equal(previewDateEnd("2026-10-17T20:00", "2026-10-03T20:00", "2026-10-03T20:00"), undefined);
   assert.equal(previewDateEnd("2026-10-17T20:00", "2026-10-03T20:00", "2026-10-04T20:00"), undefined);
+});
+
+test("a filled further date says why it has no end when start or end is missing", () => {
+  assert.equal(previewDateEndNote("2026-10-17T20:00", "2026-10-03T20:00", ""), DATE_END_NOTE);
+  assert.equal(previewDateEndNote("2026-10-17T20:00", "", "2026-10-03T22:00"), DATE_END_NOTE);
+  assert.equal(previewDateEndNote("2026-10-17T20:00", "", ""), DATE_END_NOTE);
+  assert.equal(previewDateEndNote("2026-10-17T20:00", "gisteren", "2026-10-03T22:00"), DATE_END_NOTE);
+});
+
+test("the note stays silent when there is nothing to fix on the event", () => {
+  // Start and end present: an end shows, or the duration is one no end shows for.
+  assert.equal(previewDateEndNote("2026-10-17T20:00", "2026-10-03T20:00", "2026-10-03T22:00"), undefined);
+  assert.equal(previewDateEndNote("2026-10-17T20:00", "2026-10-03T20:00", "2026-10-04T20:00"), undefined);
+  // The row itself is empty, unreadable, or a marker's date without a time.
+  assert.equal(previewDateEndNote("", "2026-10-03T20:00", ""), undefined);
+  assert.equal(previewDateEndNote("morgen", "2026-10-03T20:00", ""), undefined);
+  assert.equal(previewDateEndNote("2026-10-17", "2026-10-03", ""), undefined);
 });

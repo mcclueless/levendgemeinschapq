@@ -4,7 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { Input } from "@/components/admin/form";
 import { useMarkerMode, valueForMode } from "@/components/admin/event-mode-field";
 import { DATES_FIELD } from "@/content/event-form";
-import { MAX_EVENT_DATES, previewDateEnd } from "@/content/event-dates";
+import { MAX_EVENT_DATES, previewDateEnd, previewDateEndNote } from "@/content/event-dates";
 
 /**
  * An event's further dates (event-multiple-dates D7): one `datetime-local` row
@@ -18,11 +18,14 @@ import { MAX_EVENT_DATES, previewDateEnd } from "@/content/event-dates";
  * moves focus to the next row, or to the add button when none is left, so a
  * keyboard user is never dropped at the top of the page.
  *
- * Each row shows the end its date will receive ("tot 22:00"), derived from the
- * form's own start and end fields by the rule the server applies
+ * Each row shows the end its date will receive ("tot 22:00") beside the input,
+ * at the input's own size (extra-date-end-visible D1), derived from the form's
+ * own start and end fields by the rule the server applies
  * (event-date-end-times D3). It follows edits to those fields and to the row.
- * It is described text on the row's input, not a live region, so it is read
- * with the field rather than announced on every keystroke.
+ * When the event's start or end is still missing, a note takes its place
+ * (extra-date-end-visible D2). Either is described text on the row's input,
+ * not a live region, so it is read with the field rather than announced on
+ * every keystroke.
  */
 export function DateListField({
   defaults = [],
@@ -103,35 +106,40 @@ export function DateListField({
             const id = `${baseId}-date-${row.key}`;
             const endId = `${id}-end`;
             const end = previewDateEnd(row.value, eventTimes.start, eventTimes.end);
+            const note = end
+              ? undefined
+              : previewDateEndNote(row.value, eventTimes.start, eventTimes.end);
             return (
-              <li key={row.key} className="grid gap-1">
-                <div className="flex items-center gap-2">
-                  <label htmlFor={id} className="sr-only">
-                    Extra datum {i + 1}
-                  </label>
-                  <Input
-                    ref={setInput(row.key)}
-                    id={id}
-                    name={DATES_FIELD}
-                    type={marker ? "date" : "datetime-local"}
-                    value={valueForMode(row.value, marker)}
-                    onChange={(e) => setValue(row.key, e.currentTarget.value)}
-                    aria-describedby={end ? endId : undefined}
-                    className="flex-1"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => remove(row.key)}
-                    className="h-10 shrink-0 rounded-md border border-border px-3 text-sm text-ink hover:bg-surface-2"
-                  >
-                    Verwijderen<span className="sr-only"> extra datum {i + 1}</span>
-                  </button>
-                </div>
+              <li key={row.key} className="flex flex-wrap items-center gap-2">
+                <label htmlFor={id} className="sr-only">
+                  Extra datum {i + 1}
+                </label>
+                <Input
+                  ref={setInput(row.key)}
+                  id={id}
+                  name={DATES_FIELD}
+                  type={marker ? "date" : "datetime-local"}
+                  value={valueForMode(row.value, marker)}
+                  onChange={(e) => setValue(row.key, e.currentTarget.value)}
+                  aria-describedby={end || note ? endId : undefined}
+                  className="min-w-56 flex-1"
+                />
                 {end ? (
-                  <p id={endId} className="text-xs text-muted">
+                  <span id={endId} className="whitespace-nowrap text-base text-ink">
                     tot {end}
-                  </p>
+                  </span>
+                ) : note ? (
+                  <span id={endId} className="text-sm text-muted">
+                    {note}
+                  </span>
                 ) : null}
+                <button
+                  type="button"
+                  onClick={() => remove(row.key)}
+                  className="h-10 shrink-0 rounded-md border border-border px-3 text-sm text-ink hover:bg-surface-2"
+                >
+                  Verwijderen<span className="sr-only"> extra datum {i + 1}</span>
+                </button>
               </li>
             );
           })}
