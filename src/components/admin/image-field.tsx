@@ -230,7 +230,7 @@ export function MediaPicker({
         <div className="overflow-y-auto p-5">
           {pool.length === 0 ? (
             <p className="text-muted">
-              Nog geen afbeeldingen geüpload. Upload er een via “Nieuwe afbeelding”.
+              Nog geen afbeeldingen geüpload. Upload er een met de uploadknop van dit veld, of via de galerij.
             </p>
           ) : shown.length === 0 ? (
             <p className="text-muted" role="status">

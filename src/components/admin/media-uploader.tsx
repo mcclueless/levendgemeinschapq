@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FORM_ERRORS, SubmitButton } from "@/components/admin/form";
+import { Button } from "@/components/ui/button";
 import { uploadMedia } from "@/app/beheer/actions";
 import { uploadInlineImage } from "@/app/beheer/body-actions";
 import { cn } from "@/lib/cn";
@@ -22,6 +23,12 @@ interface FileResult {
  * ordinary phone photos. Once scripts run it accepts several files, chosen or
  * dropped, and sends each in its own request, so one file's rejection does not
  * stop the others and each reports its own result.
+ *
+ * Once scripts run the control is a button, "Afbeeldingen uploaden", driving
+ * a visually hidden file input (gallery-upload-button D1): the raw file input
+ * under a label read as a field, not as the page's action. Without scripts
+ * the plain input and its submit button remain, as the media-library spec
+ * requires.
  */
 export function MediaUploader({ terug }: { terug: string }) {
   const router = useRouter();
@@ -85,9 +92,13 @@ export function MediaUploader({ terug }: { terug: string }) {
       <input type="hidden" name="terug" value={terug} />
       <div className="flex flex-wrap items-end gap-3">
         <div className="grid gap-1.5">
-          <label htmlFor="image" className="text-sm font-medium text-ink">
-            {enhanced ? "Nieuwe afbeeldingen" : "Nieuwe afbeelding"}
-          </label>
+          {enhanced ? null : (
+            <label htmlFor="image" className="text-sm font-medium text-ink">
+              Nieuwe afbeelding
+            </label>
+          )}
+          {/* Enhanced, the input is hidden and out of the tab order; the button
+              below opens it. Without scripts it is the visible control. */}
           <input
             ref={inputRef}
             id="image"
@@ -98,8 +109,15 @@ export function MediaUploader({ terug }: { terug: string }) {
             required={!enhanced}
             disabled={busy}
             onChange={(e) => void send([...(e.target.files ?? [])])}
-            className="text-sm"
+            className={enhanced ? "sr-only" : "text-sm"}
+            tabIndex={enhanced ? -1 : undefined}
+            aria-hidden={enhanced || undefined}
           />
+          {enhanced ? (
+            <Button type="button" disabled={busy} onClick={() => inputRef.current?.click()}>
+              {busy ? "Bezig met uploaden…" : "Afbeeldingen uploaden"}
+            </Button>
+          ) : null}
         </div>
         {enhanced ? null : <SubmitButton>Uploaden</SubmitButton>}
       </div>
