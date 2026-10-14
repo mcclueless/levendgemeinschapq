@@ -34,6 +34,9 @@ yarn-error.log*
 # trashed documents (local fallback store; content-trash)
 /content/trash
 
+# organisation accounts with password hashes (local fallback store; organisation-accounts)
+/content/users
+
 # user-uploaded media (local fallback store)
 /public/uploads
 
