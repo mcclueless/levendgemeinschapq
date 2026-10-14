@@ -149,6 +149,8 @@ export const FORM_ERRORS: Record<string, string> = {
   "image-required":
     "Een agenda-item zonder eigen pagina toont vooral zijn afbeelding. Kies of upload een afbeelding.",
   "external-url": "Vul een volledig webadres in, beginnend met https://.",
+  "marker-admin-only":
+    "Een agenda-item zonder pagina kan alleen de beheerder aanmaken. Kies ‘Eigen pagina’ of ‘Externe pagina’.",
   "range-end-before-start":
     "Het einde van het evenement ligt vóór de start. Controleer de start- en einddatum.",
   "upload-type":

@@ -22,6 +22,13 @@ export type ContentType = z.infer<typeof ContentType>;
 export const PublishStatus = z.enum(["draft", "pending", "published"]);
 export type PublishStatus = z.infer<typeof PublishStatus>;
 
+/**
+ * Who last saved the document from the backend: an account's email, or
+ * "beheerder" (organisation-accounts D9). Absent on documents that predate it
+ * and on public submissions and imports.
+ */
+const saved = { savedBy: z.string().optional() };
+
 const contact = {
   phone: z.string().optional(),
   email: z.string().email().optional(),
@@ -92,6 +99,7 @@ export type Socials = z.infer<typeof SocialsSchema>;
 const eventDateTime = () => z.preprocess(parseStoredDateTime, z.date());
 
 export const EventFrontmatter = z.object({
+  ...saved,
   title: z.string().min(1),
   start: eventDateTime(),
   end: eventDateTime().optional(),
@@ -174,6 +182,7 @@ export const EventFrontmatter = z.object({
 export type EventFrontmatter = z.infer<typeof EventFrontmatter>;
 
 export const VenueFrontmatter = z.object({
+  ...saved,
   name: z.string().min(1),
   ...contact,
   address: z.string().optional(),
@@ -187,6 +196,7 @@ export const VenueFrontmatter = z.object({
 export type VenueFrontmatter = z.infer<typeof VenueFrontmatter>;
 
 export const OrganiserFrontmatter = z.object({
+  ...saved,
   name: z.string().min(1),
   ...contact,
   /** Optional linked Location — a Venue slug (editorial-enrichments). */
@@ -207,6 +217,7 @@ export const OrganiserFrontmatter = z.object({
 export type OrganiserFrontmatter = z.infer<typeof OrganiserFrontmatter>;
 
 export const BlogFrontmatter = z.object({
+  ...saved,
   title: z.string().min(1),
   date: z.coerce.date(),
   author: z.string().min(1),
@@ -230,6 +241,7 @@ export type BlogFrontmatter = z.infer<typeof BlogFrontmatter>;
  * Admin-only: no submission/review metadata (design D4).
  */
 export const ProjectFrontmatter = z.object({
+  ...saved,
   title: z.string().min(1),
   date: z.coerce.date(),
   /**

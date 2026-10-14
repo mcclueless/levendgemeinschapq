@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import matter from "gray-matter";
 import { mergeDocument } from "./write";
-import { EventFrontmatter } from "./schema";
+import { EventFrontmatter, OrganiserFrontmatter } from "./schema";
 
 /**
  * The edit path (updateDocument) must MERGE the form patch over stored
@@ -117,4 +117,11 @@ test("the edit form that presents the list replaces or clears it", () => {
   assert.deepEqual(storedDates(one), ["2026-11-08T19:00:00.000Z"]);
   const none = mergeDocument(seriesRaw, { dates: undefined }, "");
   assert.ok(!("dates" in matter(none).data));
+});
+
+test("a document parses with or without the savedBy stamp (organisation-accounts D9)", () => {
+  const base = { title: "Repair Café", start: "2026-06-10T19:00" };
+  assert.equal(EventFrontmatter.parse(base).savedBy, undefined);
+  assert.equal(EventFrontmatter.parse({ ...base, savedBy: "info@noord.nl" }).savedBy, "info@noord.nl");
+  assert.equal(OrganiserFrontmatter.parse({ name: "Noord", savedBy: "beheerder" }).savedBy, "beheerder");
 });

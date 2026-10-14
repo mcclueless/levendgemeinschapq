@@ -1,6 +1,6 @@
-import type { Session } from "@/lib/auth";
 import { eventOrganiserSlugs, type StoredOrganisers } from "./event-organisers";
 import type { ContentType } from "./schema";
+import type { EventMode } from "./event-mode";
 
 /**
  * Who may do what in the backend (organisation-accounts D5): the one rule
@@ -13,6 +13,9 @@ import type { ContentType } from "./schema";
  * Pure: a session and a document's organiser fields in, a yes or no out.
  */
 
+/** What the rule needs to know about who is asking: a session, or an actor. */
+export type Scope = { role: "admin" } | { role: "organisation"; org: string };
+
 /** The organisation that owns an event: its primary organiser (D5). */
 export function primaryOrganiser(event: StoredOrganisers): string | undefined {
   return event.organiser;
@@ -20,7 +23,7 @@ export function primaryOrganiser(event: StoredOrganisers): string | undefined {
 
 /** Whether `session` may edit, hide, show or delete the item. */
 export function canManage(
-  session: Session | null,
+  session: Scope | null,
   type: ContentType,
   item: { slug: string } & StoredOrganisers,
 ): boolean {
@@ -33,7 +36,7 @@ export function canManage(
 
 /** Whether `session` may see the item in its backend list: manage, or co-organise. */
 export function canView(
-  session: Session | null,
+  session: Scope | null,
   type: ContentType,
   item: { slug: string } & StoredOrganisers,
 ): boolean {
@@ -48,12 +51,21 @@ export function canView(
  * (editorial-backend "Event form for an organisation account"). The
  * administrator's list is kept as posted.
  */
-export function organisersFor(session: Session, posted: readonly string[]): string[] {
+export function organisersFor(session: Scope, posted: readonly string[]): string[] {
   if (session.role === "admin") return [...posted];
   return [session.org, ...posted.filter((slug) => slug !== session.org)];
 }
 
+/**
+ * Whether `session` may save an event in `mode`: the agenda-marker mode —
+ * holidays and seasons, site-level curation — is the administrator's
+ * (editorial-backend "Event form for an organisation account").
+ */
+export function allowedMode(session: Scope, mode: EventMode): boolean {
+  return session.role === "admin" || mode !== "marker";
+}
+
 /** How a backend save is recorded on the document (D9). */
-export function savedByLabel(session: Session, email?: string): string {
-  return session.role === "admin" ? "beheerder" : (email ?? session.sub);
+export function savedByLabel(session: Scope, email?: string): string {
+  return session.role === "admin" ? "beheerder" : (email ?? session.org);
 }

@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { SESSION_COOKIE, verifySessionToken, type Session } from "./auth";
 import { getUser, type User } from "@/content/users";
+import type { Scope } from "@/content/access";
 
 /** The session the request's cookie proves, or null. */
 export async function getSession(): Promise<Session | null> {
@@ -36,6 +37,11 @@ async function currentUser(session: Session): Promise<User | null> {
 export type Actor =
   | { role: "admin" }
   | { role: "organisation"; user: User };
+
+/** The actor as the scope rule sees it. */
+export function scopeOf(actor: Actor): Scope {
+  return actor.role === "admin" ? actor : { role: "organisation", org: actor.user.organisation };
+}
 
 /**
  * The signed-in actor, or a redirect to the login page: no session, or an

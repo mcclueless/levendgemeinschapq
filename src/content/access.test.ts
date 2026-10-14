@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import type { Session } from "@/lib/auth";
-import { canManage, canView, organisersFor, savedByLabel } from "./access";
+import { allowedMode, canManage, canView, organisersFor, savedByLabel } from "./access";
 
 /** The backend's one scope rule (organisation-accounts D5). */
 
@@ -57,6 +57,13 @@ test("an organisation's form always stores its organisation first", () => {
   assert.deepEqual(organisersFor(noord, ["wijkraad", "stichting-noord"]), ["stichting-noord", "wijkraad"]);
   assert.deepEqual(organisersFor(admin, ["wijkraad", "stichting-noord"]), ["wijkraad", "stichting-noord"]);
   assert.deepEqual(organisersFor(admin, []), []);
+});
+
+test("only the administrator may save an agenda marker", () => {
+  assert.equal(allowedMode(admin, "marker"), true);
+  assert.equal(allowedMode(noord, "marker"), false);
+  assert.equal(allowedMode(noord, "page"), true);
+  assert.equal(allowedMode(noord, "external"), true);
 });
 
 test("a save is recorded as the administrator or the account's email", () => {

@@ -45,21 +45,22 @@
 
 ## 4. Actions (D6, D9, D10)
 
-- [ ] 4.1 `createEvent` and `updateEvent`: accept any session, force the
+- [x] 4.1 `createEvent` and `updateEvent`: accept any session, force the
       organisation as primary organiser, refuse the marker mode for an
       organisation session with `error=marker-admin-only` (message in
       `FORM_ERRORS`), and record `savedBy`. Test the organiser-forcing and the
-      marker refusal as pure helpers in `event-form.ts`.
-- [ ] 4.2 `updateOrganiser`, `hideContent`, `showContent`, `deleteContent`:
+      marker refusal as pure helpers (they live in `access.ts`, beside the
+      scope rule, rather than in `event-form.ts`).
+- [x] 4.2 `updateOrganiser`, `hideContent`, `showContent`, `deleteContent`:
       guard with `canManage` for an organisation session (events only for the
       last three) and record `savedBy` on organiser saves. `changePermalink`
       and organiser hide stay admin-only. Verify with `pnpm typecheck`.
-- [ ] 4.3 Media actions: uploads accept any session; delete, bulk delete,
+- [x] 4.3 Media actions: uploads accept any session; delete, bulk delete,
       replace and details stay `assertAdmin`. Verify with `pnpm typecheck`.
-- [ ] 4.4 `changePermalink` for an organiser also rewrites `organisation` on
+- [x] 4.4 `changePermalink` for an organiser also rewrites `organisation` on
       user documents and reports them as referrers. Test with a temporary
       store: a user of the renamed organisation follows it, others untouched.
-- [ ] 4.5 Add `savedBy` (optional) to the event and organiser schemas and to
+- [x] 4.5 Add `savedBy` (optional) to the event and organiser schemas and to
       `createDocument`/`updateDocument` callers in the backend, as the email or
       "beheerder". Test that an existing document without it still parses.
 

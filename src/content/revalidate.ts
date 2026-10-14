@@ -95,7 +95,7 @@ export async function revalidateAfterPermalinkChange(
   type: ManagedType,
   from: string,
   to: string,
-  referrers: Array<{ kind: ManagedType | "feed"; slug: string }>,
+  referrers: Array<{ kind: ManagedType | "feed" | "user"; slug: string }>,
 ): Promise<void> {
   const paths = new Set<string>([
     itemPath(type, from),
@@ -108,7 +108,7 @@ export async function revalidateAfterPermalinkChange(
     routes.blog,
   ]);
   for (const r of referrers) {
-    if (r.kind !== "feed") paths.add(itemPath(r.kind, r.slug));
+    if (r.kind !== "feed" && r.kind !== "user") paths.add(itemPath(r.kind, r.slug));
   }
   await revalidateContent([...paths]);
 }

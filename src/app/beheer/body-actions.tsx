@@ -1,7 +1,7 @@
 "use server";
 
 import type { ReactNode } from "react";
-import { isAdmin } from "@/lib/auth-server";
+import { getSession } from "@/lib/auth-server";
 import { compileBody } from "@/components/mdx/mdx";
 import { saveUploadChecked } from "@/content/media";
 
@@ -14,12 +14,12 @@ import { saveUploadChecked } from "@/content/media";
 export type PreviewResult = { ok: true; node: ReactNode } | { ok: false; error: string };
 
 /**
- * Render a body exactly as its public page will, for an administrator only.
+ * Render a body exactly as its public page will, for a signed-in account.
  * A body the compiler rejects comes back as `{ ok: false }` with the compiler's
  * message, never as a partial rendering.
  */
 export async function previewBody(source: string): Promise<PreviewResult> {
-  if (!(await isAdmin())) return { ok: false, error: "Niet ingelogd." };
+  if (!(await getSession())) return { ok: false, error: "Niet ingelogd." };
   try {
     return { ok: true, node: await compileBody(source) };
   } catch (err) {
@@ -35,7 +35,8 @@ export type InlineUploadResult = { ok: true; url: string } | { ok: false; reason
  * lands in the media library like any other.
  */
 export async function uploadInlineImage(formData: FormData): Promise<InlineUploadResult> {
-  if (!(await isAdmin())) return { ok: false, reason: "auth" };
+  // Any account may add to the shared pool (organisation-accounts D6).
+  if (!(await getSession())) return { ok: false, reason: "auth" };
   const result = await saveUploadChecked(formData.get("image"));
   if (!result.ok) return { ok: false, reason: result.reason };
   if (!result.url) return { ok: false, reason: "upload-missing" };

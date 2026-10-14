@@ -1,7 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import {
   ADMIN_HINT_COOKIE,
@@ -11,7 +11,8 @@ import {
   createSessionToken,
   type Session,
 } from "@/lib/auth";
-import { isAdmin } from "@/lib/auth-server";
+import { requireAdmin, requireSession, scopeOf, type Actor } from "@/lib/auth-server";
+import { allowedMode, canManage, organisersFor, savedByLabel } from "@/content/access";
 import { getUserByEmail } from "@/content/users";
 import { verifyPassword } from "@/lib/password";
 import {
@@ -219,9 +220,23 @@ export async function logout() {
 }
 
 // ── Approval queue ───────────────────────────────────────────────────────────
+/** Administrator only: an organisation session lands on its overview (D3). */
 async function assertAdmin() {
-  if (!(await isAdmin())) redirect("/beheer/login");
+  await requireAdmin();
 }
+
+/** Any signed-in actor; the caller applies the scope rule (D5, D6). */
+async function assertSession(): Promise<Actor> {
+  return requireSession();
+}
+
+/** The `savedBy` stamp for this actor's writes (D9). */
+function savedBy(actor: Actor): string {
+  return savedByLabel(scopeOf(actor), actor.role === "organisation" ? actor.user.email : undefined);
+}
+
+/** Every write by the administrator alone records it as such (D9). */
+const SAVED_BY_ADMIN = savedByLabel({ role: "admin" });
 
 export async function approveSubmission(formData: FormData) {
   await assertAdmin();
@@ -290,7 +305,8 @@ function readNextOnly(form: FormData, hasRecurrence: boolean): true | undefined 
 }
 
 export async function createEvent(formData: FormData) {
-  await assertAdmin();
+  const actor = await assertSession();
+  const scope = scopeOf(actor);
   // Where the event leads: its own page, an external one, or no page at all
   // (event-external-link D4). Read first, because a marker's dates are
   // rewritten before anything parses them.
@@ -303,13 +319,17 @@ export async function createEvent(formData: FormData) {
   // public submission form still requires both. An event may name several
   // organisers, stored as `organiser` + `moreOrganisers`
   // (event-multiple-organisers D3).
-  const organisers = organiserFields(organisersFrom(formData));
+  // An organisation account's organisation is always the primary organiser,
+  // whatever the form posted (organisation-accounts D6).
+  const organisers = organiserFields(organisersFor(scope, organisersFrom(formData)));
   if (!title || !start) {
     redirect("/beheer/nieuw/evenement?error=1");
   }
   // An external event without a usable address would link nowhere, so it is
   // refused before the upload (event-external-link D5).
   if (!mode.ok) redirect(`/beheer/nieuw/evenement?error=${mode.reason}`);
+  // A marker is the administrator's to make (D6).
+  if (!allowedMode(scope, mode.mode)) redirect("/beheer/nieuw/evenement?error=marker-admin-only");
   const noPage = mode.mode === "marker";
   const end = str(formData, "end");
   // A marker shows no end, so its hidden end is kept as posted but not checked
@@ -339,6 +359,7 @@ export async function createEvent(formData: FormData) {
     "event",
     title!,
     {
+      savedBy: savedBy(actor),
       title,
       // Typed Amsterdam wall time, stored unambiguously (siteInputToIso).
       start: siteInputToIso(start),
@@ -377,6 +398,7 @@ export async function createVenue(formData: FormData) {
     "venue",
     name!,
     {
+      savedBy: SAVED_BY_ADMIN,
       name,
       phone: str(formData, "phone"),
       email: str(formData, "email"),
@@ -439,6 +461,7 @@ export async function createOrganiser(formData: FormData) {
     "organiser",
     name!,
     {
+      savedBy: SAVED_BY_ADMIN,
       name,
       phone: str(formData, "phone"),
       email: str(formData, "email"),
@@ -470,6 +493,7 @@ export async function createBlog(formData: FormData) {
     "blog",
     title!,
     {
+      savedBy: SAVED_BY_ADMIN,
       title,
       author,
       date,
@@ -510,6 +534,7 @@ export async function createProject(formData: FormData) {
     "project",
     title!,
     {
+      savedBy: SAVED_BY_ADMIN,
       title,
       // `date` is stamped automatically and used only for ordering (design D2);
       // it is not an editor-entered field.
@@ -533,19 +558,27 @@ export async function createProject(formData: FormData) {
 // managed by hide/show below.
 
 export async function updateEvent(formData: FormData) {
-  await assertAdmin();
+  const actor = await assertSession();
+  const scope = scopeOf(actor);
   const slug = str(formData, "slug");
   if (!slug) redirect(adminListPath("event"));
+  // The stored document decides who may change it: an organisation account
+  // only its own events (organisation-accounts D5). Read before anything is
+  // parsed or uploaded, so a refused request leaves nothing behind.
+  const stored = await getEditable("event", slug!);
+  if (!stored || !canManage(scope, "event", { slug: slug!, ...stored.data })) notFound();
   const mode = readEventMode(formData);
   const title = str(formData, "title");
   const start = str(formData, "start");
   const venue = str(formData, "venue");
   // Both organiser fields are always in the patch, so the merge clears the ones
-  // the editor removed (event-multiple-organisers D3).
-  const organisers = organiserFields(organisersFrom(formData));
+  // the editor removed (event-multiple-organisers D3). An organisation account's
+  // organisation stays primary whatever was posted (organisation-accounts D6).
+  const organisers = organiserFields(organisersFor(scope, organisersFrom(formData)));
   const back = editBack("event", slug, formData);
   if (!title || !start) redirect(withParam(back, "error", "1"));
   if (!mode.ok) redirect(withParam(back, "error", mode.reason));
+  if (!allowedMode(scope, mode.mode)) redirect(withParam(back, "error", "marker-admin-only"));
   const noPage = mode.mode === "marker";
   const end = str(formData, "end");
   // As in createEvent: a marker's hidden end is kept, not checked (event-no-page D4).
@@ -555,7 +588,6 @@ export async function updateEvent(formData: FormData) {
   // rebuilding the recurrence from the form alone — otherwise an imported
   // "every 2 weeks" silently became every week on any save, including one that
   // only changed the title (docs/bugs/recurrence-edit-clobber.md).
-  const stored = await getEditable("event", slug!);
   const recurrence = recurrenceFromForm(
     formData,
     new Date(siteInputToIso(start)!),
@@ -579,6 +611,7 @@ export async function updateEvent(formData: FormData) {
     "event",
     slug!,
     {
+      savedBy: savedBy(actor),
       title,
       // Typed Amsterdam wall time, stored unambiguously (siteInputToIso).
       start: siteInputToIso(start),
@@ -625,6 +658,7 @@ export async function updateVenue(formData: FormData) {
     "venue",
     slug!,
     {
+      savedBy: SAVED_BY_ADMIN,
       name,
       phone: str(formData, "phone"),
       email: str(formData, "email"),
@@ -644,9 +678,11 @@ export async function updateVenue(formData: FormData) {
 }
 
 export async function updateOrganiser(formData: FormData) {
-  await assertAdmin();
+  const actor = await assertSession();
   const slug = str(formData, "slug");
   if (!slug) redirect(adminListPath("organiser"));
+  // An organisation account edits its own page only (organisation-accounts D5).
+  if (!canManage(scopeOf(actor), "organiser", { slug: slug! })) notFound();
   const name = str(formData, "name");
   const back = editBack("organiser", slug, formData);
   if (!name) redirect(withParam(back, "error", "1"));
@@ -655,6 +691,7 @@ export async function updateOrganiser(formData: FormData) {
     "organiser",
     slug!,
     {
+      savedBy: savedBy(actor),
       name,
       phone: str(formData, "phone"),
       email: str(formData, "email"),
@@ -695,6 +732,7 @@ export async function updateBlog(formData: FormData) {
     "blog",
     slug!,
     {
+      savedBy: SAVED_BY_ADMIN,
       title,
       author,
       date,
@@ -725,6 +763,7 @@ export async function updateProject(formData: FormData) {
     "project",
     slug!,
     {
+      savedBy: SAVED_BY_ADMIN,
       title,
       venue,
       organisers,
@@ -785,11 +824,23 @@ async function performDelete(
   return { blocked: false };
 }
 
+/**
+ * Who may hide, show or delete `slug`: the administrator, or an organisation
+ * account for its own events only — never its organiser page, whose
+ * visibility is the administrator's (organisation-accounts D6).
+ */
+async function assertManaged(actor: Actor, type: ManagedType, slug: string) {
+  if (actor.role === "admin") return;
+  const stored = type === "event" ? await getEditable("event", slug) : null;
+  if (!stored || !canManage(scopeOf(actor), "event", { slug, ...stored.data })) notFound();
+}
+
 export async function hideContent(formData: FormData) {
-  await assertAdmin();
+  const actor = await assertSession();
   const type = managedType(formData);
   const slug = str(formData, "slug");
   if (!type || !slug) return;
+  await assertManaged(actor, type, slug);
   const back = listBack(type, formData);
   if ((await performHide(type, slug)).blocked) {
     redirect(withParam(back, "blocked", slug));
@@ -798,10 +849,11 @@ export async function hideContent(formData: FormData) {
 }
 
 export async function showContent(formData: FormData) {
-  await assertAdmin();
+  const actor = await assertSession();
   const type = managedType(formData);
   const slug = str(formData, "slug");
   if (!type || !slug) return;
+  await assertManaged(actor, type, slug);
   await setStatus(type, slug, "published");
   await revalidateAfterItemChange(type, slug);
   revalidatePath(adminListPath(type));
@@ -813,10 +865,11 @@ export async function showContent(formData: FormData) {
 // scan for ?undeletable to name the referrers (distinct from the hide ?blocked
 // signal, which reports the published-only set).
 export async function deleteContent(formData: FormData) {
-  await assertAdmin();
+  const actor = await assertSession();
   const type = managedType(formData);
   const slug = str(formData, "slug");
   if (!type || !slug) return;
+  await assertManaged(actor, type, slug);
   const back = listBack(type, formData);
   if ((await performDelete(type, slug)).blocked) {
     redirect(withParam(back, "undeletable", slug));
@@ -935,7 +988,8 @@ function galleryBack(form: FormData): string {
 const imagePage = (name: string) => `${GALLERY}/${encodeURIComponent(name)}`;
 
 export async function uploadMedia(formData: FormData) {
-  await assertAdmin();
+  // Any account may add to the shared pool; deleting stays the admin's (D6).
+  await assertSession();
   const back = galleryBack(formData);
   const result = await saveUploadChecked(formData.get("image"));
   if (!result.ok) redirect(withParam(back, "error", result.reason));

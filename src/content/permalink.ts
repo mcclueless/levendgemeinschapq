@@ -1,6 +1,7 @@
 import matter from "gray-matter";
 import { CONTENT_PREFIX, getStore } from "./storage";
 import { patchFrontmatter, slugify } from "./write";
+import { moveUsersToOrganisation } from "./users";
 import { listFeeds, updateFeed } from "./feeds";
 import {
   REFERENCE_FIELDS,
@@ -40,7 +41,8 @@ export function isPermalinkType(type: string): type is PermalinkType {
 export type PermalinkRefusal = "empty" | "unchanged" | "taken" | "missing";
 
 export interface RewrittenReferrer {
-  kind: ReferrerKind;
+  /** `user`: an organisation account moved to the renamed organiser (organisation-accounts D10). */
+  kind: ReferrerKind | "user";
   /** Content slug, or feed id. */
   slug: string;
 }
@@ -128,6 +130,15 @@ export async function changePermalink(
         await patchFrontmatter(contentType, doc.slug, changedFields(kind, type, data, patched));
         referrers.push({ kind, slug: doc.slug });
       }
+    }
+  }
+
+  // Step 2b: the organisation's accounts follow it (organisation-accounts D10).
+  // Not a referrer kind of the guards — an account never blocks a hide or a
+  // delete — so it is handled here, beside the feeds.
+  if (type === "organiser") {
+    for (const id of await moveUsersToOrganisation(from, to, store)) {
+      referrers.push({ kind: "user", slug: id });
     }
   }
 
