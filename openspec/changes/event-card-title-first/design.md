@@ -37,8 +37,9 @@ three siblings.
 
 A mixed grid, with the yellow box at the top of some cards and the bottom of
 others, would look like a mistake. The marker scenario in the events spec is
-reworded accordingly. The proposal offered the alternative (markers unchanged)
-and the user chose to apply the proposal as written.
+reworded accordingly. The proposal offered the alternative (markers unchanged);
+no choice came back before the apply on 14 October 2026, so the proposal's
+default stands. A one-line revert in `MarkerCard` undoes it.
 
 ### D3. A small diff on a recently changed file
 
