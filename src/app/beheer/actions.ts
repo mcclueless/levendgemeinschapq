@@ -9,8 +9,11 @@ import {
   SESSION_MAX_AGE,
   checkAdminPassword,
   createSessionToken,
+  type Session,
 } from "@/lib/auth";
 import { isAdmin } from "@/lib/auth-server";
+import { getUserByEmail } from "@/content/users";
+import { verifyPassword } from "@/lib/password";
 import {
   createDocument,
   purgeDocument,
@@ -142,32 +145,70 @@ function pickedCoords(form: FormData): { lat: number; lng: number } | null {
 }
 
 // ── Auth ────────────────────────────────────────────────────────────────────
+
+/** About a second, so a guess costs time and the cause is not told apart. */
+const FAILED_LOGIN_DELAY_MS = 1000;
+
+/** `pv` for a session: the account's password moment, in seconds (D4). */
+function passwordVersion(changedAt: Date): number {
+  return Math.floor(changedAt.getTime() / 1000);
+}
+
+/**
+ * Sign in. An empty email means the administrator's password; an email means
+ * an organisation account (organisation-accounts D11). Every failure —
+ * unknown email, wrong password, disabled account — waits the same delay and
+ * lands on the same message, so the form does not say which accounts exist
+ * (D2).
+ */
 export async function login(formData: FormData) {
+  const email = str(formData, "email");
   const password = str(formData, "password") ?? "";
   const next = str(formData, "next") ?? "/beheer";
-  if (!checkAdminPassword(password)) {
+  const fail = async () => {
+    await new Promise((r) => setTimeout(r, FAILED_LOGIN_DELAY_MS));
     redirect(`/beheer/login?error=1&next=${encodeURIComponent(next)}`);
+  };
+
+  let session: Session;
+  if (!email) {
+    if (!checkAdminPassword(password)) await fail();
+    session = { role: "admin" };
+  } else {
+    const user = await getUserByEmail(email);
+    // Verify even for an unknown email so the timing does not differ.
+    const ok = await verifyPassword(password, user?.passwordHash ?? "scrypt$32768$8$1$AA$AA");
+    if (!user || !ok || user.disabled) await fail();
+    session = {
+      role: "organisation",
+      sub: user!.id,
+      org: user!.organisation,
+      pv: passwordVersion(user!.passwordChangedAt),
+    };
   }
-  const token = await createSessionToken();
-  const jar = await cookies();
-  jar.set(SESSION_COOKIE, token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: SESSION_MAX_AGE,
-  });
-  // Client-readable hint (admin-presence): lets the public footer + banner
-  // reveal admin UI without server-rendering session state. Not httpOnly by
-  // design; it is only a hint — real auth stays in SESSION_COOKIE.
-  jar.set(ADMIN_HINT_COOKIE, "1", {
-    httpOnly: false,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: SESSION_MAX_AGE,
-  });
+  await setSessionCookie(session);
   redirect(next);
+}
+
+/**
+ * The session cookie, and for the administrator the client-readable hint
+ * (admin-presence) that lets the public footer and banner reveal admin UI
+ * without server-rendering session state. Not httpOnly by design; it is only
+ * a hint — real auth stays in SESSION_COOKIE. An organisation session sets no
+ * hint: the public pages show nothing to it (organisation-accounts D3).
+ */
+async function setSessionCookie(session: Session) {
+  const token = await createSessionToken(session);
+  const jar = await cookies();
+  const options = {
+    sameSite: "lax" as const,
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: SESSION_MAX_AGE,
+  };
+  jar.set(SESSION_COOKIE, token, { ...options, httpOnly: true });
+  if (session.role === "admin") jar.set(ADMIN_HINT_COOKIE, "1", { ...options, httpOnly: false });
+  else jar.delete(ADMIN_HINT_COOKIE);
 }
 
 export async function logout() {

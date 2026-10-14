@@ -1,5 +1,4 @@
-import { randomBytes, scrypt as scryptCb, timingSafeEqual } from "node:crypto";
-import { promisify } from "node:util";
+import { randomBytes, scrypt, timingSafeEqual } from "node:crypto";
 
 /**
  * Password hashing for organisation accounts (organisation-accounts D2).
@@ -8,8 +7,6 @@ import { promisify } from "node:util";
  * `scrypt$N$r$p$<salt base64>$<hash base64>` — so they can be raised later
  * without invalidating existing hashes.
  */
-
-const scrypt = promisify(scryptCb);
 
 /** Twelve characters, no other rule: length is what resists guessing. */
 export const PASSWORD_MIN_LENGTH = 12;
@@ -24,8 +21,13 @@ export function isAcceptablePassword(password: string): boolean {
   return password.length >= PASSWORD_MIN_LENGTH;
 }
 
-async function derive(password: string, salt: Buffer, n: number, r: number, p: number) {
-  return (await scrypt(password, salt, KEY_LENGTH, { N: n, r, p, maxmem: 128 * n * r * 2 })) as Buffer;
+function derive(password: string, salt: Buffer, n: number, r: number, p: number): Promise<Buffer> {
+  // Promisified by hand: `util.promisify` loses the options overload's types.
+  return new Promise((resolve, reject) =>
+    scrypt(password, salt, KEY_LENGTH, { N: n, r, p, maxmem: 128 * n * r * 2 }, (err, key) =>
+      err ? reject(err) : resolve(key),
+    ),
+  );
 }
 
 export async function hashPassword(password: string): Promise<string> {

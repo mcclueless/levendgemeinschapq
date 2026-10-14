@@ -3,8 +3,9 @@ import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
 
 /**
  * Route protection for the editorial backend (editorial-backend spec):
- * everything under /beheer requires a valid admin session, except the login
- * page itself.
+ * everything under /beheer requires a valid session, except the login page
+ * itself. Either role passes here; the middleware keeps strangers out, and
+ * each page decides what the role may see (organisation-accounts D3).
  */
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

@@ -21,11 +21,11 @@
 
 ## 2. Sessions and sign-in (D3, D4, D11)
 
-- [ ] 2.1 In `src/lib/auth.ts`, make the token payload a `Session` union and
+- [x] 2.1 In `src/lib/auth.ts`, make the token payload a `Session` union and
       `verifySessionToken` return it or null; `createSessionToken(session)`.
       Tests: admin and organisation tokens round-trip, a token of the other
       shape or a tampered one returns null.
-- [ ] 2.2 In `src/lib/auth-server.ts`, add `getSession`, `requireSession`
+- [x] 2.2 In `src/lib/auth-server.ts`, add `getSession`, `requireSession`
       (reads the user document for an organisation session and refuses a
       missing, disabled or password-changed account) and make `requireAdmin`
       send an organisation session to `/beheer?alleen=beheerder`. Keep
