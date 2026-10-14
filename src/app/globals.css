@@ -86,6 +86,19 @@ a {
   outline-offset: 2px;
   border-radius: 4px;
 }
+
+/* Buttons show the hand pointer (design-system spec, button-cursor-affordance).
+   Tailwind 4's reset leaves buttons on the arrow cursor, unlike Tailwind 3,
+   so a button looked no more pressable than a label. One rule here covers
+   the shared Button, the backend SubmitButton and every hand-styled button.
+   `:enabled` keeps the arrow on a disabled button, which must not invite a
+   press; a role="button" element has no native disabled state, hence the
+   aria-disabled exclusion. */
+button:enabled,
+[role="button"]:not([aria-disabled="true"]),
+summary {
+  cursor: pointer;
+}
 } /* end @layer base */
 
 /* Shared admin chrome (admin-presence / design-system spec) ----------------- */
