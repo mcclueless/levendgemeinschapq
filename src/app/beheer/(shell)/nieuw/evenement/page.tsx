@@ -13,7 +13,8 @@ import { SocialFields } from "@/components/admin/social-fields";
 import { BodyEditor } from "@/components/admin/body-editor";
 import { EventModeField, EventStartInput } from "@/components/admin/event-mode-field";
 import { DateListField } from "@/components/admin/date-list-field";
-import { requireAdmin } from "@/lib/auth-server";
+import { requireSession } from "@/lib/auth-server";
+import { OrganisersField } from "@/components/admin/organisers-field";
 import { getOrganisers, getVenues } from "@/content/repository";
 import { listMedia } from "@/content/media";
 import { createEvent } from "@/app/beheer/actions";
@@ -29,7 +30,8 @@ export default async function NewEventPage({
 }: {
   searchParams: Promise<{ error?: string }>;
 }) {
-  await requireAdmin();
+  const actor = await requireSession();
+  const own = actor.role === "organisation" ? actor.user.organisation : undefined;
   const [params, venues, organisers, pool] = await Promise.all([
     searchParams,
     getVenues(),
@@ -48,7 +50,7 @@ export default async function NewEventPage({
           <Input id="title" name="title" required />
         </Field>
 
-        <EventModeField />
+        <EventModeField allowMarker={!own} />
 
         <Field label="Uitgelichte afbeelding" htmlFor="image" info={<ImageGuidance kind="cover" />} hint="Upload nieuw of kies uit de galerij. Optioneel, behalve zonder eigen pagina of bij een eigen website.">
           <ImageField pool={pool} />
@@ -76,15 +78,7 @@ export default async function NewEventPage({
               ))}
             </Select>
           </Field>
-          <Field label="Organisatoren" htmlFor="organisers" hint="Geen, één of meer. Houd Ctrl/⌘ ingedrukt voor meerdere.">
-            <Select id="organisers" name="organisers" multiple className="min-h-32">
-              {organisers.map((o) => (
-                <option key={o.slug} value={o.slug}>
-                  {o.name}
-                </option>
-              ))}
-            </Select>
-          </Field>
+          <OrganisersField organisers={organisers} own={own} />
         </div>
 
         <div className="grid gap-5 sm:grid-cols-2">

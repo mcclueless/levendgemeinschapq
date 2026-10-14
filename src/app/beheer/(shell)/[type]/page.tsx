@@ -4,7 +4,9 @@ import { notFound } from "next/navigation";
 import { ContentTable } from "@/components/admin/content-table";
 import { Pagination } from "@/components/admin/pagination";
 import { Input, Select } from "@/components/admin/form";
-import { requireAdmin } from "@/lib/auth-server";
+import { redirect } from "next/navigation";
+import { ADMIN_ONLY, requireSession, scopeOf } from "@/lib/auth-server";
+import { canView } from "@/content/access";
 import { listContent, findReferences, type ContentReference } from "@/content/admin";
 import {
   applyListQuery,
@@ -68,10 +70,14 @@ export default async function ManageListPage({
   params: Promise<{ type: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  await requireAdmin();
+  const actor = await requireSession();
+  const scope = scopeOf(actor);
   const { type: segment } = await params;
   if (!isSegment(segment)) notFound();
   const type = ADMIN_SEGMENT_TO_TYPE[segment];
+  // An organisation account lists its events and nothing else
+  // (organisation-accounts D7); its own page is reached from the navigation.
+  if (scope.role === "organisation" && type !== "event") redirect(ADMIN_ONLY);
   const raw = await searchParams;
   const one = (key: string) => {
     const value = raw[key];
@@ -84,11 +90,16 @@ export default async function ManageListPage({
   // Names for the location and organiser cells and filters. Only the types that
   // show them read the other lists; one request reads a type once (D2).
   const relations = hasRelationFilters(type);
-  const [items, venues, organisers] = await Promise.all([
+  const [all, venues, organisers] = await Promise.all([
     listContent(type),
     relations || type === "organiser" ? listContent("venue") : Promise.resolve([]),
     relations ? listContent("organiser") : Promise.resolve([]),
   ]);
+  // Owned and co-organised events for an organisation account; everything for
+  // the administrator (D5).
+  const items = all.filter((i) =>
+    canView(scope, type, { slug: i.slug, organiser: i.organiser, moreOrganisers: i.organisers }),
+  );
   const venueNames = new Map(venues.map((v) => [v.slug, v.title]));
   const organiserNames = new Map(organisers.map((o) => [o.slug, o.title]));
 
@@ -101,7 +112,10 @@ export default async function ManageListPage({
   const view = (overrides: Partial<ListQuery> = {}) =>
     `${listPath}${listQueryString(query, overrides)}`;
   const here = view({ pagina: result.page });
-  const tabs = STATUS_TABS.filter((t) => t.status !== "pending" || canBePending(type));
+  // The queue is the administrator's, so its tab is too (D7).
+  const tabs = STATUS_TABS.filter(
+    (t) => t.status !== "pending" || (canBePending(type) && scope.role === "admin"),
+  );
 
   // Hide-block names the published referrers; delete-block names ALL referrers
   // (any status), so the two use distinct signals and reference scopes.
@@ -318,6 +332,7 @@ export default async function ManageListPage({
                   venueNames={venueNames}
                   organiserNames={organiserNames}
                   today={today}
+                  scope={scope}
                 />
               </div>
               <Pagination

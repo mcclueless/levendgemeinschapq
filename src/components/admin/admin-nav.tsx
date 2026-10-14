@@ -4,13 +4,15 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
 
+type Entry = { href: string; label: string; also?: string[] };
+
 /**
  * Backend navigation entries (admin-content-table D7), in three groups: the
  * dashboard, the content types, and the tools. `also` names the addresses
  * outside an entry's own path that belong to its section — a type's create
  * form lives under `/beheer/nieuw/`, and import is part of the feeds.
  */
-const groups: Array<Array<{ href: string; label: string; also?: string[] }>> = [
+const ADMIN_GROUPS: Entry[][] = [
   [{ href: "/beheer", label: "Overzicht" }],
   [
     { href: "/beheer/evenementen", label: "Evenementen", also: ["/beheer/nieuw/evenement"] },
@@ -24,8 +26,31 @@ const groups: Array<Array<{ href: string; label: string; also?: string[] }>> = [
     { href: "/beheer/galerij", label: "Galerij" },
     { href: "/beheer/feeds", label: "Agenda-feeds", also: ["/beheer/import"] },
     { href: "/beheer/prullenbak", label: "Prullenbak" },
+    { href: "/beheer/gebruikers", label: "Gebruikers" },
   ],
 ];
+
+/**
+ * What an organisation account sees (organisation-accounts D7): its events,
+ * its own organiser page, the gallery, and its password. Nothing else exists
+ * for it, so nothing else is offered.
+ */
+function organisationGroups(org: string): Entry[][] {
+  return [
+    [{ href: "/beheer", label: "Overzicht" }],
+    [
+      { href: "/beheer/evenementen", label: "Evenementen", also: ["/beheer/nieuw/evenement"] },
+      { href: `/beheer/organisatoren/${org}/bewerken`, label: "Mijn organisatie" },
+    ],
+    [
+      { href: "/beheer/galerij", label: "Galerij" },
+      { href: "/beheer/wachtwoord", label: "Wachtwoord" },
+    ],
+  ];
+}
+
+/** Who the navigation is for: the administrator, or an organisation account. */
+export type NavRole = { role: "admin" } | { role: "organisation"; org: string };
 
 const within = (pathname: string, href: string) =>
   pathname === href || pathname.startsWith(`${href}/`);
@@ -35,8 +60,9 @@ const within = (pathname: string, href: string) =>
  * mark is `aria-current` for assistive technology, and a bar plus heavier text
  * for the eye — not colour alone (accessibility-compliance spec).
  */
-export function AdminNav({ label }: { label: string }) {
+export function AdminNav({ label, who }: { label: string; who: NavRole }) {
   const pathname = usePathname();
+  const groups = who.role === "admin" ? ADMIN_GROUPS : organisationGroups(who.org);
 
   return (
     <nav aria-label={label}>

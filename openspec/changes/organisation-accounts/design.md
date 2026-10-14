@@ -139,19 +139,32 @@ address gets `notFound()`; on an action, the action returns without writing.
   render for the admin only; `[name]` detail page is admin-only.
 - `admin-nav.tsx` takes the role and renders the per-role groups.
 
-Guard per route and action, filled in by task 5.6:
+Guard per route and action (task 5.6, checked 14 October 2026):
 
-| Route or action | Guard |
+| Route | Guard |
 |---|---|
-| `/beheer` (overview) | `requireSession` |
-| `/beheer/evenementen`, new and edit event | `requireSession` + `canView`/`canManage` |
-| `organisatoren/<slug>/bewerken` | `requireSession` + `canManage` |
-| `/beheer/galerij` | `requireSession`; admin-only controls hidden |
-| `/beheer/wachtwoord` | `requireSession`, organisation role |
-| everything else under `/beheer` | `requireAdmin` |
-| `createEvent`, `updateEvent`, `updateOrganiser`, hide/show/delete | session + `canManage` |
-| uploads | any session |
-| all other actions | `assertAdmin` |
+| `/beheer` (overview) | `requireSession`; organisation branch renders its own page |
+| `/beheer/evenementen` and the other `[type]` lists | `requireSession`; non-event type sends an organisation session to the overview; rows filtered by `canView` |
+| `/beheer/nieuw/evenement` | `requireSession`; organisation fixed as primary organiser, marker absent |
+| `[type]/[slug]/bewerken` | `requireSession`; event and organiser pass `canManage` or 404; other types `requireAdmin` |
+| `/beheer/galerij` | `requireSession`; bulk delete, selection and per-image links admin only |
+| `/beheer/galerij/[name]` | `requireAdmin` |
+| `/beheer/wachtwoord` | `requireSession`, organisation role only (admin sent to overview) |
+| `/beheer/gebruikers`, `queue`, `prullenbak`, `feeds`, `feeds/[id]/bewerken`, `import`, `nieuw/{locatie,organisator,blog,project}` | `requireAdmin` |
+| `/beheer/api/address-suggest` | `isAdmin` (the venue form is admin-only) |
+| `/beheer/login` | none |
+
+| Action | Guard |
+|---|---|
+| `createEvent`, `updateEvent` | `assertSession`; `canManage` on the stored event for an update; `organisersFor`, `allowedMode` |
+| `updateOrganiser` | `assertSession` + `canManage` |
+| `hideContent`, `showContent`, `deleteContent` | `assertSession`; organisation session: events it manages only |
+| `uploadMedia`, `uploadInlineImage` | any session |
+| `previewBody` | any session |
+| `changeOwnPasswordAction` | `requireSession`, organisation role |
+| `createUserAction`, `resetUserPasswordAction`, `setUserDisabledAction` | `assertAdmin` |
+| every other action (`approve`/`reject`, venue/blog/project create and update, trash, permalink, public-banner hide/delete, media delete/bulk/details/replace, feeds) | `assertAdmin` |
+| `login`, `logout` | none |
 
 ### D8. Account pages
 

@@ -34,16 +34,20 @@ const MODES: { value: EventMode; label: string; hint: string }[] = [
 export function EventModeField({
   defaultMode = "page",
   defaultUrl,
+  allowMarker = true,
 }: {
   defaultMode?: EventMode;
   defaultUrl?: string;
+  /** The marker mode is the administrator's (organisation-accounts D6). */
+  allowMarker?: boolean;
 }) {
+  const modes = allowMarker ? MODES : MODES.filter((m) => m.value !== "marker");
   return (
     <fieldset className="grid gap-2">
       <legend className="text-sm font-medium text-ink">
         Waar leidt dit evenement naartoe?
       </legend>
-      {MODES.map((mode) => (
+      {modes.map((mode) => (
         <div key={mode.value} className="grid gap-1">
           <label className="flex items-center gap-2 text-sm text-ink">
             <input

@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Card, Badge } from "@/components/ui/card";
-import { requireAdmin } from "@/lib/auth-server";
+import { requireSession, scopeOf } from "@/lib/auth-server";
 import { getContentCounts } from "@/content/admin";
+import { canManage, canView } from "@/content/access";
+import { listSummaries } from "@/content/summaries";
 import { listTrash } from "@/content/write";
 import { listFeeds } from "@/content/feeds";
 import { adminListPath } from "@/lib/routes";
+import { Notice } from "@/components/ui/notice";
 
 export const metadata: Metadata = { title: "Beheer", robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -21,9 +24,14 @@ const createLinks = [
 export default async function AdminHome({
   searchParams,
 }: {
-  searchParams: Promise<{ created?: string; geo?: string }>;
+  searchParams: Promise<{ created?: string; geo?: string; alleen?: string }>;
 }) {
-  await requireAdmin();
+  // Any account lands here — never `requireAdmin`, which sends an organisation
+  // account to this very page (organisation-accounts D3).
+  const actor = await requireSession();
+  if (actor.role === "organisation") {
+    return <OrganisationHome actor={actor} params={await searchParams} />;
+  }
   // The trash count only counts; expiry is purged when the trash page itself
   // is opened, so the dashboard stays side-effect free (content-trash D6).
   const [{ created, geo }, counts, feeds, trashed] = await Promise.all([
@@ -123,6 +131,75 @@ export default async function AdminHome({
           </Link>
         </p>
       ) : null}
+    </>
+  );
+}
+
+/**
+ * An organisation account's overview (organisation-accounts D7): its own
+ * events, counted, and the one thing it creates. Also where an admin-only page
+ * sends it, with the notice that says so.
+ */
+async function OrganisationHome({
+  actor,
+  params,
+}: {
+  actor: Extract<Awaited<ReturnType<typeof requireSession>>, { role: "organisation" }>;
+  params: { created?: string; alleen?: string };
+}) {
+  const scope = scopeOf(actor);
+  const events = (await listSummaries("event")).filter((e) =>
+    canView(scope, "event", { slug: e.slug, organiser: e.organiser, moreOrganisers: e.organisers }),
+  );
+  const own = events.filter((e) =>
+    canManage(scope, "event", { slug: e.slug, organiser: e.organiser }),
+  );
+  return (
+    <>
+      <h1 className="text-3xl">Overzicht</h1>
+      <p className="mt-2 text-muted">
+        Ingelogd als {actor.user.name} ({actor.user.email}) voor je organisatie.
+      </p>
+      {params.alleen === "beheerder" ? (
+        <Notice tone="warning" role="alert" className="mt-4">
+          Die pagina is alleen voor de beheerder. Hier vind je wat je zelf kunt beheren.
+        </Notice>
+      ) : null}
+      {params.created ? (
+        <p
+          role="status"
+          className="mt-4 rounded-md border border-brand/30 bg-brand/10 px-3 py-2 text-sm text-brand"
+        >
+          Opgeslagen ({params.created}).
+        </p>
+      ) : null}
+      <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3">
+        <Stat label="Eigen evenementen" value={own.length} href={adminListPath("event")} />
+        <Stat
+          label="Gepubliceerd"
+          value={own.filter((e) => e.status === "published").length}
+          href={`${adminListPath("event")}?status=published`}
+        />
+        <Stat
+          label="Als mede-organisator"
+          value={events.length - own.length}
+          href={adminListPath("event")}
+        />
+      </div>
+      <div className="mt-10 flex flex-wrap items-center gap-3">
+        <Link
+          href="/beheer/nieuw/evenement"
+          className="inline-flex h-11 items-center rounded-md border border-border bg-surface px-4 font-medium hover:bg-surface-2"
+        >
+          Nieuw evenement
+        </Link>
+        <Link
+          href={`/beheer/organisatoren/${actor.user.organisation}/bewerken`}
+          className="inline-flex h-11 items-center rounded-md border border-border bg-surface px-4 font-medium hover:bg-surface-2"
+        >
+          Mijn organisatie
+        </Link>
+      </div>
     </>
   );
 }

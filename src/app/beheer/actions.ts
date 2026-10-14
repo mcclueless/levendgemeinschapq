@@ -13,8 +13,14 @@ import {
 } from "@/lib/auth";
 import { requireAdmin, requireSession, scopeOf, type Actor } from "@/lib/auth-server";
 import { allowedMode, canManage, organisersFor, savedByLabel } from "@/content/access";
-import { getUserByEmail } from "@/content/users";
-import { verifyPassword } from "@/lib/password";
+import {
+  createUser,
+  getUser,
+  getUserByEmail,
+  setDisabled,
+  setPassword,
+} from "@/content/users";
+import { hashPassword, isAcceptablePassword, verifyPassword } from "@/lib/password";
 import {
   createDocument,
   purgeDocument,
@@ -1227,4 +1233,81 @@ export async function syncAllFeedsAction() {
   revalidatePath("/beheer/queue");
   revalidatePath("/beheer");
   redirect(`${FEEDS}?synced=alle`);
+}
+
+// ── Accounts (organisation-accounts D8) ──────────────────────────────────────
+// The administrator creates, resets and switches accounts; an account changes
+// its own password. Passwords are handed over in person, never sent.
+
+const USERS = "/beheer/gebruikers";
+
+export async function createUserAction(formData: FormData) {
+  await assertAdmin();
+  const email = str(formData, "email");
+  const name = str(formData, "name");
+  const organisation = str(formData, "organisation");
+  const password = str(formData, "password") ?? "";
+  if (!email || !name || !organisation) redirect(withParam(USERS, "error", "1"));
+  if (!isAcceptablePassword(password)) redirect(withParam(USERS, "error", "password-short"));
+  // The organisation must exist: an account is scoped to its page.
+  if (!(await getEditable("organiser", organisation!))) {
+    redirect(withParam(USERS, "error", "organisation-unknown"));
+  }
+  const result = await createUser({
+    email: email!,
+    name: name!,
+    organisation: organisation!,
+    passwordHash: await hashPassword(password),
+  });
+  if (!result.ok) redirect(withParam(USERS, "error", result.reason));
+  redirect(withParam(USERS, "gebruiker", "aangemaakt"));
+}
+
+export async function resetUserPasswordAction(formData: FormData) {
+  await assertAdmin();
+  const id = str(formData, "id");
+  const password = str(formData, "password") ?? "";
+  if (!id || !(await getUser(id))) redirect(USERS);
+  if (!isAcceptablePassword(password)) redirect(withParam(USERS, "error", "password-short"));
+  // Moves `passwordChangedAt`, so the account's sessions end (D4).
+  await setPassword(id!, await hashPassword(password));
+  redirect(withParam(USERS, "gebruiker", "wachtwoord-gereset"));
+}
+
+export async function setUserDisabledAction(formData: FormData) {
+  await assertAdmin();
+  const id = str(formData, "id");
+  if (!id || !(await getUser(id))) redirect(USERS);
+  const disabled = Boolean(formData.get("disabled"));
+  await setDisabled(id!, disabled);
+  redirect(withParam(USERS, "gebruiker", disabled ? "uitgeschakeld" : "ingeschakeld"));
+}
+
+const PASSWORD = "/beheer/wachtwoord";
+
+/**
+ * An account changes its own password. The current one is required, and the
+ * session is re-issued with the new password moment so this browser stays
+ * signed in while any other is cut off (D4).
+ */
+export async function changeOwnPasswordAction(formData: FormData) {
+  const actor = await requireSession();
+  if (actor.role !== "organisation") redirect("/beheer");
+  const current = str(formData, "current") ?? "";
+  const password = str(formData, "password") ?? "";
+  const repeat = str(formData, "repeat") ?? "";
+  if (!(await verifyPassword(current, actor.user.passwordHash))) {
+    redirect(withParam(PASSWORD, "error", "password-current"));
+  }
+  if (!isAcceptablePassword(password)) redirect(withParam(PASSWORD, "error", "password-short"));
+  if (password !== repeat) redirect(withParam(PASSWORD, "error", "password-repeat"));
+  const now = new Date();
+  await setPassword(actor.user.id, await hashPassword(password), undefined, now);
+  await setSessionCookie({
+    role: "organisation",
+    sub: actor.user.id,
+    org: actor.user.organisation,
+    pv: passwordVersion(now),
+  });
+  redirect(withParam(PASSWORD, "gewijzigd", "1"));
 }

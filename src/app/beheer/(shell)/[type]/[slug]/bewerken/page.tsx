@@ -19,7 +19,10 @@ import { EventModeField, EventStartInput } from "@/components/admin/event-mode-f
 import { DateListField } from "@/components/admin/date-list-field";
 import { AddressAutocomplete } from "@/components/admin/address-autocomplete";
 import { PermalinkForm } from "@/components/admin/permalink-form";
-import { requireAdmin } from "@/lib/auth-server";
+import { requireAdmin, requireSession, scopeOf } from "@/lib/auth-server";
+import { canManage } from "@/content/access";
+import { OrganisersField } from "@/components/admin/organisers-field";
+import { SavedBy } from "@/components/admin/saved-by";
 import { getEditable } from "@/content/admin";
 import { eventOrganiserSlugs } from "@/content/event-organisers";
 import { getOrganisers, getVenues } from "@/content/repository";
@@ -67,13 +70,20 @@ export default async function EditPage({
   params: Promise<{ type: string; slug: string }>;
   searchParams: Promise<{ error?: string; permalink?: string; terug?: string }>;
 }) {
-  await requireAdmin();
+  const actor = await requireSession();
+  const scope = scopeOf(actor);
+  const admin = scope.role === "admin";
+  const own = actor.role === "organisation" ? actor.user.organisation : undefined;
   // `terug` is the list view the editor came from; the form posts it back so
   // saving returns there (admin-content-table D6). The action validates it.
   const { error, permalink, terug } = await searchParams;
   const { type: segment, slug } = await params;
   if (!isSegment(segment)) notFound();
   const type = ADMIN_SEGMENT_TO_TYPE[segment];
+  // An organisation account edits its events and its own page; every other
+  // type is the administrator's (organisation-accounts D7). The item itself
+  // is checked once loaded: another organisation's is not found (D5).
+  if (type !== "event" && type !== "organiser") await requireAdmin();
   const pool = await listMedia();
 
   const formClass = "mt-8 grid max-w-2xl gap-5";
@@ -84,7 +94,7 @@ export default async function EditPage({
       getVenues(),
       getOrganisers(),
     ]);
-    if (!doc) notFound();
+    if (!doc || !canManage(scope, "event", { slug, ...doc.data })) notFound();
     const d = doc.data;
     return (
       <>
@@ -97,7 +107,7 @@ export default async function EditPage({
             <Input id="title" name="title" required defaultValue={d.title} />
           </Field>
           {/* The stored mode, derived from the two fields (event-external-link D1). */}
-          <EventModeField defaultMode={eventMode(d)} defaultUrl={d.externalUrl} />
+          <EventModeField defaultMode={eventMode(d)} defaultUrl={d.externalUrl} allowMarker={admin} />
           <Field label="Uitgelichte afbeelding" htmlFor="image" info={<ImageGuidance kind="cover" />}>
             <ImageField pool={pool} current={d.featuredImage} />
           </Field>
@@ -130,21 +140,7 @@ export default async function EditPage({
                 ))}
               </Select>
             </Field>
-            <Field label="Organisatoren" htmlFor="organisers" hint="Geen, één of meer. Houd Ctrl/⌘ ingedrukt voor meerdere.">
-              <Select
-                id="organisers"
-                name="organisers"
-                multiple
-                className="min-h-32"
-                defaultValue={eventOrganiserSlugs(d)}
-              >
-                {organisers.map((o) => (
-                  <option key={o.slug} value={o.slug}>
-                    {o.name}
-                  </option>
-                ))}
-              </Select>
-            </Field>
+            <OrganisersField organisers={organisers} own={own} defaults={eventOrganiserSlugs(d)} />
           </div>
           <div className="grid gap-5 sm:grid-cols-2">
             <Field label="Herhaling" htmlFor="recurrence">
@@ -200,6 +196,7 @@ export default async function EditPage({
           <div>
             <SubmitButton>Opslaan</SubmitButton>
           </div>
+          <SavedBy by={d.savedBy} />
         </form>
       </>
     );
@@ -255,11 +252,11 @@ export default async function EditPage({
       getEditable("organiser", slug),
       getVenues(),
     ]);
-    if (!doc) notFound();
+    if (!doc || !canManage(scope, "organiser", { slug })) notFound();
     const d = doc.data;
     return (
       <>
-        <h1 className="text-3xl">Organisator bewerken</h1>
+        <h1 className="text-3xl">{admin ? "Organisator bewerken" : "Mijn organisatie"}</h1>
         <FormError code={error} />
         <form action={updateOrganiser} className={formClass}>
           <input type="hidden" name="slug" value={slug} />
@@ -313,8 +310,10 @@ export default async function EditPage({
           <div>
             <SubmitButton>Opslaan</SubmitButton>
           </div>
+          <SavedBy by={d.savedBy} />
         </form>
-        <PermalinkForm type="organiser" slug={slug} status={permalink} />
+        {/* The permalink is the account's scope key, so only the admin moves it (D7). */}
+        {admin ? <PermalinkForm type="organiser" slug={slug} status={permalink} /> : null}
       </>
     );
   }

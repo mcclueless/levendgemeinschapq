@@ -149,6 +149,12 @@ export const FORM_ERRORS: Record<string, string> = {
   "image-required":
     "Een agenda-item zonder eigen pagina toont vooral zijn afbeelding. Kies of upload een afbeelding.",
   "external-url": "Vul een volledig webadres in, beginnend met https://.",
+  "password-short": "Het wachtwoord moet minstens twaalf tekens lang zijn.",
+  "password-current": "Het huidige wachtwoord klopt niet.",
+  "password-repeat": "De twee nieuwe wachtwoorden zijn niet gelijk.",
+  "email-taken": "Er bestaat al een account met dit e-mailadres.",
+  "email-invalid": "Vul een geldig e-mailadres in.",
+  "organisation-unknown": "Die organisatie bestaat niet. Maak eerst de organisator aan.",
   "marker-admin-only":
     "Een agenda-item zonder pagina kan alleen de beheerder aanmaken. Kies ‘Eigen pagina’ of ‘Externe pagina’.",
   "range-end-before-start":

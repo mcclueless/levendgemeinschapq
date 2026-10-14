@@ -1,7 +1,8 @@
 import { Container } from "@/components/ui/container";
 import { MobileMenu } from "@/components/layout/mobile-menu";
 import { logout } from "@/app/beheer/actions";
-import { AdminNav } from "./admin-nav";
+import { getSession } from "@/lib/auth-server";
+import { AdminNav, type NavRole } from "./admin-nav";
 import { PendingContent } from "./pending-content";
 
 function LogoutButton() {
@@ -27,7 +28,12 @@ function LogoutButton() {
  * A sidebar on wide screens; below that a bar whose menu control reveals the
  * same entries, following the public header's control (D7).
  */
-export function AdminShell({ children }: { children: React.ReactNode }) {
+export async function AdminShell({ children }: { children: React.ReactNode }) {
+  // The navigation is per role (organisation-accounts D7). The middleware has
+  // already turned away a request without a session; the pages do the rest.
+  const session = await getSession();
+  const who: NavRole =
+    session?.role === "organisation" ? { role: "organisation", org: session.org } : { role: "admin" };
   return (
     <div data-backend className="lg:flex lg:items-start">
       <div className="admin-chrome border-b border-admin-border lg:hidden">
@@ -39,7 +45,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             summaryClassName="border border-admin-border text-admin-fg hover:bg-white/10"
             panelClassName="admin-chrome border border-admin-border"
           >
-            <AdminNav label="Beheernavigatie (mobiel)" />
+            <AdminNav label="Beheernavigatie (mobiel)" who={who} />
             <LogoutButton />
           </MobileMenu>
         </Container>
@@ -49,7 +55,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           window is shorter than the list. */}
       <aside className="admin-chrome sticky top-16 hidden h-[calc(100dvh-4rem)] w-60 shrink-0 overflow-y-auto border-r border-admin-border p-3 lg:block">
         <p className="px-3 pb-3 pt-2 font-display font-semibold text-admin-fg">Beheer</p>
-        <AdminNav label="Beheernavigatie" />
+        <AdminNav label="Beheernavigatie" who={who} />
         <LogoutButton />
       </aside>
 

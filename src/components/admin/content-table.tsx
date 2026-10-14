@@ -4,6 +4,7 @@ import { ConfirmButton } from "@/components/admin/confirm-button";
 import { hideContent, showContent, deleteContent } from "@/app/beheer/actions";
 import { adminEditPath } from "@/lib/routes";
 import { hasOwnPage } from "@/content/event-mode";
+import { canManage, type Scope } from "@/content/access";
 import { recurrenceLabel } from "@/lib/recurrence-label";
 import { cn } from "@/lib/cn";
 import type { ContentType, PublishStatus } from "@/content/schema";
@@ -149,9 +150,12 @@ export function ContentTable({
   venueNames,
   organiserNames,
   today,
+  scope = { role: "admin" },
 }: {
   type: ContentType;
   rows: ContentSummary[];
+  /** Who is looking: a co-organised event shows read-only to an organisation account (D5). */
+  scope?: Scope;
   query: ListQuery;
   /** The day the list is viewed on: an event shows and sorts by its next date from here. */
   today: Date;
@@ -220,6 +224,8 @@ export function ContentTable({
           // A hidden item's page is not found; a marker and an external event
           // have none (event-no-page D2, event-external-link D2).
           const hasPage = item.status === "published" && hasOwnPage(item);
+          const manageable = canManage(scope, type, { slug: item.slug, organiser: item.organiser });
+          const owner = item.organiser ? organiserNames.get(item.organiser) ?? item.organiser : undefined;
           return (
             <tr
               key={item.slug}
@@ -231,12 +237,29 @@ export function ContentTable({
                   case "titel":
                     return (
                       <Cell key={c.key} label={c.label} header className="xl:min-w-80">
-                        <Link
-                          href={editHref}
-                          className="font-medium text-ink underline-offset-4 hover:underline"
-                        >
-                          {item.title}
-                        </Link>
+                        {manageable ? (
+                          <Link
+                            href={editHref}
+                            className="font-medium text-ink underline-offset-4 hover:underline"
+                          >
+                            {item.title}
+                          </Link>
+                        ) : (
+                          <span className="font-medium text-ink">{item.title}</span>
+                        )}
+                        {!manageable ? (
+                          // A co-organised event: its owner maintains it (D5).
+                          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+                            <Badge tone="neutral" className="px-2 py-0.5 text-xs">
+                              Beheerd door {owner ?? "een andere organisatie"}
+                            </Badge>
+                            {hasPage ? (
+                              <Link href={item.href} className={cn(action, "text-brand-strong")}>
+                                Bekijken
+                              </Link>
+                            ) : null}
+                          </div>
+                        ) : (
                         <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
                           <Link href={editHref} className={cn(action, "text-brand-strong")}>
                             Bewerken
@@ -280,6 +303,7 @@ export function ContentTable({
                             </ConfirmButton>
                           </form>
                         </div>
+                        )}
                       </Cell>
                     );
                   case "datum": {

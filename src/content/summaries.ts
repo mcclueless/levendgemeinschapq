@@ -26,6 +26,8 @@ export interface ContentSummary {
   venues: string[];
   /** The organiser slugs the item points at. */
   organisers: string[];
+  /** An event's primary organiser, which owns it (organisation-accounts D5). */
+  organiser?: string;
   // Events
   start?: Date;
   end?: Date;
@@ -82,6 +84,7 @@ export function toSummary(
     ...(type === "event"
       ? {
           start,
+          organiser: data.organiser as string | undefined,
           end: data.end as Date | undefined,
           recurrence: data.recurrence as Recurrence | undefined,
           nextOccurrenceOnly: data.nextOccurrenceOnly === true,

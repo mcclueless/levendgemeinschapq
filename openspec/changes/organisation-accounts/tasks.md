@@ -30,7 +30,7 @@
       missing, disabled or password-changed account) and make `requireAdmin`
       send an organisation session to `/beheer?alleen=beheerder`. Keep
       `middleware.ts` accepting either role. Verify with `pnpm typecheck`.
-- [ ] 2.3 Rework the login action and page: optional email field, the admin
+- [x] 2.3 Rework the login action and page: optional email field, the admin
       path when empty, the account path otherwise, a ~1 s delay and one error
       message on any failure, the hint cookie for the admin only. Verify in the
       running app: admin login unchanged, an account logs in, a wrong password
@@ -66,22 +66,22 @@
 
 ## 5. Pages and navigation (D7)
 
-- [ ] 5.1 `admin-nav.tsx` and `admin-shell.tsx`: per-role groups; the
+- [x] 5.1 `admin-nav.tsx` and `admin-shell.tsx`: per-role groups; the
       organisation role sees Overzicht, Evenementen, Mijn organisatie, Galerij,
       Wachtwoord. Verify in the running app.
-- [ ] 5.2 Overview: own event counts and "Nieuw evenement" for an organisation
+- [x] 5.2 Overview: own event counts and "Nieuw evenement" for an organisation
       session; the "alleen voor de beheerder" notice when `?alleen=beheerder`.
-- [ ] 5.3 Event list: filter by `canView`, "beheerd door <name>" badge and no
+- [x] 5.3 Event list: filter by `canView`, "beheerd door <name>" badge and no
       actions on co-organised rows, pending tab hidden; other types
       `requireAdmin`.
-- [ ] 5.4 Edit page: `canManage` or `notFound()`; for an organisation session
+- [x] 5.4 Edit page: `canManage` or `notFound()`; for an organisation session
       hide the permalink form, the hide action, the marker radio and show the
       primary organiser fixed; show "Laatst opgeslagen door" from `savedBy`.
       New-event page: the same form rules.
-- [ ] 5.5 Gallery and its detail page: any session may upload and pick;
+- [x] 5.5 Gallery and its detail page: any session may upload and pick;
       delete, replace, bulk and details controls and the detail page admin
       only.
-- [ ] 5.6 Walk every file under `src/app/beheer` and every exported action in
+- [x] 5.6 Walk every file under `src/app/beheer` and every exported action in
       `actions.ts` and `body-actions.tsx`; complete the guard table in the
       design's D7 with every one of them (`requireAdmin`/`assertAdmin`,
       `requireSession` + scope, or any session). No route or action is left
@@ -89,21 +89,21 @@
 
 ## 6. Account pages (D8)
 
-- [ ] 6.1 `/beheer/gebruikers`: list, create (email, name, organisation,
+- [x] 6.1 `/beheer/gebruikers`: list, create (email, name, organisation,
       password), reset password, disable/enable, admin-only, with
       `FORM_ERRORS` entries for taken email, unknown organisation and short
       password. Verify in the running app: create, refuse a duplicate in
       another case, reset, disable.
-- [ ] 6.2 `/beheer/wachtwoord`: current and new password, re-issues the
+- [x] 6.2 `/beheer/wachtwoord`: current and new password, re-issues the
       session token on success. Verify in the running app: a wrong current
       password is refused, a change keeps the session, and an older session
       in a second browser is refused afterwards.
 
 ## 7. Verify
 
-- [ ] 7.1 Run `pnpm test`, also under `TZ=UTC`, `pnpm typecheck` and
+- [x] 7.1 Run `pnpm test`, also under `TZ=UTC`, `pnpm typecheck` and
       `pnpm lint`. All pass.
-- [ ] 7.2 In the running app with a local account for a temporary
+- [x] 7.2 In the running app with a local account for a temporary
       organisation: the account sees only its navigation; creates an event
       (its organisation fixed as primary, a co-organiser added, marker absent)
       and it is public at once; edits, hides, deletes it; cannot open another
@@ -112,7 +112,12 @@
       permalink or hide; uploads to the gallery without delete controls; a
       co-organised event shows read-only; disabling the account ends its
       session; the admin renames the organisation and the account still works.
-      Remove the temporary content.
+      Remove the temporary content. (Done 14 October 2026 against the dev
+      server with a local admin password and a local account for the seed
+      organisation Repair Noord; the outdated-session and disabled-account
+      refusals were checked with minted tokens over curl. Every item passed.
+      The automation's click fires a form three times, so a single save made
+      three events; that is the browser tool, not the form.)
 - [ ] 7.3 After deploy, with 1.4 passed: create the first real account on
       goeddoen.net, sign in as it in a private window, check the scope, and
       hand over the password in person.

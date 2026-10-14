@@ -7,7 +7,7 @@ import { SelectAllButton } from "@/components/admin/media-extras";
 import { Pagination } from "@/components/admin/pagination";
 import { Badge } from "@/components/ui/card";
 import { Notice } from "@/components/ui/notice";
-import { requireAdmin } from "@/lib/auth-server";
+import { requireSession } from "@/lib/auth-server";
 import { cn } from "@/lib/cn";
 import { listMedia, type MediaItem } from "@/content/media";
 import { mediaName } from "@/content/media-details";
@@ -48,7 +48,9 @@ export default async function MediaLibraryPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  await requireAdmin();
+  // Any account may look, upload and pick; deleting is the administrator's
+  // (organisation-accounts D7), so the bulk form and the per-image page are too.
+  const admin = (await requireSession()).role === "admin";
   const raw = await searchParams;
   const one = (key: string) => {
     const value = raw[key];
@@ -77,8 +79,9 @@ export default async function MediaLibraryPage({
     <>
       <h1 className="text-3xl">Galerij</h1>
       <p className="mt-2 text-muted">
-        Alle geüploade afbeeldingen. Klik op een afbeelding voor de details, of
-        verwijder afbeeldingen die nergens meer worden gebruikt.
+        {admin
+          ? "Alle geüploade afbeeldingen. Klik op een afbeelding voor de details, of verwijder afbeeldingen die nergens meer worden gebruikt."
+          : "Alle geüploade afbeeldingen. Upload hier nieuwe; kiezen doe je in het formulier van een evenement of je organisatie."}
       </p>
 
       <FormError code={one("error")} />
@@ -215,29 +218,38 @@ export default async function MediaLibraryPage({
               </div>
 
               {/* One form around the grid, for deleting several at once (D5).
-                  Deleting a single image is done from its own page. */}
-              <form action={deleteMediaBulk} className="mt-3">
-                <input type="hidden" name="terug" value={here} />
-                <div className="flex flex-wrap items-center gap-2">
-                  <SelectAllButton />
-                  <ConfirmButton
-                    message="De geselecteerde afbeeldingen definitief verwijderen? Afbeeldingen die nog in gebruik zijn, blijven staan."
-                    className="inline-flex h-9 items-center rounded-md border border-brand/50 bg-surface px-3 text-sm font-medium text-brand-strong hover:bg-brand/10"
-                  >
-                    Geselecteerde verwijderen
-                  </ConfirmButton>
-                </div>
+                  Deleting a single image is done from its own page. An
+                  organisation account gets the grid alone. */}
+              {admin ? (
+                <form action={deleteMediaBulk} className="mt-3">
+                  <input type="hidden" name="terug" value={here} />
+                  <div className="flex flex-wrap items-center gap-2">
+                    <SelectAllButton />
+                    <ConfirmButton
+                      message="De geselecteerde afbeeldingen definitief verwijderen? Afbeeldingen die nog in gebruik zijn, blijven staan."
+                      className="inline-flex h-9 items-center rounded-md border border-brand/50 bg-surface px-3 text-sm font-medium text-brand-strong hover:bg-brand/10"
+                    >
+                      Geselecteerde verwijderen
+                    </ConfirmButton>
+                  </div>
+                  <ul className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+                    {result.rows.map((m) => (
+                      <MediaCard
+                        key={m.key}
+                        item={m}
+                        uses={usage.get(m.url)?.length ?? 0}
+                        href={`${GALLERY}/${encodeURIComponent(mediaName(m.key))}?terug=${encodeURIComponent(here)}`}
+                      />
+                    ))}
+                  </ul>
+                </form>
+              ) : (
                 <ul className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
                   {result.rows.map((m) => (
-                    <MediaCard
-                      key={m.key}
-                      item={m}
-                      uses={usage.get(m.url)?.length ?? 0}
-                      href={`${GALLERY}/${encodeURIComponent(mediaName(m.key))}?terug=${encodeURIComponent(here)}`}
-                    />
+                    <MediaCard key={m.key} item={m} uses={usage.get(m.url)?.length ?? 0} />
                   ))}
                 </ul>
-              </form>
+              )}
 
               <Pagination
                 page={result.page}
@@ -252,30 +264,44 @@ export default async function MediaLibraryPage({
   );
 }
 
-function MediaCard({ item, uses, href }: { item: MediaItem; uses: number; href: string }) {
+/** `href` absent: an organisation account's card, without page or selection (D7). */
+function MediaCard({ item, uses, href }: { item: MediaItem; uses: number; href?: string }) {
   const label = mediaLabel(item);
+  const picture = (
+    <>
+      {/* The name is in the link text below; the picture adds nothing to it. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={versionedImageUrl(item)}
+        alt=""
+        loading="lazy"
+        className="aspect-[4/3] w-full object-cover"
+      />
+      <span className="block truncate px-3 pt-2 text-sm font-medium text-ink" title={label}>
+        {label}
+      </span>
+    </>
+  );
   return (
     <li className="overflow-hidden rounded-md border border-border bg-surface">
-      <Link href={href} className="block focus-visible:outline-3 focus-visible:-outline-offset-2">
-        {/* The name is in the link text below; the picture adds nothing to it. */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={versionedImageUrl(item)}
-          alt=""
-          loading="lazy"
-          className="aspect-[4/3] w-full object-cover"
-        />
-        <span className="block truncate px-3 pt-2 text-sm font-medium text-ink" title={label}>
-          {label}
-        </span>
-      </Link>
+      {href ? (
+        <Link href={href} className="block focus-visible:outline-3 focus-visible:-outline-offset-2">
+          {picture}
+        </Link>
+      ) : (
+        <div>{picture}</div>
+      )}
       <div className="flex items-center justify-between gap-2 px-3 pb-2 pt-1">
-        <label className="flex min-w-0 items-center gap-2 text-xs text-muted">
-          <input type="checkbox" name="keys" value={item.key} className="h-4 w-4 shrink-0" />
-          <span className="truncate">
-            Selecteer<span className="sr-only"> {label}</span> · {formatBytes(item.size)}
-          </span>
-        </label>
+        {href ? (
+          <label className="flex min-w-0 items-center gap-2 text-xs text-muted">
+            <input type="checkbox" name="keys" value={item.key} className="h-4 w-4 shrink-0" />
+            <span className="truncate">
+              Selecteer<span className="sr-only"> {label}</span> · {formatBytes(item.size)}
+            </span>
+          </label>
+        ) : (
+          <span className="truncate text-xs text-muted">{formatBytes(item.size)}</span>
+        )}
         {uses > 0 ? (
           <Badge tone="success" className="shrink-0 px-2 py-0.5 text-xs">
             In gebruik
