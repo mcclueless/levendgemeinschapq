@@ -156,6 +156,13 @@ function pickedCoords(form: FormData): { lat: number; lng: number } | null {
 /** About a second, so a guess costs time and the cause is not told apart. */
 const FAILED_LOGIN_DELAY_MS = 1000;
 
+/**
+ * A real hash of a password nobody has, verified when the email is unknown
+ * so that path costs the same scrypt work as a wrong password does. The fixed
+ * delay below is the defence that matters (D2); this keeps the timing even.
+ */
+const DUMMY_HASH = "scrypt$32768$8$1$l0d/cySlH/Py9PFHK0pfWQ==$LuJU4uk5PCPsc9SjlYKxhYRGlfJAyQ9+OGpubgI3a2yGDXdrtPPWvIvFDbVmso7Ww9JPK4/YBPDp+uK+fncd5g==";
+
 /** `pv` for a session: the account's password moment, in seconds (D4). */
 function passwordVersion(changedAt: Date): number {
   return Math.floor(changedAt.getTime() / 1000);
@@ -183,8 +190,7 @@ export async function login(formData: FormData) {
     session = { role: "admin" };
   } else {
     const user = await getUserByEmail(email);
-    // Verify even for an unknown email so the timing does not differ.
-    const ok = await verifyPassword(password, user?.passwordHash ?? "scrypt$32768$8$1$AA$AA");
+    const ok = await verifyPassword(password, user?.passwordHash ?? DUMMY_HASH);
     if (!user || !ok || user.disabled) await fail();
     session = {
       role: "organisation",
@@ -799,9 +805,11 @@ export async function updateProject(formData: FormData) {
 async function performHide(
   type: ManagedType,
   slug: string,
+  by: string = SAVED_BY_ADMIN,
 ): Promise<{ blocked: boolean }> {
   if ((await findReferences(type, slug)).length) return { blocked: true };
-  await setStatus(type, slug, "draft");
+  // A hide is a save too: it records who did it (organisation-accounts D9).
+  await setStatus(type, slug, "draft", { savedBy: by });
   await revalidateAfterItemChange(type, slug);
   revalidatePath(adminListPath(type));
   return { blocked: false };
@@ -848,7 +856,7 @@ export async function hideContent(formData: FormData) {
   if (!type || !slug) return;
   await assertManaged(actor, type, slug);
   const back = listBack(type, formData);
-  if ((await performHide(type, slug)).blocked) {
+  if ((await performHide(type, slug, savedBy(actor))).blocked) {
     redirect(withParam(back, "blocked", slug));
   }
   redirect(back);
@@ -860,7 +868,7 @@ export async function showContent(formData: FormData) {
   const slug = str(formData, "slug");
   if (!type || !slug) return;
   await assertManaged(actor, type, slug);
-  await setStatus(type, slug, "published");
+  await setStatus(type, slug, "published", { savedBy: savedBy(actor) });
   await revalidateAfterItemChange(type, slug);
   revalidatePath(adminListPath(type));
   redirect(listBack(type, formData));

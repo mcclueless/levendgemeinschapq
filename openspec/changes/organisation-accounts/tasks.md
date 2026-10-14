@@ -113,11 +113,23 @@
       co-organised event shows read-only; disabling the account ends its
       session; the admin renames the organisation and the account still works.
       Remove the temporary content. (Done 14 October 2026 against the dev
-      server with a local admin password and a local account for the seed
-      organisation Repair Noord; the outdated-session and disabled-account
-      refusals were checked with minted tokens over curl. Every item passed.
-      The automation's click fires a form three times, so a single save made
-      three events; that is the browser tool, not the form.)
+      server with a throwaway local admin password and a local account for
+      the seed organisation Repair Noord. Exercised: sign-in and the shared
+      failure message with its delay; the per-role navigation; creating,
+      hiding and deleting an event as the account, with the organisation
+      fixed as primary organiser and the marker mode absent; another
+      organisation's event and page returning 404; every admin-only page
+      sending the account to its overview with the notice; the co-organised
+      event listed read-only with its view link; saving the organisation page
+      without permalink or hide; uploading to the gallery without delete
+      controls; the saver stamp on the admin's edit page; changing the own
+      password; the admin creating, refusing a duplicate email in another
+      case, disabling, enabling and resetting the account; renaming the
+      organisation and back with the account following. The outdated-session
+      and disabled-account refusals were checked with minted tokens over
+      curl. Not exercised: adding a co-organiser on create, which is the same
+      select the admin uses. The browser tool fires a form three times per
+      click, so one save made three events; that is the tool, not the form.)
 - [ ] 7.3 After deploy, with 1.4 passed: create the first real account on
       goeddoen.net, sign in as it in a private window, check the scope, and
       hand over the password in person.
