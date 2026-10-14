@@ -57,7 +57,8 @@ function Thumb({ src, alt }: { src?: string; alt: string }) {
 
 /**
  * An agenda marker's card (event-no-page D3): the whole image, uncropped, then
- * the date without a time and the title. Not a link — a marker has no page.
+ * the title and the date without a time (title first, as on every card:
+ * event-card-title-first D2). Not a link — a marker has no page.
  *
  * The image is fitted inside the same height as an ordinary card's image, so a
  * tall picture never stretches the grid row and the events beside it. The
@@ -71,17 +72,21 @@ function MarkerCard({ occurrence }: { occurrence: EventOccurrence }) {
     <Card as="article" className="overflow-hidden">
       <DescribedImage src={eventCover(event.featuredImage)} detailsOf={event.featuredImage} alt={event.title} loading="lazy" className="h-44 w-full bg-surface object-contain" />
       <div className="p-5">
-        <Badge tone="accent">
-          <time dateTime={isoDate(start)}>{formatDate(start)}</time>
-        </Badge>
-        <h3 className="mt-3 text-xl">{event.title}</h3>
+        <h3 className="text-xl">{event.title}</h3>
+        <div className="mt-3">
+          <Badge tone="accent">
+            <time dateTime={isoDate(start)}>{formatDate(start)}</time>
+          </Badge>
+        </div>
       </div>
     </Card>
   );
 }
 
 /**
- * Card variant — used in image listings.
+ * Card variant — used in image listings: the image, then the title, the venue
+ * and the date box last, so a visitor reads what the event is before when it
+ * is (event-card-title-first D1).
  *
  * An external event is an ordinary card with a plain `<a>` to the
  * organisation's own page, which opens in a new tab (event-external-link D3);
@@ -95,14 +100,16 @@ export function EventCard({ occurrence }: { occurrence: EventOccurrence }) {
     <>
       <Thumb src={event.featuredImage} alt={event.title} />
       <div className="p-5">
-        <WhenBadge occurrence={occurrence} />
-        <h3 className="mt-3 text-xl group-hover:text-brand-strong">
+        <h3 className="text-xl group-hover:text-brand-strong">
           {event.title}
           {external ? <ExternalMark url={external} /> : null}
         </h3>
         {event.venue ? (
           <p className="mt-1 text-sm text-muted">{event.venue.name}</p>
         ) : null}
+        <div className="mt-3">
+          <WhenBadge occurrence={occurrence} />
+        </div>
       </div>
     </>
   );
