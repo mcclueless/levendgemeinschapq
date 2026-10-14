@@ -33,12 +33,12 @@
 
 - [x] 4.1 Run `pnpm test`, `pnpm typecheck` and `pnpm lint`, also under
       `TZ=UTC`. All pass.
-- [ ] 4.2 In the app with temporary content: an external event in card, text
+- [x] 4.2 In the app with temporary content: an external event in card, text
       and table views and on its organiser's page links out with the mark and
       its screen-reader text; its own address returns 404 and it is absent from
       the sitemap; the form switches between all three modes with and without
       JavaScript; a `javascript:` address and a missing image are refused;
       switching back to an own page keeps text and venue; existing events and
       markers look and link as before. Remove the temporary content.
-- [ ] 4.3 After deploy, create an external test event on goeddoen.net, check the
+- [x] 4.3 After deploy, create an external test event on goeddoen.net, check the
       agenda and its 404, then delete it.

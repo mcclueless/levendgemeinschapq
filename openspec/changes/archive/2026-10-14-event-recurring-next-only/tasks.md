@@ -67,13 +67,13 @@
 
 - [x] 5.1 Run `pnpm test`, `pnpm typecheck` and `pnpm lint`, also under
       `TZ=UTC`. All pass.
-- [ ] 5.2 In the app with temporary content: a collapsing weekly event appears
+- [x] 5.2 In the app with temporary content: a collapsing weekly event appears
       once in the agenda, the homepage and an organiser's listing; the date box
       shows the two lines; the table shows "Volgende" in Datum and the rhythm in
       Herhaling; after the occurrence's hour the next one takes its place; the
       event's own page is untouched and all `?datum=` links work; existing
       recurring events are unchanged. Remove the temporary content.
-- [ ] 5.3 After deploy, tick the flag on one weekly event on goeddoen.net, check
+- [x] 5.3 After deploy, tick the flag on one weekly event on goeddoen.net, check
       all three listing views and the event page, watch the rollover at the
       occurrence's end, then untick.
 

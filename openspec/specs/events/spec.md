@@ -70,9 +70,19 @@ An Event MAY have a featured image. When present, the featured image SHALL appea
 - **THEN** the system SHALL render a graceful fallback (placeholder or text-only entry) without layout breakage
 
 ### Requirement: Repeatable (recurring) events
-An editor SHALL be able to mark an event as repeatable on a recurrence interval (at minimum: weekly and monthly). When an event is marked repeatable, the system SHALL require a recurrence end date and SHALL NOT persist a newly authored recurrence without one. A repeatable event SHALL surface as an upcoming occurrence for each future date implied by its recurrence, up to and including its recurrence end date. A recurrence that carries no end date — because it predates this requirement or arrived through calendar import — SHALL remain valid and SHALL be treated as open-ended. The recurrence end date SHALL be distinct from the event's optional end date and time, which bounds a single occurrence.
+An editor SHALL be able to mark an event as repeatable on a recurrence interval (at minimum: weekly and monthly). When an event is marked repeatable, the system SHALL require a recurrence end date and SHALL NOT persist a newly authored recurrence without one. A repeatable event SHALL surface as an upcoming occurrence for each future date implied by its recurrence, up to and including its recurrence end date, except where it is set to be summarised by its next occurrence. A recurrence that carries no end date — because it predates this requirement or arrived through calendar import — SHALL remain valid and SHALL be treated as open-ended. The recurrence end date SHALL be distinct from the event's optional end date and time, which bounds a single occurrence.
 
 An event SHALL NOT carry both a recurrence and a list of further dates: an event either repeats on an interval or names its dates. The editorial forms SHALL make the choice explicit, and SHALL NOT allow saving both.
+
+A repeatable event MAY be set to be summarised in listings by its next
+occurrence alone. Such an event SHALL contribute exactly one entry to an
+upcoming-events listing instead of one per occurrence, and SHALL otherwise
+remain an ordinary repeatable event: its stored recurrence, its own page, and
+every other presentation of its series SHALL be unaffected by the setting. The
+setting SHALL be off unless an editor has chosen it, so an event stored or
+imported without it SHALL continue to surface every occurrence. The setting
+SHALL apply to a recurrence only; an event that names its dates SHALL
+contribute one entry per listed date regardless of it.
 
 Wherever the system describes a recurrence to a reader, that description SHALL
 reflect the recurrence's interval as well as its frequency, so that an event
@@ -128,6 +138,22 @@ social-sharing metadata.
 #### Scenario: A repeat rule and a date list are mutually exclusive
 - **WHEN** an editor gives an event a recurrence while it carries further dates, or further dates while it carries a recurrence
 - **THEN** the system SHALL require the editor to choose one, and SHALL NOT persist both
+
+#### Scenario: A summarised recurrence is listed once
+- **WHEN** a repeatable event set to be summarised by its next occurrence has several future occurrences within a listing's range
+- **THEN** the listing SHALL show exactly one entry for that event, at its next occurrence, and SHALL NOT show its later occurrences
+
+#### Scenario: A recurrence without the setting is listed in full
+- **WHEN** a repeatable event has not been set to be summarised by its next occurrence
+- **THEN** the system SHALL list one entry per future occurrence in range, exactly as before this requirement
+
+#### Scenario: The setting does not reach a date series
+- **WHEN** an event names further dates rather than repeating on an interval
+- **THEN** the system SHALL list one entry per listed date in range, and the setting SHALL have no effect on it
+
+#### Scenario: A summarised event keeps its full series on its own page
+- **WHEN** a visitor opens the page of an event set to be summarised by its next occurrence
+- **THEN** the page SHALL present the event's recurrence exactly as it does for any repeatable event, and SHALL honour a request for a particular occurrence's date
 
 ### Requirement: Upcoming-only listing with limit and "See more"
 The system SHALL provide reusable event listings that show only events occurring today or in the future, ordered by soonest start first. A listing SHALL accept a configurable maximum number of events, and when more upcoming events exist than the limit, SHALL display a "See more…" affordance linking to the full list. An event carrying further dates SHALL contribute one occurrence per date that falls in the listed range, each ordered by its own date, and a listing entry SHALL link to that occurrence's date on the event's page.
@@ -346,3 +372,71 @@ The backend Event create and edit forms SHALL offer a choice to give the event n
 #### Scenario: Without scripts
 - **WHEN** the event form is used without scripts
 - **THEN** the no-page choice SHALL still work, with the start entered as a date and time whose time is ignored
+
+### Requirement: A recurring event summarised by its next occurrence
+Where a repeatable event is set to be summarised by its next occurrence, every upcoming-events listing SHALL represent it by one entry showing the next occurrence that has not yet passed. When that occurrence passes, the listing SHALL represent the event by the following occurrence instead. An occurrence SHALL be treated as passed once it has ended; an occurrence with no end SHALL be treated as passed once it has begun, except for an agenda marker, which SHALL be treated as passed at the end of its day. Where the recurrence has no occurrence left — because its end date has passed — the event SHALL leave upcoming-events listings, as any event does once its dates are behind it.
+
+Such an entry SHALL state the event's rhythm as well as its next date: the rhythm SHALL convey the recurrence's frequency and interval in the system's one recurrence vocabulary, and the next date SHALL be named separately and be machine-readable. The entry SHALL do this in every listing variant that shows events by date, including the card, text, and table variants, and MAY state it through a variant's existing columns rather than repeating it. The entry MAY additionally carry a visual cue distinguishing it from a single-date entry, provided the cue conveys nothing that the entry's text does not already state.
+
+The setting SHALL NOT change what the event's own page presents, the address a listing entry links to, the event's presence in the sitemap, or the structured data the system publishes for it.
+
+#### Scenario: The next occurrence is shown
+- **WHEN** an upcoming-events listing includes an event summarised by its next occurrence
+- **THEN** the entry SHALL show that occurrence's date and SHALL be ordered among the other entries by it
+
+#### Scenario: The entry rolls over when its occurrence is over
+- **WHEN** the occurrence an entry shows has ended
+- **THEN** the next listing SHALL show the following occurrence in its place
+
+#### Scenario: An occurrence still under way keeps its entry
+- **WHEN** the occurrence an entry shows has begun but has an end that has not been reached
+- **THEN** the entry SHALL still show that occurrence
+
+#### Scenario: An untimed recurring marker holds its day
+- **WHEN** an agenda marker repeats and is summarised by its next occurrence
+- **THEN** its entry SHALL show the current day's occurrence for the whole of that day
+
+#### Scenario: The rhythm is stated with the date
+- **WHEN** an entry for a summarised event is rendered in any listing variant
+- **THEN** it SHALL state the recurrence's frequency and interval and SHALL name the next date separately
+
+#### Scenario: A multi-interval rhythm is not flattened
+- **WHEN** a summarised event repeats on an interval greater than one
+- **THEN** its entry SHALL convey that interval and SHALL NOT describe the event as repeating on the underlying frequency alone
+
+#### Scenario: A series that has ended drops out
+- **WHEN** a summarised event's recurrence end date has passed
+- **THEN** the event SHALL NOT appear in upcoming-events listings
+
+#### Scenario: The cue is not the only carrier
+- **WHEN** a summarised entry carries a visual cue
+- **THEN** every fact the cue suggests SHALL also be available as text in the entry
+
+#### Scenario: Linking and indexing are unchanged
+- **WHEN** an event is summarised by its next occurrence
+- **THEN** its entry SHALL link as a listing entry for that occurrence does, and the event's page, sitemap entry, and structured data SHALL be exactly as they are without the setting
+
+### Requirement: Events that lead to an external page
+An Event MAY lead to an external web page instead of having its own page on the site. Such an event SHALL appear in every upcoming-events listing that shows events by date, as an ordinary event does, with its image, date and time, and its Venue and Organisers when given. Its entry in a listing SHALL link to the external page, SHALL show a visible mark that the link leads to another site, and SHALL give assistive technology the name of that site. The link SHALL open in a new browser tab.
+
+Such an event SHALL NOT have a page on the site: its address SHALL return "not found", it SHALL NOT appear in the sitemap, and the site SHALL publish no structured data for it. The external address SHALL be an http or https address.
+
+#### Scenario: An external event in the agenda
+- **WHEN** a visitor views the agenda and an upcoming event leads to an external page
+- **THEN** the event SHALL be listed by its date with its image, time, and title, and its entry SHALL link to the external page
+
+#### Scenario: The link is marked as leaving the site
+- **WHEN** an external event's entry is shown in any listing variant
+- **THEN** the entry SHALL show a mark that it leads to another site, and its link SHALL tell assistive technology which site it opens
+
+#### Scenario: No page on the site
+- **WHEN** anyone opens the site's own address for an external event
+- **THEN** the site SHALL respond "not found", and the sitemap SHALL NOT list that address
+
+#### Scenario: Listed with its organiser
+- **WHEN** an external event has an Organiser or a Venue
+- **THEN** it SHALL appear in that Organiser's or Venue's event list, linking to the external page
+
+#### Scenario: Ordinary events and markers unchanged
+- **WHEN** an event has its own page, or is an agenda marker without a page
+- **THEN** it SHALL be listed and linked exactly as before this change
