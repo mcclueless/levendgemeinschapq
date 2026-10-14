@@ -38,7 +38,7 @@
 
 ## 3. The scope rule (D5)
 
-- [ ] 3.1 Add `src/content/access.ts` with `canManage` and `canView` over a
+- [x] 3.1 Add `src/content/access.ts` with `canManage` and `canView` over a
       session and a document's organiser fields. Tests: admin always; owner
       by primary organiser; co-organiser view-only; another organisation
       nothing; organiser page by slug; every other type admin-only.
