@@ -47,7 +47,7 @@ import {
 } from "@/content/media-details";
 import { imageUsage } from "@/content/image-references";
 import {
-  ADMIN_FREQUENCIES,
+  ADMIN_CHOICES,
   recurrenceFromForm,
   type RecurrenceFormResult,
 } from "@/content/recurrence-form";
@@ -298,7 +298,7 @@ function adminRecurrence(form: FormData, start: string | undefined): RecurrenceF
   return recurrenceFromForm(
     form,
     start ? new Date(siteInputToIso(start)!) : undefined,
-    ADMIN_FREQUENCIES,
+    ADMIN_CHOICES,
   );
 }
 
@@ -597,15 +597,15 @@ export async function updateEvent(formData: FormData) {
   // As in createEvent: a marker's hidden end is kept, not checked (event-no-page D4).
   const range = noPage ? { ok: true as const } : validateEventRange(start, end);
   if (!range.ok) redirect(withParam(back, "error", range.reason));
-  // No form exposes `interval`, so carry the stored one through rather than
-  // rebuilding the recurrence from the form alone — otherwise an imported
-  // "every 2 weeks" silently became every week on any save, including one that
-  // only changed the title (docs/bugs/recurrence-edit-clobber.md).
+  // The stored recurrence is what the edit form's `stored` option keeps
+  // (recurrence-biweekly D3): a rhythm no choice expresses, such as an
+  // imported "every 3 weeks", survives a save that did not touch the select
+  // (docs/bugs/recurrence-edit-clobber.md).
   const recurrence = recurrenceFromForm(
     formData,
     new Date(siteInputToIso(start)!),
-    ADMIN_FREQUENCIES,
-    stored?.data.recurrence?.interval,
+    ADMIN_CHOICES,
+    stored?.data.recurrence,
   );
   if (!recurrence.ok) redirect(withParam(back, "error", recurrence.reason));
   // The edit form presents the whole list, so what it posts replaces what is

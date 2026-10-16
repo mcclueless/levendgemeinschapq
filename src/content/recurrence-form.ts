@@ -18,10 +18,46 @@ export const RECURRENCE_UNTIL_FIELD = "recurrenceUntil";
 
 export type RecurrenceFreq = "weekly" | "monthly";
 
-/** The editorial backend offers both intervals. */
-export const ADMIN_FREQUENCIES = ["weekly", "monthly"] as const;
-/** The public form offers weekly only; monthly stays admin-only (design D7). */
-export const PUBLIC_FREQUENCIES = ["weekly"] as const;
+/**
+ * What the Herhaling select posts: a *choice*, each standing for a frequency
+ * and an interval (recurrence-biweekly D2). Every two weeks is the weekly
+ * frequency with interval 2 — the shape the calendar import already writes,
+ * so nothing downstream needs to know a new choice exists (D1).
+ */
+export type RecurrenceChoice = "weekly" | "biweekly" | "monthly";
+
+export const CHOICES: Record<RecurrenceChoice, { freq: RecurrenceFreq; interval: number }> = {
+  weekly: { freq: "weekly", interval: 1 },
+  biweekly: { freq: "weekly", interval: 2 },
+  monthly: { freq: "monthly", interval: 1 },
+};
+
+/** The editorial backend offers every choice. */
+export const ADMIN_CHOICES = ["weekly", "biweekly", "monthly"] as const;
+/** The public form offers weekly only; the rest stays admin-only (add-recurrence-end-date D7). */
+export const PUBLIC_CHOICES = ["weekly"] as const;
+
+/**
+ * The edit form's "keep what is stored" value (D3): posted by the option the
+ * edit form adds for a stored rhythm no choice expresses, such as an imported
+ * every three weeks. Meaningful only when a stored recurrence is passed in.
+ */
+export const STORED_CHOICE = "stored";
+
+/**
+ * The choice that stands for a stored recurrence, or `undefined` when none
+ * does — the edit form then shows the rhythm as its own option (D3). A missing
+ * interval means every one, as everywhere else.
+ */
+export function choiceFor(
+  recurrence: { freq: RecurrenceFreq; interval?: number } | undefined,
+): RecurrenceChoice | undefined {
+  if (!recurrence) return undefined;
+  const interval = recurrence.interval ?? 1;
+  return (Object.keys(CHOICES) as RecurrenceChoice[]).find(
+    (c) => CHOICES[c].freq === recurrence.freq && CHOICES[c].interval === interval,
+  );
+}
 
 /**
  * Why a recurrence was rejected. Two distinct reasons, reported distinguishably
@@ -64,29 +100,35 @@ export function parseUntilInput(value: string): Date | null {
 /**
  * Read the recurrence controls from a submitted form.
  *
- * - A frequency outside `allow` — absent, "none", or a value a hand-crafted POST
+ * - A choice outside `allow` — absent, "none", or a value a hand-crafted POST
  *   supplied — yields no recurrence rather than an error (design D6, D7). There
  *   is no legitimate UI path that produces one.
- * - A permitted frequency **requires** an end date (design D5). Enforced here,
+ * - A permitted choice **requires** an end date (design D5). Enforced here,
  *   at the form layer only: `RecurrenceSchema.until` stays optional so existing
  *   open-ended documents and open-ended iCal imports remain valid (design D2).
+ * - `stored`, with a stored recurrence passed in, keeps that recurrence's
+ *   frequency and interval (recurrence-biweekly D3). It is what the edit
+ *   form's untouched select posts for a rhythm no choice expresses, so a
+ *   title edit cannot flatten an imported "every 3 weeks"
+ *   (docs/bugs/recurrence-edit-clobber.md). A choice the editor makes
+ *   replaces frequency and interval entirely.
  */
 export function recurrenceFromForm(
   form: FormData,
   start: Date | undefined,
-  allow: readonly RecurrenceFreq[],
-  /**
-   * The stored `interval`, when editing. No form exposes this field, so
-   * rebuilding the recurrence from the form alone silently reset an
-   * iCal-imported "every 2 weeks" to every week on any save — including a save
-   * that only changed the title (docs/bugs/recurrence-edit-clobber.md).
-   * Carrying it through preserves what the editor never had a chance to see.
-   */
-  storedInterval?: number,
+  allow: readonly RecurrenceChoice[],
+  /** The stored recurrence, when editing; what `stored` keeps. */
+  stored?: { freq: RecurrenceFreq; interval?: number },
 ): RecurrenceFormResult {
   const raw = field(form, RECURRENCE_FIELD);
-  const freq = allow.find((f) => f === raw);
-  if (!freq) return { ok: true, recurrence: undefined };
+  const choice = allow.find((c) => c === raw);
+  const rule =
+    raw === STORED_CHOICE && stored
+      ? { freq: stored.freq, interval: stored.interval ?? 1 }
+      : choice
+        ? CHOICES[choice]
+        : undefined;
+  if (!rule) return { ok: true, recurrence: undefined };
 
   const rawUntil = field(form, RECURRENCE_UNTIL_FIELD);
   if (!rawUntil) return { ok: false, reason: "recurrence-missing" };
@@ -98,10 +140,5 @@ export function recurrenceFromForm(
     return { ok: false, reason: "recurrence-range" };
   }
 
-  const interval =
-    storedInterval && Number.isInteger(storedInterval) && storedInterval > 0
-      ? storedInterval
-      : 1;
-
-  return { ok: true, recurrence: { freq, interval, until } };
+  return { ok: true, recurrence: { freq: rule.freq, interval: rule.interval, until } };
 }

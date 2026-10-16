@@ -17,6 +17,7 @@ import { SocialFields } from "@/components/admin/social-fields";
 import { BodyEditor } from "@/components/admin/body-editor";
 import { EventModeField, EventStartInput } from "@/components/admin/event-mode-field";
 import { DateListField } from "@/components/admin/date-list-field";
+import { RecurrenceSelect } from "@/components/admin/recurrence-select";
 import { AddressAutocomplete } from "@/components/admin/address-autocomplete";
 import { PermalinkForm } from "@/components/admin/permalink-form";
 import { requireAdmin, requireSession, scopeOf } from "@/lib/auth-server";
@@ -144,15 +145,7 @@ export default async function EditPage({
           </div>
           <div className="grid gap-5 sm:grid-cols-2">
             <Field label="Herhaling" htmlFor="recurrence">
-              <Select
-                id="recurrence"
-                name="recurrence"
-                defaultValue={d.recurrence?.freq ?? "none"}
-              >
-                <option value="none">Eenmalig</option>
-                <option value="weekly">Wekelijks</option>
-                <option value="monthly">Maandelijks</option>
-              </Select>
+              <RecurrenceSelect stored={d.recurrence} />
             </Field>
             <Field
               label="Herhalen tot en met"

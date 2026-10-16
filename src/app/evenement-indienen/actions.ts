@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { createDocument } from "@/content/write";
 import {
-  PUBLIC_FREQUENCIES,
+  PUBLIC_CHOICES,
   recurrenceFromForm,
 } from "@/content/recurrence-form";
 import { validateEventRange } from "@/content/event-form";
@@ -47,7 +47,7 @@ export async function submitEvent(formData: FormData) {
   const recurrence = recurrenceFromForm(
     formData,
     new Date(siteInputToIso(start)!),
-    PUBLIC_FREQUENCIES,
+    PUBLIC_CHOICES,
   );
   if (!recurrence.ok) {
     redirect(`/evenement-indienen?error=${recurrence.reason}`);
