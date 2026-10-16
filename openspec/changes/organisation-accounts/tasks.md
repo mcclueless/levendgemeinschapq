@@ -99,6 +99,15 @@
       password is refused, a change keeps the session, and an older session
       in a second browser is refused afterwards.
 
+- [x] 6.3 Delete an account: `deleteUser` in `users.ts` (test: gone by id and
+      email, others stay), `deleteUserAction` admin-only, a confirmed
+      "Verwijderen" per row and the `verwijderd` message. Added 16 October
+      2026 after the first live test asked for it.
+- [x] 6.4 Send a signed-in organisation account from `/evenement-indienen`
+      (page and action) to `/beheer/nieuw/evenement` (D12). Added 16 October
+      2026: the first tester's event went through the public form into the
+      queue.
+
 ## 7. Verify
 
 - [x] 7.1 Run `pnpm test`, also under `TZ=UTC`, `pnpm typecheck` and
@@ -132,4 +141,9 @@
       click, so one save made three events; that is the tool, not the form.)
 - [ ] 7.3 After deploy, with 1.4 passed: create the first real account on
       goeddoen.net, sign in as it in a private window, check the scope, and
-      hand over the password in person.
+      hand over the password in person. (First account created and tested
+      15 October 2026; it raised 6.3 and 6.4.)
+- [ ] 7.4 After the next deploy: as the organisation account, click
+      "Evenement indienen" in the public header and land on the backend's new
+      event form; save an event and see it in the agenda without approval.
+      As the administrator, delete a test account and see it leave the list.

@@ -10,6 +10,7 @@ import { validateEventRange } from "@/content/event-form";
 import { socialsFromForm } from "@/content/socials-form";
 import { saveUploadChecked } from "@/content/media";
 import { siteInputToIso } from "@/lib/date";
+import { getSession } from "@/lib/auth-server";
 
 function str(form: FormData, key: string): string | undefined {
   const v = form.get(key);
@@ -22,6 +23,10 @@ function str(form: FormData, key: string): string | undefined {
  * published until an administrator approves it.
  */
 export async function submitEvent(formData: FormData) {
+  // The page already sends an organisation account to its backend form; this
+  // catches a form that was opened before signing in (organisation-accounts
+  // D12). Its event never belongs in the queue.
+  if ((await getSession())?.role === "organisation") redirect("/beheer/nieuw/evenement");
   const title = str(formData, "title");
   const start = str(formData, "start");
   const venue = str(formData, "venue");

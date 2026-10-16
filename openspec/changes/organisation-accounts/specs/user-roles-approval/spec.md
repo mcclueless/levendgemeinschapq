@@ -29,11 +29,15 @@ An organisation account SHALL be assigned exactly one organisation when the Admi
 - **THEN** the system SHALL NOT offer a permalink change or a hide action, and SHALL refuse such a request from that account
 
 ### Requirement: Submission approval queue
-Events submitted through the public submission form SHALL enter an approval queue and remain unpublished until an Administrator approves them. Changes made by organisation accounts SHALL NOT enter the queue.
+Events submitted through the public submission form SHALL enter an approval queue and remain unpublished until an Administrator approves them. Changes made by organisation accounts SHALL NOT enter the queue: a signed-in organisation account that opens the public submission form SHALL be sent to its own event form in the backend instead.
 
 #### Scenario: Submission held for approval
 - **WHEN** a visitor submits an event through the public form
 - **THEN** the system SHALL add it to the approval queue and SHALL NOT publish it publicly
+
+#### Scenario: A signed-in organisation is sent to its own form
+- **WHEN** a signed-in organisation account opens the public submission form, or posts it from a page opened before signing in
+- **THEN** the system SHALL send it to the backend's new-event form and SHALL NOT add anything to the queue
 
 #### Scenario: Approval publishes
 - **WHEN** an Administrator approves a queued item
@@ -61,7 +65,7 @@ An event SHALL be owned by the organisation named as its primary organiser. The 
 - **THEN** accounts of B SHALL be able to edit it and accounts of A SHALL NOT
 
 ### Requirement: Account management by the administrator
-The Administrator SHALL be able to create an organisation account with an email address, a display name, one existing organisation and an initial password of at least twelve characters; to reset its password; to disable and re-enable it; and to see every account with its organisation and state. The email address SHALL be the account's login name and SHALL be unique, ignoring letter case. Passwords SHALL be stored only as a salted hash. No email SHALL be sent.
+The Administrator SHALL be able to create an organisation account with an email address, a display name, one existing organisation and an initial password of at least twelve characters; to reset its password; to disable and re-enable it; to delete it after a confirmation; and to see every account with its organisation and state. The email address SHALL be the account's login name and SHALL be unique, ignoring letter case. Passwords SHALL be stored only as a salted hash. No email SHALL be sent.
 
 #### Scenario: Creating an account
 - **WHEN** the Administrator creates an account for an existing organisation with a valid email and a password of twelve or more characters
@@ -74,6 +78,10 @@ The Administrator SHALL be able to create an organisation account with an email 
 #### Scenario: Resetting and disabling
 - **WHEN** the Administrator resets an account's password or disables the account
 - **THEN** the new password SHALL be required from then on, or the account SHALL no longer be able to sign in, respectively
+
+#### Scenario: Deleting
+- **WHEN** the Administrator confirms the deletion of an account
+- **THEN** the account SHALL be removed from the list and SHALL no longer be able to sign in, a session it still holds SHALL be refused on its next request, and content it saved SHALL keep showing its email as the saver
 
 ### Requirement: Signing in with an account
 The backend sign-in SHALL accept an email address and password for an organisation account, alongside the Administrator's password sign-in. A failed attempt SHALL be answered after a delay of about one second with one message that does not say whether the email exists.
@@ -91,7 +99,7 @@ The backend sign-in SHALL accept an email address and password for an organisati
 - **THEN** the system SHALL start an Administrator session as before
 
 ### Requirement: Session validity
-A session for an organisation account SHALL stop being valid as soon as the account is disabled or its password is changed, and SHALL expire after seven days.
+A session for an organisation account SHALL stop being valid as soon as the account is disabled, deleted or its password is changed, and SHALL expire after seven days.
 
 #### Scenario: Disabled account is cut off
 - **WHEN** an account is disabled while it has a session

@@ -140,6 +140,16 @@ export async function setDisabled(
 }
 
 /**
+ * Remove an account for good (D8). A session it still holds is refused on
+ * its next request, because `requireSession` reads the document each time
+ * (D4). The `savedBy` stamps that carry its email stay readable: they are
+ * plain strings, not references.
+ */
+export async function deleteUser(id: string, store: ContentStore = getStore()): Promise<void> {
+  await store.remove(keyFor(id));
+}
+
+/**
  * Move every account of organisation `from` to `to` (organisation-accounts
  * D10): the follow-through of a permalink change. Returns the ids moved.
  */

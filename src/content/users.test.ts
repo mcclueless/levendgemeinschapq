@@ -6,6 +6,7 @@ import path from "node:path";
 import { createLocalStore, type ContentStore } from "./storage";
 import {
   createUser,
+  deleteUser,
   getUser,
   getUserByEmail,
   listUsers,
@@ -79,4 +80,15 @@ test("a renamed organisation takes its accounts along, others untouched", async 
     users.map((u) => u.organisation).sort(),
     ["noord", "noord", "zuid"],
   );
+});
+
+test("a deleted account is gone, by id and by email, and others stay", async () => {
+  const a = await createUser(noord, store);
+  const b = await createUser({ ...noord, email: "info@zuid.nl", organisation: "zuid" }, store);
+  assert.ok(a.ok && b.ok);
+  const idA = a.ok ? a.id : "";
+  await deleteUser(idA, store);
+  assert.equal(await getUser(idA, store), null);
+  assert.equal(await getUserByEmail("info@noord.nl", store), null);
+  assert.deepEqual((await listUsers(store)).map((u) => u.email), ["info@zuid.nl"]);
 });

@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getSession } from "@/lib/auth-server";
 import { Container } from "@/components/ui/container";
 import { Badge } from "@/components/ui/card";
 import {
@@ -23,11 +25,17 @@ export const metadata = pageMetadata({
 });
 export const dynamic = "force-dynamic";
 
+const BACKEND_FORM = "/beheer/nieuw/evenement";
+
 export default async function SubmitPage({
   searchParams,
 }: {
   searchParams: Promise<{ ingediend?: string; error?: string }>;
 }) {
+  // An organisation account publishes from its own backend form, where its
+  // event is public at once; the queue is for visitors (organisation-accounts
+  // D12). The administrator keeps the public form, to see what visitors see.
+  if ((await getSession())?.role === "organisation") redirect(BACKEND_FORM);
   const [params, venues, organisers] = await Promise.all([
     searchParams,
     getVenues(),

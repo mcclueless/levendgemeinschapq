@@ -16,6 +16,7 @@ import { allowedMode, canManage, organisersFor, savedByLabel } from "@/content/a
 import {
   createUser,
   getUser,
+  deleteUser,
   getUserByEmail,
   setDisabled,
   setPassword,
@@ -1244,8 +1245,8 @@ export async function syncAllFeedsAction() {
 }
 
 // ── Accounts (organisation-accounts D8) ──────────────────────────────────────
-// The administrator creates, resets and switches accounts; an account changes
-// its own password. Passwords are handed over in person, never sent.
+// The administrator creates, resets, switches and deletes accounts; an account
+// changes its own password. Passwords are handed over in person, never sent.
 
 const USERS = "/beheer/gebruikers";
 
@@ -1289,6 +1290,15 @@ export async function setUserDisabledAction(formData: FormData) {
   const disabled = Boolean(formData.get("disabled"));
   await setDisabled(id!, disabled);
   redirect(withParam(USERS, "gebruiker", disabled ? "uitgeschakeld" : "ingeschakeld"));
+}
+
+/** Remove an account for good; a running session of it ends on its next page. */
+export async function deleteUserAction(formData: FormData) {
+  await assertAdmin();
+  const id = str(formData, "id");
+  if (!id || !(await getUser(id))) redirect(USERS);
+  await deleteUser(id!);
+  redirect(withParam(USERS, "gebruiker", "verwijderd"));
 }
 
 const PASSWORD = "/beheer/wachtwoord";

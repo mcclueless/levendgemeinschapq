@@ -13,7 +13,8 @@ backend knows one role and no user records.
 
 - **Organisation accounts.** The admin creates an account with an email
   address, a name, one organisation and an initial password; can reset the
-  password, disable the account, and see who has one. The person signs in
+  password, disable the account, delete it after a confirmation, and see who
+  has one. The person signs in
   with email and password on the existing login page and can change their own
   password. The administrator's password login is unchanged.
 - **Scope: one organisation.** An organisation user sees and manages only
@@ -23,8 +24,11 @@ backend knows one role and no user records.
 - **Events, directly published.** An organisation user creates, edits, hides,
   shows and deletes (to the trash) their organisation's events, with their
   organisation fixed as the primary organiser. Their changes publish at once;
-  they do not enter the approval queue. Own-page and external-link events are
-  available; the agenda-marker mode stays admin-only.
+  they do not enter the approval queue. A signed-in organisation user who
+  opens the public "Evenement indienen" form is sent to this backend form
+  instead, so the header button leads to direct publishing too. Own-page and
+  external-link events are available; the agenda-marker mode stays
+  admin-only.
 - **Organisation page.** The user edits its text, contact details, social
   links, images and logo. The permalink and hiding the page stay admin-only.
 - **Gallery.** Organisation users upload and pick images; deleting and
@@ -39,6 +43,11 @@ backend knows one role and no user records.
   changed password cuts existing sessions off at the next request.
 - **Permalink changes follow through.** Renaming an organisation also
   updates the organisation slug on its users' accounts.
+
+Added after the first live test on 15 October 2026: account deletion, and
+the redirect from the public submission form. The first tester used the
+header's "Evenement indienen" button while signed in and her event went
+into the queue.
 
 Not in scope: projects and blog posts for organisation users; venue creation
 by organisation users (the admin creates venues first); email sending of any
@@ -62,7 +71,8 @@ None.
 - `user-roles-approval`: requirements **Roles and permissions** and
   **Organisation page ownership** reworded for the organisation account (one
   organisation, direct publishing); **Submission approval queue** narrowed to
-  public submissions; new requirements **Event ownership by primary
+  public submissions, with a signed-in organisation sent to its own form;
+  new requirements **Event ownership by primary
   organiser**, **Account management by the administrator**, **Signing in with
   an account** and **Session validity**.
 - `editorial-backend`: new requirements **Scoped backend for an organisation
@@ -85,6 +95,8 @@ None.
   event and organiser forms, lists filtered by scope, admin-only pages kept
   admin-only; new Gebruikers and Wachtwoord pages; `changePermalink` rewrites
   user documents.
+- `src/app/evenement-indienen/`: the page and its action read the session
+  and send an organisation account to `/beheer/nieuw/evenement`.
 - `src/components/admin/admin-nav.tsx`: navigation per role.
 - No migration of existing content: events already carry a primary
   organiser, and no user documents exist yet.

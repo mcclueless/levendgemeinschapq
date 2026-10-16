@@ -9,6 +9,7 @@ import { listContent } from "@/content/admin";
 import { PASSWORD_MIN_LENGTH } from "@/lib/password";
 import {
   createUserAction,
+  deleteUserAction,
   resetUserPasswordAction,
   setUserDisabledAction,
 } from "@/app/beheer/actions";
@@ -21,6 +22,7 @@ const MESSAGE: Record<string, string> = {
   "wachtwoord-gereset": "Wachtwoord gereset. Geef het nieuwe wachtwoord persoonlijk door.",
   uitgeschakeld: "Account uitgeschakeld. Een lopende sessie stopt bij de volgende pagina.",
   ingeschakeld: "Account weer ingeschakeld.",
+  verwijderd: "Account verwijderd. Een lopende sessie stopt bij de volgende pagina.",
 };
 
 const TZ = "Europe/Amsterdam";
@@ -28,8 +30,8 @@ const dayFmt = new Intl.DateTimeFormat("nl-NL", { day: "numeric", month: "short"
 
 /**
  * Organisation accounts (organisation-accounts D8): the administrator creates
- * them, resets their password and switches them off and on. Passwords are
- * handed over in person; nothing is sent.
+ * them, resets their password, switches them off and on, and deletes them.
+ * Passwords are handed over in person; nothing is sent.
  */
 export default async function UsersPage({
   searchParams,
@@ -146,6 +148,15 @@ export default async function UsersPage({
                       Uitschakelen
                     </ConfirmButton>
                   )}
+                </form>
+                <form action={deleteUserAction}>
+                  <input type="hidden" name="id" value={u.id} />
+                  <ConfirmButton
+                    message={`Het account van ${u.name} (${u.email}) definitief verwijderen? Dit is niet ongedaan te maken. Uitschakelen bewaart het account.`}
+                    className={`${control} text-brand-strong`}
+                  >
+                    Verwijderen
+                  </ConfirmButton>
                 </form>
               </div>
             </li>

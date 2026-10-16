@@ -153,6 +153,7 @@ Guard per route and action (task 5.6, checked 14 October 2026):
 | `/beheer/gebruikers`, `queue`, `prullenbak`, `feeds`, `feeds/[id]/bewerken`, `import`, `nieuw/{locatie,organisator,blog,project}` | `requireAdmin` |
 | `/beheer/api/address-suggest` | `isAdmin` (the venue form is admin-only) |
 | `/beheer/login` | none |
+| `/evenement-indienen` (public) | `getSession`; an organisation session is sent to `/beheer/nieuw/evenement` (D12) |
 
 | Action | Guard |
 |---|---|
@@ -162,7 +163,8 @@ Guard per route and action (task 5.6, checked 14 October 2026):
 | `uploadMedia`, `uploadInlineImage` | any session |
 | `previewBody` | any session |
 | `changeOwnPasswordAction` | `requireSession`, organisation role |
-| `createUserAction`, `resetUserPasswordAction`, `setUserDisabledAction` | `assertAdmin` |
+| `createUserAction`, `resetUserPasswordAction`, `setUserDisabledAction`, `deleteUserAction` | `assertAdmin` |
+| `submitEvent` (public) | none; an organisation session is sent to the backend form (D12) |
 | every other action (`approve`/`reject`, venue/blog/project create and update, trash, permalink, public-banner hide/delete, media delete/bulk/details/replace, feeds) | `assertAdmin` |
 | `login`, `logout` | none |
 
@@ -170,9 +172,12 @@ Guard per route and action (task 5.6, checked 14 October 2026):
 
 `/beheer/gebruikers` (admin): table of accounts with organisation, state and
 created date; a create form (email, name, organisation select from
-`getOrganisers()`, password); per-row reset-password and disable/enable
-forms. `/beheer/wachtwoord` (organisation session): current password, new
-password twice. Both are ordinary server-action forms in the house style.
+`getOrganisers()`, password); per-row reset-password, disable/enable and
+delete forms, the delete behind a confirmation. Deleting removes the
+document; the next request of a session it still holds finds no user and is
+refused (D4), and `savedBy` stamps keep its email, being plain strings.
+`/beheer/wachtwoord` (organisation session): current password, new
+password twice. All are ordinary server-action forms in the house style.
 
 ### D9. Every backend write records its saver
 
@@ -196,6 +201,16 @@ editing it) and cannot be deleted anyway while events reference it.
 One form: email (optional, "alleen voor organisatie-accounts") and password.
 Email empty → the admin password path, unchanged. Email given → D2. Both
 paths set the same session cookie.
+
+### D12. The public submission form sends an organisation to its own form
+
+The header's "Evenement indienen" button is the same for everyone, and the
+first tester used it while signed in: her event went into the queue, which
+this change says must not happen. The public page and its action check the
+session; an organisation session is redirected to `/beheer/nieuw/evenement`,
+where the event is public at once. The header is not made session-aware,
+which would turn every public page dynamic; the administrator keeps the
+public form, to see what visitors see.
 
 ## Risks / Trade-offs
 
